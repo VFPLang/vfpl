@@ -1,0 +1,89 @@
+<program> = <body>
+
+<body> = ( <statement> )*
+
+<typed-ident> = IDENT "as" <type>
+
+<statement> = "please" ( <variable-init>
+                        | <variable-set>
+                        | <add>
+                        | <subtract>
+                        | <multiply>
+                        | <divide>
+                        | <mod>
+                        | <if>
+                        | <while>
+                        | <fn-decl>
+                        | <break>
+                        | <return>
+                        | <terminate>
+                        | <expr>
+                       ) "."
+
+<variable-init> = "initialize variable" <typed-ident> "with the value of" <expr>
+
+<variable-set> = "set the variable" <IDENT> "to the value of" <expr>
+
+
+# arithmetic
+
+<add> = "add" <expr> "to" <IDENT>
+
+<subtract> = "subtract" <expr> "from" <IDENT>
+
+<multiply> = "multiply" <expr> "with" <IDENT>
+
+<divide> = "divide" <expr> "by" <IDENT>
+
+<mod> = "take" <expr> "modulo" <IDENT>
+
+
+# control flow
+
+<if> = <if-part>
+       "please end check"
+
+<if-part> = "check whether" <expr> ", then do"
+                <body>
+            ( <else> )?
+
+
+<else> = "otherwise," ( <if-part> | <body> )
+
+<while> = "repeat while" <expr> "do"
+              <body>
+          "please end while"
+
+<break> = "break out of this while"
+
+# function
+
+<fn-decl> = "create function" IDENT "with" <params> <fn-return> "."
+                <body>
+            "please end function" IDENT
+
+<params> = (<no-params> | <single-params> | <multi-param>)
+
+<no-params> = "no parameters"
+
+<single-param> = "the parameter" <typed-ident>
+
+<multi-param> = "the parameters" <typed-ident> ( "," <typed-ident> )* "and" <typed-ident>
+
+<fn-return> = "that returns" type
+
+<return> = "return" <expr> "from the function"
+
+# other
+
+<terminate> = "go to sleep"
+
+# type
+
+<type> = IDENT | <nullable>
+
+<nullable> = "absent" | "null" | "no value" | "undefined"
+
+# literals
+
+<literal> = <nullable> | STRING | NUMBER | "true" | "false"
