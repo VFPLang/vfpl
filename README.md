@@ -16,7 +16,7 @@ please create function print_x with the parameter x as Integer that returns abse
     please return absent from the function.
 please end function print_x.
 
-please call print_x with the parameter x as x.
+please call print_x with the argument x as x.
 
 please create function add with the parameters a as Integer and b as Integer that returns Integer.
     please add b to A.
@@ -24,8 +24,8 @@ please create function add with the parameters a as Integer and b as Integer tha
 please end function add.
 
 please initialize variable add_result as Integer with the value of 
-    (please call add with the parameters 5 as a and 8 as b).
-    
+    (call add with the arguments 5 as a and 8 as b).
+
 please repeat while 5 is smaller than 6 do
     please print "I want to stop!!!" to the console.
     please break out of this while.

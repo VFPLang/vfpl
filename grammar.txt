@@ -87,3 +87,29 @@
 # literals
 
 <literal> = <nullable> | STRING | NUMBER | "true" | "false"
+
+# expressions
+
+<expr> = <comparison>
+
+<comparison> = <call-expr> ( ( "does not have the value"
+                          | "has the value"
+                          | "is greater than"
+                          | "is less than"
+                          | "is greater or equal than"
+                          | "is less or equal than"
+                         ) <call-expr> )?
+
+<call-expr> = <call> | <literal>
+
+# fn calls
+
+<call> = "call" IDENT "with" <call-args>
+
+<call-args> = <no-args> | <single-arg> | <multi-arg>
+
+<no-arg> = "no arguments"
+
+<single-arg> = "the argument" <expr> "as" IDENT
+
+<multi-arg> = "the arguments" <expr> "as" IDENT ( "," <expr> "as" IDENT ) "and" <expr> "as" IDENT
