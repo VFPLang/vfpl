@@ -86,7 +86,13 @@
 
 # literals
 
-<literal> = <nullable> | STRING | NUMBER | "true" | "false"
+<literal> = <nullable> | STRING | <number> | "true" | "false"
+
+<number> = <int> | <float>
+
+<int> = "-"? ( DIGIT )+
+
+<float> = "-"? ( DIGIT )+ ( "." ( DIGIT )+ )?
 
 # expressions
 
