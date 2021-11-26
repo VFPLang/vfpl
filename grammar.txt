@@ -108,6 +108,8 @@
 
 <call-expr> = <call> | <literal>
 
+<primary-expr> = "(" <expr> ")" | <literal>
+
 # fn calls
 
 <call> = "call" IDENT "with" <call-args>
