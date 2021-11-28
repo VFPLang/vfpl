@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use crate::error::Span;
 
 type Ident = String;
@@ -7,12 +5,14 @@ type Ident = String;
 pub type Program = Body;
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub struct Body {
     pub span: Span,
     pub stmts: Vec<Stmt>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub struct TypedIdent {
     pub span: Span,
     pub name: Ident,
@@ -20,6 +20,7 @@ pub struct TypedIdent {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub enum Stmt {
     VarInit(VarInit),
     VarSet(VarSet),
@@ -38,6 +39,7 @@ pub enum Stmt {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub struct VarInit {
     pub span: Span,
     pub name: TypedIdent,
@@ -45,6 +47,7 @@ pub struct VarInit {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub struct VarSet {
     pub span: Span,
     pub name: Ident,
@@ -52,6 +55,7 @@ pub struct VarSet {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub struct ArithmeticOp {
     pub span: Span,
     pub expr: Expr,
@@ -60,6 +64,7 @@ pub struct ArithmeticOp {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub enum ArithmeticOpKind {
     Add,
     Sub,
@@ -69,12 +74,14 @@ pub enum ArithmeticOpKind {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub struct If {
     pub span: Span,
     pub if_part: IfPart,
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub struct IfPart {
     pub span: Span,
     pub cond: Box<Expr>,
@@ -83,18 +90,21 @@ pub struct IfPart {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub struct Else {
     pub span: Span,
     pub kind: ElseKind,
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub enum ElseKind {
     ElseIf(Box<IfPart>),
     Else(Body),
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub struct While {
     pub span: Span,
     pub cond: Expr,
@@ -102,11 +112,13 @@ pub struct While {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub struct Break {
     pub span: Span,
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub struct FnDecl {
     pub span: Span,
     pub name: Ident,
@@ -116,18 +128,21 @@ pub struct FnDecl {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub struct Return {
     pub span: Span,
     pub expr: Expr,
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub struct Ty {
     span: Span,
     kind: TyKind,
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub enum TyKind {
     Name(Ident),
     Absent,
@@ -137,6 +152,7 @@ pub enum TyKind {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub enum Expr {
     Literal(Literal, Span),
     Comparison(Comparison),
@@ -144,6 +160,7 @@ pub enum Expr {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub enum Literal {
     Absent,
     Null,
@@ -157,6 +174,7 @@ pub enum Literal {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub struct Comparison {
     pub span: Span,
     pub lhs: Box<Expr>,
@@ -165,6 +183,7 @@ pub struct Comparison {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub enum ComparisonKind {
     NotEq,
     Eq,
@@ -175,6 +194,7 @@ pub enum ComparisonKind {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub struct Call {
     pub span: Span,
     pub fn_name: Ident,
@@ -182,6 +202,7 @@ pub struct Call {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
 pub struct CallArg {
     span: Span,
     expr: Expr,

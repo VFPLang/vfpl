@@ -2,8 +2,8 @@ use crate::error::Span;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
-    span: Span,
-    kind: TokenType,
+    pub span: Span,
+    pub kind: TokenType,
 }
 
 #[derive(Debug, Clone, PartialEq)]
