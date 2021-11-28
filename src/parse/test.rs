@@ -77,8 +77,71 @@ fn nullable_ty() {
         [Null].map(token),
         [Undefined].map(token),
     ];
-
     let parsed = tys.map(|tokens| parse(tokens, Parser::ty));
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn literal_call_expr() {
+    let tokens = [String("string".to_string())].map(token);
+    let parsed = parse(tokens, Parser::call_expr);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn literal_expr() {
+    let tokens = [String("string".to_string())].map(token);
+    let parsed = parse(tokens, Parser::expr);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn not_equal_expr() {
+    let tokens = [Absent, Does, Not, Have, The, Value, Null].map(token);
+    let parsed = parse(tokens, Parser::expr);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn equal_expr() {
+    let tokens = [Absent, Has, The, Value, Absent].map(token);
+    let parsed = parse(tokens, Parser::expr);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn greater_than_expr() {
+    let tokens = [Absent, Is, Greater, Than, Undefined].map(token);
+    let parsed = parse(tokens, Parser::expr);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn less_than_expr() {
+    let tokens = [Absent, Is, Less, Than, Undefined].map(token);
+    let parsed = parse(tokens, Parser::expr);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn greater_equal_than_expr() {
+    let tokens = [Absent, Is, Greater, Or, Equal, Than, Undefined].map(token);
+    let parsed = parse(tokens, Parser::expr);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn less_equal_than_expr() {
+    let tokens = [Absent, Is, Less, Or, Equal, Than, Undefined].map(token);
+    let parsed = parse(tokens, Parser::expr);
 
     insta::assert_debug_snapshot!(parsed);
 }

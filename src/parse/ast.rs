@@ -35,7 +35,7 @@ pub enum Stmt {
     Break(Break),
     Return(Return),
     Terminate(Span),
-    Expr,
+    Expr(Expr),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -157,6 +157,16 @@ pub enum Expr {
     Literal(Literal),
     Comparison(Comparison),
     Call(Call),
+}
+
+impl Expr {
+    pub fn span(&self) -> Span {
+        match self {
+            Expr::Literal(lit) => lit.span,
+            Expr::Comparison(comp) => comp.span,
+            Expr::Call(call) => call.span,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
