@@ -43,7 +43,7 @@ pub enum Stmt {
 pub struct VarInit {
     pub span: Span,
     pub name: TypedIdent,
-    pub expr: Expr,
+    pub init: Expr,
 }
 
 #[derive(Debug, Clone, PartialEq)]

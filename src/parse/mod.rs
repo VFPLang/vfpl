@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use crate::error::Span;
 use crate::lexer::tokens::Token;
 use crate::parse::ast::Program;

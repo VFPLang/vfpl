@@ -145,3 +145,50 @@ fn less_equal_than_expr() {
 
     insta::assert_debug_snapshot!(parsed);
 }
+
+#[test]
+fn typed_ident_absent() {
+    let tokens = [Ident("name".to_string()), As, Absent].map(token);
+    let parsed = parse(tokens, Parser::typed_ident);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn init_variable_string() {
+    let tokens = [
+        Initialize,
+        Variable,
+        Ident("name".to_string()),
+        As,
+        Ident("string".to_string()),
+        With,
+        The,
+        Value,
+        Of,
+        String("Ferris".to_string()),
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::var_init);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn set_variable_string() {
+    let tokens = [
+        Set,
+        The,
+        Variable,
+        Ident("name".to_string()),
+        To,
+        The,
+        Value,
+        Of,
+        String("Ferris".to_string()),
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::var_set);
+
+    insta::assert_debug_snapshot!(parsed);
+}

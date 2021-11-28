@@ -1,4 +1,5 @@
 use super::{ParseError, ParseResult, Parser};
+use crate::error::Span;
 use crate::lexer::tokens::TokenType;
 use crate::parse::ast::*;
 
@@ -6,7 +7,7 @@ type Todo = ();
 
 impl Parser {
     pub fn program(&mut self) -> ParseResult<Program> {
-        self.parse_rule(|_parser| todo!())
+        self.parse_rule(|parser| parser.body())
     }
 
     pub fn body(&mut self) -> ParseResult<Body> {
@@ -14,19 +15,65 @@ impl Parser {
     }
 
     pub fn typed_ident(&mut self) -> ParseResult<TypedIdent> {
-        self.parse_rule(|_parser| todo!())
+        self.parse_rule(|parser| {
+            let (ident, ident_span) = parser.ident()?;
+            parser.expect_kind(TokenType::As)?;
+            let ty = parser.ty()?;
+
+            Ok(TypedIdent {
+                span: ident_span.extend(ty.span),
+                name: ident,
+                ty,
+            })
+        })
     }
 
     pub fn stmt(&mut self) -> ParseResult<Stmt> {
         self.parse_rule(|_parser| todo!())
     }
 
-    pub fn var_init(&mut self) -> ParseResult<Todo> {
-        self.parse_rule(|_parser| todo!())
+    pub fn var_init(&mut self) -> ParseResult<VarInit> {
+        self.parse_rule(|parser| {
+            let init_span = parser.expect_kind(TokenType::Initialize)?;
+            parser.expect_kind(TokenType::Variable)?;
+            let name = parser.typed_ident()?;
+            parser.expect_kinds([
+                TokenType::With,
+                TokenType::The,
+                TokenType::Value,
+                TokenType::Of,
+            ])?;
+            let init = parser.expr()?;
+
+            Ok(VarInit {
+                span: init_span.extend(init.span()),
+                name,
+                init,
+            })
+        })
     }
 
-    pub fn var_set(&mut self) -> ParseResult<Todo> {
-        self.parse_rule(|_parser| todo!())
+    pub fn var_set(&mut self) -> ParseResult<VarSet> {
+        self.parse_rule(|parser| {
+            let set_span = parser.expect_kind(TokenType::Set)?;
+            parser.expect_kinds([TokenType::The, TokenType::Variable])?;
+            let (name, _) = parser.ident()?;
+
+            parser.expect_kinds([
+                TokenType::To,
+                TokenType::The,
+                TokenType::Value,
+                TokenType::Of,
+            ])?;
+
+            let expr = parser.expr()?;
+
+            Ok(VarSet {
+                span: set_span.extend(expr.span()),
+                name,
+                expr,
+            })
+        })
     }
 
     pub fn add(&mut self) -> ParseResult<Todo> {
@@ -257,6 +304,21 @@ impl Parser {
                 span: token.span,
                 kind: literal_kind,
             })
+        })
+    }
+
+    pub fn ident(&mut self) -> ParseResult<(String, Span)> {
+        self.parse_rule(|parser| {
+            let next = parser.next()?;
+
+            if let TokenType::Ident(name) = next.kind {
+                Ok((name, next.span))
+            } else {
+                Err(ParseError {
+                    span: next.span,
+                    message: format!("Expected identifier, found {}", next.kind),
+                })
+            }
         })
     }
 }
