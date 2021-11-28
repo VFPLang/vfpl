@@ -4,7 +4,7 @@ use crate::lexer::tokens::Token;
 use crate::parse::ast::{Body, Program, Stmt, TypedIdent};
 use std::fmt::{Display, Formatter};
 use std::iter::Peekable;
-use std::vec::IntoIter;
+use std::vec;
 
 pub mod ast;
 mod parser;
@@ -15,15 +15,21 @@ type ParseResult<T> = Result<T, ParseError>;
 
 #[derive(Debug)]
 struct Parser {
-    tokens: Peekable<IntoIter<Token>>,
+    tokens: Peekable<vec::IntoIter<Token>>,
     depth: usize,
 }
 
-pub fn parse(tokens: IntoIter<Token>) -> ParseResult<Program> {
-    let mut parser = Parser {
-        tokens: tokens.peekable(),
-        depth: 0,
-    };
+impl Parser {
+    fn new(tokens: vec::IntoIter<Token>) -> Self {
+        Parser {
+            tokens: tokens.peekable(),
+            depth: 0,
+        }
+    }
+}
+
+pub fn parse(tokens: vec::IntoIter<Token>) -> ParseResult<Program> {
+    let mut parser = Parser::new(tokens);
     parser.program()
 }
 

@@ -137,8 +137,8 @@ pub struct Return {
 #[derive(Debug, Clone, PartialEq)]
 
 pub struct Ty {
-    span: Span,
-    kind: TyKind,
+    pub span: Span,
+    pub kind: TyKind,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -154,14 +154,19 @@ pub enum TyKind {
 #[derive(Debug, Clone, PartialEq)]
 
 pub enum Expr {
-    Literal(Literal, Span),
+    Literal(Literal),
     Comparison(Comparison),
     Call(Call),
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct Literal {
+    pub span: Span,
+    pub kind: LiteralKind,
+}
 
-pub enum Literal {
+#[derive(Debug, Clone, PartialEq)]
+pub enum LiteralKind {
     Absent,
     Null,
     NoValue,

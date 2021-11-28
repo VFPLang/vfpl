@@ -78,21 +78,24 @@
 
 <terminate> = "go to sleep"
 
+
+# fn calls
+
+<call> = "call" IDENT "with" <call-args>
+
+<call-args> = <no-args> | <single-arg> | <multi-arg>
+
+<no-arg> = "no arguments"
+
+<single-arg> = "the argument" <expr> "as" IDENT
+
+<multi-arg> = "the arguments" <expr> "as" IDENT ( "," <expr> "as" IDENT ) "and" <expr> "as" IDENT
+
 # type
 
 <type> = IDENT | <nullable>
 
 <nullable> = "absent" | "null" | "no value" | "undefined"
-
-# literals
-
-<literal> = <nullable> | STRING | <number> | "true" | "false"
-
-<number> = <int> | <float>
-
-<int> = "-"? ( DIGIT )+
-
-<float> = "-"? ( DIGIT )+ ( "." ( DIGIT )+ )?
 
 # expressions
 
@@ -110,14 +113,14 @@
 
 <primary-expr> = "(" <expr> ")" | <literal>
 
-# fn calls
 
-<call> = "call" IDENT "with" <call-args>
 
-<call-args> = <no-args> | <single-arg> | <multi-arg>
+# literals
 
-<no-arg> = "no arguments"
+<literal> = <nullable> | STRING | <number> | "true" | "false"
 
-<single-arg> = "the argument" <expr> "as" IDENT
+<number> = <int> | <float>
 
-<multi-arg> = "the arguments" <expr> "as" IDENT ( "," <expr> "as" IDENT ) "and" <expr> "as" IDENT
+<int> = "-"? ( DIGIT )+
+
+<float> = "-"? ( DIGIT )+ ( "." ( DIGIT )+ )?

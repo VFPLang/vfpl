@@ -1,6 +1,6 @@
 use super::{ParseError, ParseResult, Parser};
 use crate::error::Span;
-use crate::lexer::tokens::Token;
+use crate::lexer::tokens::{Token, TokenType};
 use crate::parse::ast::*;
 
 type Todo = ();
@@ -31,11 +31,26 @@ impl Parser {
         })
     }
 
-    fn peek(&mut self) -> ParseResult<&Token> {
-        self.tokens.peek().ok_or_else(|| ParseError {
-            span: Span::dummy(),
-            message: "reached end of file".to_string(),
-        })
+    fn peek_kind(&mut self) -> ParseResult<&TokenType> {
+        self.tokens
+            .peek()
+            .map(|token| &token.kind)
+            .ok_or_else(|| ParseError {
+                span: Span::dummy(),
+                message: "reached end of file".to_string(),
+            })
+    }
+
+    fn expect_kind(&mut self, expected_kind: TokenType) -> ParseResult<()> {
+        let next = self.next()?;
+        if next.kind == expected_kind {
+            Ok(())
+        } else {
+            Err(ParseError {
+                span: next.span,
+                message: format!("expected {}, found {}", expected_kind, next.kind),
+            })
+        }
     }
 
     ////// rules
@@ -184,61 +199,7 @@ impl Parser {
         todo!()
     }
 
-    pub fn ty(&mut self) -> ParseResult<Todo> {
-        self.enter_parse_rule()?;
-        self.leave_parse_rule();
-        todo!()
-    }
-
-    pub fn nullable(&mut self) -> ParseResult<Todo> {
-        self.enter_parse_rule()?;
-        self.leave_parse_rule();
-        todo!()
-    }
-
-    pub fn literal(&mut self) -> ParseResult<Todo> {
-        self.enter_parse_rule()?;
-        self.leave_parse_rule();
-        todo!()
-    }
-
-    pub fn number(&mut self) -> ParseResult<Todo> {
-        self.enter_parse_rule()?;
-        self.leave_parse_rule();
-        todo!()
-    }
-
-    pub fn int(&mut self) -> ParseResult<Todo> {
-        self.enter_parse_rule()?;
-        self.leave_parse_rule();
-        todo!()
-    }
-
-    pub fn float(&mut self) -> ParseResult<Todo> {
-        self.enter_parse_rule()?;
-        self.leave_parse_rule();
-        todo!()
-    }
-
-    pub fn expr(&mut self) -> ParseResult<Todo> {
-        self.enter_parse_rule()?;
-        self.leave_parse_rule();
-        todo!()
-    }
-
-    pub fn comparison(&mut self) -> ParseResult<Todo> {
-        self.enter_parse_rule()?;
-        self.leave_parse_rule();
-        todo!()
-    }
-
-    pub fn primary_expr(&mut self) -> ParseResult<Todo> {
-        self.enter_parse_rule()?;
-        self.leave_parse_rule();
-        todo!()
-    }
-
-    pub fn call(&mut self) -> ParseResult<Todo> {
+    pub fn call_expr(&mut self) -> ParseResult<Expr> {
         self.enter_parse_rule()?;
         self.leave_parse_rule();
         todo!()
@@ -266,5 +227,103 @@ impl Parser {
         self.enter_parse_rule()?;
         self.leave_parse_rule();
         todo!()
+    }
+
+    pub fn ty(&mut self) -> ParseResult<Ty> {
+        self.enter_parse_rule()?;
+        let token = self.next()?;
+
+        let ty_kind = match token.kind {
+            TokenType::Absent => TyKind::Absent,
+            TokenType::Null => TyKind::Null,
+            TokenType::NoValue => TyKind::NoValue,
+            TokenType::Undefined => TyKind::Undefined,
+            TokenType::Ident(value) => TyKind::Name(value),
+            _ => {
+                return Err(ParseError {
+                    span: token.span,
+                    message: format!("Expected type, found {}", &token.kind),
+                })
+            }
+        };
+
+        self.leave_parse_rule();
+
+        Ok(Ty {
+            span: token.span,
+            kind: ty_kind,
+        })
+    }
+
+    pub fn expr(&mut self) -> ParseResult<Expr> {
+        self.enter_parse_rule()?;
+        self.leave_parse_rule();
+        todo!()
+    }
+
+    pub fn comparison(&mut self) -> ParseResult<Expr> {
+        self.enter_parse_rule()?;
+        self.leave_parse_rule();
+        todo!()
+    }
+
+    pub fn call(&mut self) -> ParseResult<Expr> {
+        self.enter_parse_rule()?;
+
+        let expr = match *self.peek_kind()? {
+            TokenType::Call => self.call_expr(),
+            _ => self.primary_expr(),
+        };
+
+        self.leave_parse_rule();
+
+        expr
+    }
+
+    pub fn primary_expr(&mut self) -> ParseResult<Expr> {
+        self.enter_parse_rule()?;
+
+        let expr = match self.peek_kind()? {
+            TokenType::ParenOpen => {
+                let expr = self.expr()?;
+                self.expect_kind(TokenType::ParenClose)?;
+                expr
+            }
+            _ => Expr::Literal(self.literal()?),
+        };
+
+        self.leave_parse_rule();
+
+        Ok(expr)
+    }
+
+    pub fn literal(&mut self) -> ParseResult<Literal> {
+        self.enter_parse_rule()?;
+        let token = self.next()?;
+
+        let literal_kind = match token.kind {
+            TokenType::Absent => LiteralKind::Absent,
+            TokenType::Null => LiteralKind::Null,
+            TokenType::NoValue => LiteralKind::NoValue,
+            TokenType::Undefined => LiteralKind::Undefined,
+            TokenType::True => LiteralKind::True,
+            TokenType::False => LiteralKind::False,
+            TokenType::String(value) => LiteralKind::String(value),
+            TokenType::Int(value) => LiteralKind::Int(value),
+            TokenType::Float(value) => LiteralKind::Float(value),
+            _ => {
+                return Err(ParseError {
+                    span: token.span,
+                    message: format!("Expected literal, found {}", &token.kind),
+                })
+            }
+        };
+
+        self.leave_parse_rule();
+
+        Ok(Literal {
+            span: token.span,
+            kind: literal_kind,
+        })
     }
 }

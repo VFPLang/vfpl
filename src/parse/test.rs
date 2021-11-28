@@ -14,7 +14,7 @@ fn token(kind: TokenType) -> Token {
     }
 }
 
-fn parse<T, F, R>(tokens: T, f: F) -> R
+fn parse<T, F, R>(tokens: T, parse_rule_fn: F) -> R
 where
     T: Into<Vec<Token>>,
     F: FnOnce(&mut Parser) -> R,
@@ -24,8 +24,7 @@ where
         tokens: vec.into_iter().peekable(),
         depth: 0,
     };
-    let result = f(&mut parser);
-    result
+    parse_rule_fn(&mut parser)
 }
 
 //// tests
@@ -36,9 +35,50 @@ fn it_works() {
     insta::assert_debug_snapshot!(snap);
 }
 
-// #[test]
-// fn single_string_literal() {
-//     let tokens = [String("string".to_string())].map(token);
-//     let string = parse(tokens, Parser::literal);
-//     insta::assert_debug_snapshot!(string);
-// }
+#[test]
+fn single_string_literal() {
+    let tokens = [String("string".to_string())].map(token);
+    let parsed = parse(tokens, Parser::literal);
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn different_literals() {
+    let literals = [
+        [String("test".to_string())].map(token),
+        [Int(425)].map(token),
+        [Float(2465.67)].map(token),
+        [Absent].map(token),
+        [NoValue].map(token),
+        [Null].map(token),
+        [Undefined].map(token),
+        [True].map(token),
+        [False].map(token),
+    ];
+
+    let parsed = literals.map(|tokens| parse(tokens, Parser::literal));
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn ident_ty() {
+    let tokens = [Ident("Integer".to_string())].map(token);
+    let parsed = parse(tokens, Parser::ty);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn nullable_ty() {
+    let tys = [
+        [Absent].map(token),
+        [NoValue].map(token),
+        [Null].map(token),
+        [Undefined].map(token),
+    ];
+
+    let parsed = tys.map(|tokens| parse(tokens, Parser::ty));
+
+    insta::assert_debug_snapshot!(parsed);
+}
