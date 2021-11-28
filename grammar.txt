@@ -107,7 +107,7 @@
                           | "is less than"
                           | "is greater or equal than"
                           | "is less or equal than"
-                         ) <call-expr> )?
+                         ) <comparison> )?
 
 <call-expr> = <call> | <literal>
 

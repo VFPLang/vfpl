@@ -41,6 +41,14 @@ impl Parser {
             })
     }
 
+    fn try_consume_kind(&mut self, expected_kind: TokenType) -> ParseResult<Option<Token>> {
+        if self.peek_kind()? == &expected_kind {
+            Ok(Some(self.next()?))
+        } else {
+            Ok(None)
+        }
+    }
+
     fn expect_kind(&mut self, expected_kind: TokenType) -> ParseResult<()> {
         let next = self.next()?;
         if next.kind == expected_kind {
@@ -51,6 +59,13 @@ impl Parser {
                 message: format!("expected {}, found {}", expected_kind, next.kind),
             })
         }
+    }
+
+    fn expect_kinds<const N: usize>(&mut self, expected_kinds: [TokenType; N]) -> ParseResult<()> {
+        for kind in expected_kinds {
+            self.expect_kind(kind)?;
+        }
+        Ok(())
     }
 
     ////// rules
@@ -264,15 +279,58 @@ impl Parser {
     pub fn comparison(&mut self) -> ParseResult<Expr> {
         self.enter_parse_rule()?;
 
-        // let lhs = self.call_expr()?;
-        //
-        // match *self.peek_kind() {
-        //     TokenType::Does => {}
-        //     TokenType::Has => {}
-        //     TokenType::Is => {}
-        // }
+        let lhs = self.call_expr()?;
+
+        let rhs_kind = match *self.peek_kind()? {
+            TokenType::Does => {
+                self.expect_kinds([
+                    TokenType::Does,
+                    TokenType::Not,
+                    TokenType::Have,
+                    TokenType::The,
+                    TokenType::Value,
+                ])?;
+                Some((self.comparison()?, ComparisonKind::NotEq))
+            }
+            TokenType::Has => {
+                self.expect_kinds([TokenType::Has, TokenType::The, TokenType::Value])?;
+                Some((self.comparison()?, ComparisonKind::Eq))
+            }
+            TokenType::Is => {
+                self.expect_kind(TokenType::Is)?;
+
+                let comp_kind = if let Some(token) = self.try_consume_kind(TokenType::Greater)? {
+                    if let Some(token) = self.try_consume_kind(TokenType::Or)? {
+                        ComparisonKind::GreaterEq
+                    } else {
+                        ComparisonKind::Greater
+                    }
+                } else if let Some(token) = self.try_consume_kind(TokenType::Less)? {
+                    if let Some(token) = self.try_consume_kind(TokenType::Or)? {
+                        ComparisonKind::LessEq
+                    } else {
+                        ComparisonKind::Less
+                    }
+                } else {
+                    return Err(ParseError {
+                        span: todo!(),
+                        message: todo!(),
+                    });
+                };
+
+                Some((self.comparison()?, comp_kind))
+            }
+            _ => None,
+        };
 
         self.leave_parse_rule();
+
+        if let Some(rhs) = rhs_kind {
+            todo!()
+        } else {
+            todo!()
+        }
+
         todo!()
     }
 
