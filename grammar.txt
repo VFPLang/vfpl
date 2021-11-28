@@ -89,7 +89,7 @@
 
 <single-arg> = "the argument" <expr> "as" IDENT
 
-<multi-arg> = "the arguments" <expr> "as" IDENT ( "," <expr> "as" IDENT ) "and" <expr> "as" IDENT
+<multi-arg> = "the arguments" <expr> "as" IDENT ( "," <expr> "as" IDENT )* "and" <expr> "as" IDENT
 
 # type
 

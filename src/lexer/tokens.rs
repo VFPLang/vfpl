@@ -49,6 +49,7 @@ pub enum TokenType {
     No,
     Argument,
     Arguments,
+    And,
     Go,
     Sleep,
     Absent,
@@ -150,6 +151,7 @@ impl Display for TokenType {
             TokenType::ParenOpen => f.write_str("`(`"),
             TokenType::ParenClose => f.write_str("`)`"),
             TokenType::Comma => f.write_str("`,`"),
+            TokenType::And => f.write_str("keyword `and`"),
         }
     }
 }

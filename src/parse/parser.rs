@@ -1,6 +1,6 @@
 use super::{ParseError, ParseResult, Parser};
 use crate::error::Span;
-use crate::lexer::tokens::TokenType;
+use crate::lexer::tokens::{Token, TokenType};
 use crate::parse::ast::*;
 
 type Todo = ();
@@ -204,28 +204,112 @@ impl Parser {
         self.parse_rule(|_parser| todo!())
     }
 
-    pub fn terminate(&mut self) -> ParseResult<Todo> {
-        self.parse_rule(|_parser| todo!())
+    pub fn terminate(&mut self) -> ParseResult<Terminate> {
+        self.parse_rule(|parser| {
+            let go_span = parser.expect_kind(TokenType::Go)?;
+            parser.expect_kind(TokenType::To)?;
+            let sleep_span = parser.expect_kind(TokenType::Sleep)?;
+
+            Ok(Terminate {
+                span: go_span.extend(sleep_span),
+            })
+        })
     }
 
-    pub fn call(&mut self) -> ParseResult<Expr> {
-        self.parse_rule(|_parser| todo!())
+    pub fn call(&mut self) -> ParseResult<Call> {
+        self.parse_rule(|parser| {
+            let call_span = parser.expect_kind(TokenType::Call)?;
+            let (fn_name, _) = parser.ident()?;
+
+            parser.expect_kind(TokenType::With)?;
+
+            let args = parser.call_args()?;
+
+            Ok(Call {
+                span: call_span.extend(args.span),
+                fn_name,
+                args,
+            })
+        })
     }
 
-    pub fn call_args(&mut self) -> ParseResult<Todo> {
-        self.parse_rule(|_parser| todo!())
+    pub fn call_args(&mut self) -> ParseResult<CallArgs> {
+        self.parse_rule(|parser| {
+            if let Some(token) = parser.try_consume_kind(TokenType::No)? {
+                let arguments_span = parser.expect_kind(TokenType::Arguments)?;
+                Ok(CallArgs {
+                    span: token.span.extend(arguments_span),
+                    args: vec![],
+                })
+            } else if let Some(the_token) = parser.try_consume_kind(TokenType::The)? {
+                if parser.try_consume_kind(TokenType::Argument)?.is_some() {
+                    let arg = parser.call_arg()?;
+
+                    Ok(CallArgs {
+                        span: the_token.span.extend(arg.span),
+                        args: vec![arg],
+                    })
+                } else if let Some(arg_token) = parser.try_consume_kind(TokenType::Arguments)? {
+                    parser.multi_args(the_token, arg_token)
+                } else {
+                    let next = parser.peek()?;
+                    Err(ParseError {
+                        span: next.span,
+                        message: format!(
+                            "Expected `argument(s)` after `the` in function call, got {}",
+                            next.kind
+                        ),
+                    })
+                }
+            } else {
+                let next = parser.peek()?;
+                Err(ParseError {
+                    span: next.span,
+                    message: format!(
+                        "Expected `no` or `the` after `with` in function call, got {}",
+                        next.kind
+                    ),
+                })
+            }
+        })
     }
 
-    pub fn no_arg(&mut self) -> ParseResult<Todo> {
-        self.parse_rule(|_parser| todo!())
+    pub fn multi_args(&mut self, the_token: Token, _arg_token: Token) -> ParseResult<CallArgs> {
+        self.parse_rule(|parser| {
+            let arg = parser.call_arg()?;
+
+            let mut call_args = vec![arg];
+
+            while parser.try_consume_kind(TokenType::Comma)?.is_some() {
+                let arg = parser.call_arg()?;
+                call_args.push(arg);
+            }
+
+            parser.expect_kind(TokenType::And)?;
+
+            let last_arg = parser.call_arg()?;
+            let last_arg_span = last_arg.span;
+            call_args.push(last_arg);
+
+            Ok(CallArgs {
+                span: the_token.span.extend(last_arg_span),
+                args: call_args,
+            })
+        })
     }
 
-    pub fn single_arg(&mut self) -> ParseResult<Todo> {
-        self.parse_rule(|_parser| todo!())
-    }
+    pub fn call_arg(&mut self) -> ParseResult<CallArg> {
+        self.parse_rule(|parser| {
+            let first_arg_val = parser.expr()?;
+            parser.expect_kind(TokenType::As)?;
+            let (first_name, first_name_span) = parser.ident()?;
 
-    pub fn multi_arg(&mut self) -> ParseResult<Todo> {
-        self.parse_rule(|_parser| todo!())
+            Ok(CallArg {
+                span: first_arg_val.span().extend(first_name_span),
+                expr: first_arg_val,
+                name: first_name,
+            })
+        })
     }
 
     pub fn ty(&mut self) -> ParseResult<Ty> {

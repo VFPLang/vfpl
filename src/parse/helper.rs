@@ -22,6 +22,13 @@ impl Parser {
         })
     }
 
+    pub(super) fn peek(&mut self) -> ParseResult<&Token> {
+        self.tokens.peek().ok_or_else(|| ParseError {
+            span: Span::dummy(),
+            message: "reached end of file".to_string(),
+        })
+    }
+
     pub(super) fn peek_kind(&mut self) -> ParseResult<&TokenType> {
         self.tokens
             .peek()

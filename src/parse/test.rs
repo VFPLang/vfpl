@@ -232,3 +232,85 @@ fn mod_number() {
 
     insta::assert_debug_snapshot!(parsed);
 }
+
+#[test]
+fn terminate() {
+    let tokens = [Go, To, Sleep].map(token);
+    let parsed = parse(tokens, Parser::terminate);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn call_no_args() {
+    let tokens = [Call, Ident("run".to_string()), With, No, Arguments].map(token);
+    let parsed = parse(tokens, Parser::call);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn call_single_arg() {
+    let tokens = [
+        Call,
+        Ident("print".to_string()),
+        With,
+        The,
+        Argument,
+        Int(0),
+        As,
+        Ident("printable".to_string()),
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::call);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn call_two_args() {
+    let tokens = [
+        Call,
+        Ident("add".to_string()),
+        With,
+        The,
+        Arguments,
+        Int(2),
+        As,
+        Ident("a".to_string()),
+        And,
+        Int(3),
+        As,
+        Ident("b".to_string()),
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::call);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn call_three_args() {
+    let tokens = [
+        Call,
+        Ident("ternary".to_string()),
+        With,
+        The,
+        Arguments,
+        True,
+        As,
+        Ident("cond".to_string()),
+        Comma,
+        Int(0),
+        As,
+        Ident("then".to_string()),
+        And,
+        Int(3),
+        As,
+        Ident("else".to_string()),
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::call);
+
+    insta::assert_debug_snapshot!(parsed);
+}
