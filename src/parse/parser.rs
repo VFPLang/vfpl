@@ -263,6 +263,15 @@ impl Parser {
 
     pub fn comparison(&mut self) -> ParseResult<Expr> {
         self.enter_parse_rule()?;
+
+        // let lhs = self.call_expr()?;
+        //
+        // match *self.peek_kind() {
+        //     TokenType::Does => {}
+        //     TokenType::Has => {}
+        //     TokenType::Is => {}
+        // }
+
         self.leave_parse_rule();
         todo!()
     }

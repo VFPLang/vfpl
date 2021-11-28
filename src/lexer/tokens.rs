@@ -57,6 +57,9 @@ pub enum TokenType {
     Undefined,
     True,
     False,
+    Does,
+    Has,
+    Is,
 
     // literals
     String(String),
