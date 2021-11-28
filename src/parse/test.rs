@@ -3,11 +3,11 @@
 use crate::error::Span;
 use crate::lexer::tokens::{
     Token,
-    TokenType::{self, *},
+    TokenKind::{self, *},
 };
 use crate::parse::Parser;
 
-fn token(kind: TokenType) -> Token {
+fn token(kind: TokenKind) -> Token {
     Token {
         span: Span::dummy(),
         kind,

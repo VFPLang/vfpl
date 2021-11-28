@@ -1,5 +1,5 @@
 use crate::error::Span;
-use crate::lexer::tokens::{Token, TokenType};
+use crate::lexer::tokens::{Token, TokenKind};
 use crate::parse::{ParseError, ParseResult, Parser};
 
 impl Parser {
@@ -29,7 +29,7 @@ impl Parser {
         })
     }
 
-    pub(super) fn peek_kind(&mut self) -> ParseResult<&TokenType> {
+    pub(super) fn peek_kind(&mut self) -> ParseResult<&TokenKind> {
         self.tokens
             .peek()
             .map(|token| &token.kind)
@@ -41,7 +41,7 @@ impl Parser {
 
     pub(super) fn try_consume_kind(
         &mut self,
-        expected_kind: TokenType,
+        expected_kind: TokenKind,
     ) -> ParseResult<Option<Token>> {
         if self.peek_kind()? == &expected_kind {
             Ok(Some(self.next()?))
@@ -50,7 +50,7 @@ impl Parser {
         }
     }
 
-    pub(super) fn expect_kind(&mut self, expected_kind: TokenType) -> ParseResult<Span> {
+    pub(super) fn expect_kind(&mut self, expected_kind: TokenKind) -> ParseResult<Span> {
         let next = self.next()?;
         if next.kind == expected_kind {
             Ok(next.span)
@@ -64,7 +64,7 @@ impl Parser {
 
     pub(super) fn expect_kinds<const N: usize>(
         &mut self,
-        expected_kinds: [TokenType; N],
+        expected_kinds: [TokenKind; N],
     ) -> ParseResult<()> {
         for kind in expected_kinds {
             self.expect_kind(kind)?;
