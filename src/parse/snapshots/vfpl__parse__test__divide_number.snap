@@ -1,0 +1,26 @@
+---
+source: src/parse/test.rs
+expression: parsed
+
+---
+Ok(
+    ArithmeticOp {
+        span: Span {
+            start: 0,
+            end: 0,
+        },
+        expr: Literal(
+            Literal {
+                span: Span {
+                    start: 0,
+                    end: 0,
+                },
+                kind: Int(
+                    2,
+                ),
+            },
+        ),
+        var: "counter",
+        kind: Div,
+    },
+)

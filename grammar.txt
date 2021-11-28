@@ -31,11 +31,11 @@
 
 <subtract> = "subtract" <expr> "from" <IDENT>
 
-<multiply> = "multiply" <expr> "with" <IDENT>
+<multiply> = "multiply" <IDENT> "with" <expr>
 
-<divide> = "divide" <expr> "by" <IDENT>
+<divide> = "divide" <IDENT> "by" <expr>
 
-<mod> = "take" <expr> "modulo" <IDENT>
+<mod> = "take" <IDENT> "modulo" <expr>
 
 
 # control flow

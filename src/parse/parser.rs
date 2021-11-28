@@ -76,31 +76,91 @@ impl Parser {
         })
     }
 
-    pub fn add(&mut self) -> ParseResult<Todo> {
-        self.parse_rule(|_parser| todo!())
+    pub fn add(&mut self) -> ParseResult<ArithmeticOp> {
+        self.parse_rule(|parser| {
+            let op_span = parser.expect_kind(TokenType::Add)?;
+            let expr = parser.expr()?;
+            parser.expect_kind(TokenType::To)?;
+            let (var, var_span) = parser.ident()?;
+
+            Ok(ArithmeticOp {
+                span: op_span.extend(var_span),
+                expr,
+                var,
+                kind: ArithmeticOpKind::Add,
+            })
+        })
     }
 
-    pub fn subtract(&mut self) -> ParseResult<Todo> {
-        self.parse_rule(|_parser| todo!())
+    pub fn subtract(&mut self) -> ParseResult<ArithmeticOp> {
+        self.parse_rule(|parser| {
+            let op_span = parser.expect_kind(TokenType::Sub)?;
+            let expr = parser.expr()?;
+            parser.expect_kind(TokenType::From)?;
+            let (var, var_span) = parser.ident()?;
+
+            Ok(ArithmeticOp {
+                span: op_span.extend(var_span),
+                expr,
+                var,
+                kind: ArithmeticOpKind::Sub,
+            })
+        })
     }
 
-    pub fn multiply(&mut self) -> ParseResult<Todo> {
-        self.parse_rule(|_parser| todo!())
+    pub fn multiply(&mut self) -> ParseResult<ArithmeticOp> {
+        self.parse_rule(|parser| {
+            let op_span = parser.expect_kind(TokenType::Mul)?;
+            let (var, var_span) = parser.ident()?;
+            parser.expect_kind(TokenType::With)?;
+            let expr = parser.expr()?;
+
+            Ok(ArithmeticOp {
+                span: op_span.extend(var_span),
+                expr,
+                var,
+                kind: ArithmeticOpKind::Mul,
+            })
+        })
     }
 
-    pub fn divide(&mut self) -> ParseResult<Todo> {
-        self.parse_rule(|_parser| todo!())
+    pub fn divide(&mut self) -> ParseResult<ArithmeticOp> {
+        self.parse_rule(|parser| {
+            let op_span = parser.expect_kind(TokenType::Div)?;
+            let (var, var_span) = parser.ident()?;
+            parser.expect_kind(TokenType::By)?;
+            let expr = parser.expr()?;
+
+            Ok(ArithmeticOp {
+                span: op_span.extend(var_span),
+                expr,
+                var,
+                kind: ArithmeticOpKind::Div,
+            })
+        })
     }
 
-    pub fn modulo(&mut self) -> ParseResult<Todo> {
-        self.parse_rule(|_parser| todo!())
+    pub fn modulo(&mut self) -> ParseResult<ArithmeticOp> {
+        self.parse_rule(|parser| {
+            let op_span = parser.expect_kind(TokenType::Take)?;
+            let (var, var_span) = parser.ident()?;
+            parser.expect_kind(TokenType::Mod)?;
+            let expr = parser.expr()?;
+
+            Ok(ArithmeticOp {
+                span: op_span.extend(var_span),
+                expr,
+                var,
+                kind: ArithmeticOpKind::Mod,
+            })
+        })
     }
 
     pub fn if_stmt(&mut self) -> ParseResult<Todo> {
         self.parse_rule(|_parser| todo!())
     }
 
-    pub fn if_parserart(&mut self) -> ParseResult<Todo> {
+    pub fn if_part(&mut self) -> ParseResult<Todo> {
         self.parse_rule(|_parser| todo!())
     }
 
@@ -124,11 +184,11 @@ impl Parser {
         self.parse_rule(|_parser| todo!())
     }
 
-    pub fn no_parserarams(&mut self) -> ParseResult<Todo> {
+    pub fn no_params(&mut self) -> ParseResult<Todo> {
         self.parse_rule(|_parser| todo!())
     }
 
-    pub fn single_parseraram(&mut self) -> ParseResult<Todo> {
+    pub fn single_param(&mut self) -> ParseResult<Todo> {
         self.parse_rule(|_parser| todo!())
     }
 
