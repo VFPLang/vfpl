@@ -11,11 +11,13 @@ use crate::lexer::helper::compute_keyword;
 use crate::lexer::tokens::TokenKind;
 
 mod helper;
+mod test;
 pub mod tokens;
 
-type LexerResult<T> = Result<T, LexerError>;
+pub type LexerResult<T> = Result<T, LexerError>;
 
-enum LexerError {
+#[derive(Debug)]
+pub enum LexerError {
     UnexpectedEOF,
     IntParseError(Span),
     FloatParseError(Span),
@@ -23,7 +25,8 @@ enum LexerError {
     InvalidEscapeCharacter(Span),
 }
 
-struct Lexer<'a> {
+#[derive(Debug)]
+pub struct Lexer<'a> {
     char_indices: Peekable<CharIndices<'a>>,
 }
 
@@ -69,9 +72,9 @@ impl Lexer<'_> {
                 break;
             }
         }
-        let end = idx + identifier.len();
+        let end = identifier.len();
         let kind = compute_keyword(&identifier).unwrap_or(TokenKind::Ident(identifier));
-        Ok(Token::new(kind, idx, end))
+        Ok(Token::new_from_len(kind, idx, end))
     }
 
     fn compute_number(&mut self, char: char, idx: usize) -> LexerResult<Token> {
@@ -109,30 +112,32 @@ impl Lexer<'_> {
                         Err(LexerError::IntParseError(Span::start_end(idx, i)))
                     };
                 }
-                _ => {
-                    return if is_decimal {
-                        Ok(Token::new(
-                            TokenKind::Float(number.parse().map_err(|_| {
-                                LexerError::FloatParseError(Span::start_end(idx, i))
-                            })?),
-                            idx,
-                            i,
-                        ))
-                    } else {
-                        Ok(Token::new(
-                            TokenKind::Int(
-                                number.parse().map_err(|_| {
-                                    LexerError::IntParseError(Span::start_end(idx, i))
-                                })?,
-                            ),
-                            idx,
-                            i,
-                        ))
-                    };
-                }
+                _ => break,
             }
         }
-        Err(LexerError::UnexpectedEOF)
+
+        let len = number.len();
+        if is_decimal {
+            Ok(Token::new_from_len(
+                TokenKind::Float(
+                    number
+                        .parse()
+                        .map_err(|_| LexerError::FloatParseError(Span::start_len(idx, len)))?,
+                ),
+                idx,
+                number.len(),
+            ))
+        } else {
+            Ok(Token::new_from_len(
+                TokenKind::Int(
+                    number
+                        .parse()
+                        .map_err(|_| LexerError::IntParseError(Span::start_len(idx, len)))?,
+                ),
+                idx,
+                len,
+            ))
+        }
     }
 
     fn compute_string(&mut self, start: usize) -> LexerResult<Token> {
