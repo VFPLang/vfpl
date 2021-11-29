@@ -199,6 +199,7 @@ name = "vfpl"
 version = "0.1.0"
 dependencies = [
  "insta",
+ "unicode-xid",
 ]
 
 [[package]]

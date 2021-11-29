@@ -1,5 +1,6 @@
-use crate::error::Span;
 use std::fmt::{Display, Formatter};
+
+use crate::error::Span;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
@@ -152,6 +153,23 @@ impl Display for TokenKind {
             TokenKind::ParenClose => f.write_str("`)`"),
             TokenKind::Comma => f.write_str("`,`"),
             TokenKind::And => f.write_str("keyword `and`"),
+        }
+    }
+}
+
+impl Token {
+    /// Token with a Span of one character
+    pub fn new_from_single(kind: TokenKind, idx: usize) -> Self {
+        Token {
+            kind,
+            span: Span::single(idx),
+        }
+    }
+    
+    pub fn new(kind: TokenKind, start: usize, end: usize) -> Self {
+        Token {
+            kind,
+            span: Span::start_end(start, end)
         }
     }
 }
