@@ -29,6 +29,16 @@ impl Parser {
         })
     }
 
+    pub(super) fn peek_nth_kind(&mut self, n: usize) -> ParseResult<&TokenKind> {
+        self.tokens
+            .peek_nth(n)
+            .map(|token| &token.kind)
+            .ok_or_else(|| ParseError {
+                span: Span::dummy(),
+                message: "reached end of file".to_string(),
+            })
+    }
+
     pub(super) fn peek_kind(&mut self) -> ParseResult<&TokenKind> {
         self.tokens
             .peek()

@@ -20,10 +20,7 @@ where
     F: FnOnce(&mut Parser) -> R,
 {
     let vec = tokens.into();
-    let mut parser = Parser {
-        tokens: vec.into_iter().peekable(),
-        depth: 0,
-    };
+    let mut parser = Parser::new(vec.into_iter());
     parse_rule_fn(&mut parser)
 }
 
