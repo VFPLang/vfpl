@@ -62,9 +62,12 @@ this is pain.
 please 4.
 ```
 
-The language is case-insensitive, but it's a convention to refer to them in UPPERCASE when mutating them.
+The language is case-insensitive, but it's a convention to refer to variables in UPPERCASE when mutating them.
 
-`please fuck off.` terminates the program
+`please initialize the variable x as Integer with the value of 5.`  
+`please add 1 to X.`
+
+`please go to sleep.` terminates the program
 
 If the program ends but is not explicitly terminated, the Interpreter hangs and reminds the user of it's presence (the interpreter never sleeps unless asked to)
 
