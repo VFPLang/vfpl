@@ -1,4 +1,4 @@
-use crate::lexer::tokens::{Token, TokenKind};
+use crate::lexer::tokens::TokenKind;
 
 pub fn compute_keyword(identifier: &str) -> Option<TokenKind> {
     Some(match identifier {
