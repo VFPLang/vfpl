@@ -62,7 +62,10 @@ this is pain.
 please 4.
 ```
 
-The language is case-insensitive, but it's a convention to refer to them in UPPERCASE when mutating them.
+The language is case-insensitive, but it's a convention to refer to variables in UPPERCASE when mutating them.
+
+`please initialize the variable x as Integer with the value of 5.`  
+`please add 1 to X.`
 
 `please go to sleep.` terminates the program
 
