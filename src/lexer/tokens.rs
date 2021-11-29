@@ -176,4 +176,11 @@ impl Token {
             span: Span::start_end(start, end),
         }
     }
+    
+    pub fn new_from_len(kind: TokenKind, start: usize, end: usize) -> Self {
+        Token {
+            kind,
+            span: Span::start_len(start, end)
+        }
+    }
 }
