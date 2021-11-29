@@ -30,6 +30,7 @@ fn decimal_with_leading_zeros() {
 }
 
 #[test]
+#[ignore]
 fn decimal_with_alphabetical_char() {
     insta::assert_debug_snapshot!(lex("00001.as244"))
 }

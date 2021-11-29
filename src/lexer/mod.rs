@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::iter::Peekable;
 use std::option::Option::Some;
 use std::str::CharIndices;
@@ -11,6 +13,7 @@ use crate::lexer::helper::compute_keyword;
 use crate::lexer::tokens::TokenKind;
 
 mod helper;
+#[cfg(test)]
 mod test;
 pub mod tokens;
 

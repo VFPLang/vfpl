@@ -3,8 +3,6 @@ use crate::error::Span;
 use crate::lexer::tokens::{Token, TokenKind};
 use crate::parse::ast::*;
 
-type Todo = ();
-
 impl Parser {
     pub fn program(&mut self) -> ParseResult<Program> {
         self.parse_rule(Parser::body)
@@ -294,26 +292,52 @@ impl Parser {
     }
 
     pub fn fn_decl(&mut self) -> ParseResult<FnDecl> {
+        self.parse_rule(|parser| {
+            let create_span = parser.expect_kind(TokenKind::Create)?;
+            parser.expect_kind(TokenKind::Function)?;
+
+            let (fn_name, _) = parser.ident()?;
+
+            parser.expect_kind(TokenKind::With)?;
+
+            let params = parser.params()?;
+            let fn_return = parser.fn_return()?;
+
+            let body = parser.body()?;
+
+            parser.expect_kinds([TokenKind::Please, TokenKind::End, TokenKind::Function])?;
+
+            let (close_name, end_span) = parser.ident()?;
+
+            if fn_name != close_name {
+                return Err(ParseError {
+                    span: end_span,
+                    message: format!(
+                        "End name '{}' does not match function name '{}'",
+                        close_name, fn_name
+                    ),
+                });
+            }
+
+            Ok(FnDecl {
+                span: create_span.extend(end_span),
+                name: fn_name,
+                params,
+                fn_return,
+                body,
+            })
+        })
+    }
+
+    pub fn params(&mut self) -> ParseResult<FnParams> {
         self.parse_rule(|_parser| todo!())
     }
 
-    pub fn params(&mut self) -> ParseResult<Todo> {
+    pub fn multi_param(&mut self) -> ParseResult<FnParams> {
         self.parse_rule(|_parser| todo!())
     }
 
-    pub fn no_params(&mut self) -> ParseResult<Todo> {
-        self.parse_rule(|_parser| todo!())
-    }
-
-    pub fn single_param(&mut self) -> ParseResult<Todo> {
-        self.parse_rule(|_parser| todo!())
-    }
-
-    pub fn multi_param(&mut self) -> ParseResult<Todo> {
-        self.parse_rule(|_parser| todo!())
-    }
-
-    pub fn fn_return(&mut self) -> ParseResult<Todo> {
+    pub fn fn_return(&mut self) -> ParseResult<FnReturn> {
         self.parse_rule(|_parser| todo!())
     }
 
@@ -530,7 +554,7 @@ impl Parser {
 
     pub fn call_expr(&mut self) -> ParseResult<Expr> {
         self.parse_rule(|parser| match *parser.peek_kind()? {
-            TokenKind::Call => parser.call_expr(),
+            TokenKind::Call => Ok(Expr::Call(parser.call()?)),
             _ => parser.primary_expr(),
         })
     }

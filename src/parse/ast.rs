@@ -138,9 +138,21 @@ pub struct Break {
 pub struct FnDecl {
     pub span: Span,
     pub name: Ident,
-    pub params: Vec<TypedIdent>,
-    pub return_ty: Ty,
+    pub params: FnParams,
+    pub fn_return: FnReturn,
     pub body: Body,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct FnParams {
+    pub span: Span,
+    pub params: Vec<TypedIdent>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct FnReturn {
+    pub span: Span,
+    pub ty: Ty,
 }
 
 #[derive(Debug, Clone, PartialEq)]
