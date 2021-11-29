@@ -1,0 +1,13 @@
+---
+source: src/lexer/test.rs
+expression: "lex(\"12a\")"
+
+---
+Err(
+    IntParseError(
+        Span {
+            start: 0,
+            end: 2,
+        },
+    ),
+)

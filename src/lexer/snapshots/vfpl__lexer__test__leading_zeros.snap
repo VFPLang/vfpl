@@ -1,0 +1,18 @@
+---
+source: src/lexer/test.rs
+expression: "lex(\"000012\")"
+
+---
+Ok(
+    [
+        Token {
+            span: Span {
+                start: 0,
+                end: 6,
+            },
+            kind: Int(
+                12,
+            ),
+        },
+    ],
+)
