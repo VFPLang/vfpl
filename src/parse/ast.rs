@@ -35,6 +35,27 @@ pub enum Stmt {
     Expr(Expr),
 }
 
+impl Stmt {
+    pub fn span(&self) -> Span {
+        match self {
+            Stmt::VarInit(init) => init.span,
+            Stmt::VarSet(set) => set.span,
+            Stmt::Add(add) => add.span,
+            Stmt::Sub(bin_op) => bin_op.span,
+            Stmt::Mul(bin_op) => bin_op.span,
+            Stmt::Div(bin_op) => bin_op.span,
+            Stmt::Mod(bin_op) => bin_op.span,
+            Stmt::If(check) => check.span,
+            Stmt::While(while_) => while_.span,
+            Stmt::FnDecl(decl) => decl.span,
+            Stmt::Break(brk) => brk.span,
+            Stmt::Return(ret) => ret.span,
+            Stmt::Terminate(term) => term.span,
+            Stmt::Expr(expr) => expr.span(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct VarInit {
     pub span: Span,

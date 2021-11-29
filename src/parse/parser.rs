@@ -11,11 +11,28 @@ impl Parser {
     }
 
     pub fn body(&mut self) -> ParseResult<Body> {
-        self.parse_rule(|_parser| todo!())
-    }
+        self.parse_rule(|parser| {
+            let mut stmts = Vec::new();
 
-    pub fn block(&mut self) -> ParseResult<Body> {
-        self.parse_rule(|_parser| todo!())
+            loop {
+                if matches!(parser.peek_kind(), Ok(TokenKind::Please))
+                    && matches!(parser.peek_nth_kind(1), Ok(TokenKind::End))
+                {
+                    break;
+                }
+
+                let next = parser.stmt()?;
+                stmts.push(next);
+            }
+
+            let span = stmts
+                .first()
+                .map(|stmt| stmt.span())
+                .and_then(|fst_span| stmts.last().map(|last| fst_span.extend(last.span())))
+                .unwrap_or_else(Span::dummy);
+
+            Ok(Body { span, stmts })
+        })
     }
 
     pub fn typed_ident(&mut self) -> ParseResult<TypedIdent> {

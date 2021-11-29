@@ -26,14 +26,26 @@ impl Span {
         }
     }
 
-    /// Create an empty span, useful for testing
+    /// Create an empty span
     pub fn dummy() -> Self {
         Self { start: 0, end: 0 }
+    }
+
+    /// Checks whether the Span is the dummy span
+    pub fn is_dummy(&self) -> bool {
+        *self == Span::dummy()
     }
 
     /// Extends the span by the second one
     /// The other one has to be after the current one
     pub fn extend(&self, other: Span) -> Span {
+        if other.is_dummy() {
+            return *self;
+        }
+        if self.is_dummy() {
+            return other;
+        }
+
         debug_assert!(self.start <= other.start);
         debug_assert!(self.end <= other.end);
         Span {
