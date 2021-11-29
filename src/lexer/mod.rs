@@ -39,7 +39,7 @@ impl Lexer<'_> {
     }
 
     pub fn peek(&mut self) -> Option<(usize, char)> {
-        self.char_indices.peek().cloned()
+        self.char_indices.peek().copied()
     }
 
     pub fn new(str: &str) -> Lexer {
@@ -58,14 +58,14 @@ impl Lexer<'_> {
                 ',' => tokens.push(Token::new_from_single(TokenKind::Comma, idx)),
                 '0'..='9' | '-' => tokens.push(self.compute_number(char, idx)?),
                 other if other.is_whitespace() => {}
-                other if other.is_xid_start() => tokens.push(self.compute_identifier(char, idx)?),
+                other if other.is_xid_start() => tokens.push(self.compute_identifier(char, idx)),
                 _ => todo!(),
             }
         }
         Ok(tokens)
     }
 
-    fn compute_identifier(&mut self, char: char, idx: usize) -> LexerResult<Token> {
+    fn compute_identifier(&mut self, char: char, idx: usize) -> Token {
         let mut identifier = String::from(char);
         while let Some((_, char)) = self.peek() {
             if char.is_xid_continue() {
@@ -77,7 +77,7 @@ impl Lexer<'_> {
         }
         let end = identifier.len();
         let kind = compute_keyword(&identifier).unwrap_or(TokenKind::Ident(identifier));
-        Ok(Token::new_from_len(kind, idx, end))
+        Token::new_from_len(kind, idx, end)
     }
 
     fn compute_number(&mut self, char: char, idx: usize) -> LexerResult<Token> {

@@ -89,8 +89,7 @@ impl Parser {
                 span: self
                     .tokens
                     .peek()
-                    .map(|token| token.span)
-                    .unwrap_or_else(Span::dummy),
+                    .map_or_else(Span::dummy, |token| token.span),
                 message: "Nesting too deep".to_string(),
             })
         } else {

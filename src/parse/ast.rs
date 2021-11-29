@@ -38,19 +38,19 @@ pub enum Stmt {
 impl Stmt {
     pub fn span(&self) -> Span {
         match self {
-            Stmt::VarInit(init) => init.span,
-            Stmt::VarSet(set) => set.span,
-            Stmt::Add(add) => add.span,
-            Stmt::Sub(bin_op) => bin_op.span,
-            Stmt::Mul(bin_op) => bin_op.span,
-            Stmt::Div(bin_op) => bin_op.span,
-            Stmt::Mod(bin_op) => bin_op.span,
-            Stmt::If(check) => check.span,
-            Stmt::While(while_) => while_.span,
-            Stmt::FnDecl(decl) => decl.span,
-            Stmt::Break(brk) => brk.span,
-            Stmt::Return(ret) => ret.span,
-            Stmt::Terminate(term) => term.span,
+            Stmt::VarInit(inner) => inner.span,
+            Stmt::VarSet(inner) => inner.span,
+            Stmt::Add(inner)
+            | Stmt::Sub(inner)
+            | Stmt::Mul(inner)
+            | Stmt::Div(inner)
+            | Stmt::Mod(inner) => inner.span,
+            Stmt::If(inner) => inner.span,
+            Stmt::While(inner) => inner.span,
+            Stmt::FnDecl(inner) => inner.span,
+            Stmt::Break(inner) => inner.span,
+            Stmt::Return(inner) => inner.span,
+            Stmt::Terminate(inner) => inner.span,
             Stmt::Expr(expr) => expr.span(),
         }
     }

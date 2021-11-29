@@ -1,6 +1,6 @@
 use super::{ParseError, ParseResult, Parser};
 use crate::error::Span;
-use crate::lexer::tokens::{Token, TokenKind};
+use crate::lexer::tokens::TokenKind;
 use crate::parse::ast::*;
 
 impl Parser {
@@ -26,7 +26,7 @@ impl Parser {
 
             let span = stmts
                 .first()
-                .map(|stmt| stmt.span())
+                .map(Stmt::span)
                 .and_then(|fst_span| stmts.last().map(|last| fst_span.extend(last.span())))
                 .unwrap_or_else(Span::dummy);
 
@@ -229,7 +229,7 @@ impl Parser {
             };
 
             Ok(IfPart {
-                span: check_span.extend(else_part.as_ref().map(|e| e.span).unwrap_or(body.span)),
+                span: check_span.extend(else_part.as_ref().map_or(body.span, |e| e.span)),
                 cond: Box::new(cond),
                 body,
                 else_part,
@@ -451,8 +451,8 @@ impl Parser {
                         span: the_token.span.extend(arg.span),
                         args: vec![arg],
                     })
-                } else if let Some(arg_token) = parser.try_consume_kind(TokenKind::Arguments)? {
-                    parser.multi_args(the_token, arg_token)
+                } else if parser.try_consume_kind(TokenKind::Arguments)?.is_some() {
+                    parser.multi_args(the_token.span)
                 } else {
                     let next = parser.peek()?;
                     Err(ParseError {
@@ -476,7 +476,7 @@ impl Parser {
         })
     }
 
-    pub fn multi_args(&mut self, the_token: Token, _arg_token: Token) -> ParseResult<CallArgs> {
+    pub fn multi_args(&mut self, the_span: Span) -> ParseResult<CallArgs> {
         self.parse_rule(|parser| {
             let arg = parser.call_arg()?;
 
@@ -494,7 +494,7 @@ impl Parser {
             call_args.push(last_arg);
 
             Ok(CallArgs {
-                span: the_token.span.extend(last_arg_span),
+                span: the_span.extend(last_arg_span),
                 args: call_args,
             })
         })
@@ -540,7 +540,7 @@ impl Parser {
     }
 
     pub fn expr(&mut self) -> ParseResult<Expr> {
-        self.parse_rule(|parser| parser.comparison())
+        self.parse_rule(Parser::comparison)
     }
 
     pub fn comparison(&mut self) -> ParseResult<Expr> {
