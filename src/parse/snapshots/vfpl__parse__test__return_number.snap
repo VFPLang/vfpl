@@ -1,0 +1,24 @@
+---
+source: src/parse/test.rs
+expression: parsed
+
+---
+Ok(
+    Return {
+        span: Span {
+            start: 0,
+            end: 0,
+        },
+        expr: Literal(
+            Literal {
+                span: Span {
+                    start: 0,
+                    end: 0,
+                },
+                kind: Int(
+                    9,
+                ),
+            },
+        ),
+    },
+)

@@ -384,3 +384,35 @@ fn if_multi_stmt_body() {
 
     insta::assert_debug_snapshot!(parsed);
 }
+
+#[test]
+fn return_number() {
+    let tokens = [Return, Int(9), From, The, Function].map(token);
+    let parsed = parse(tokens, Parser::return_stmt);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn return_stmt() {
+    let tokens = [Please, Return, Int(9), From, The, Function, Dot].map(token);
+    let parsed = parse(tokens, Parser::stmt);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn r#break() {
+    let tokens = [Break, Out, Of, This, While].map(token);
+    let parsed = parse(tokens, Parser::break_stmt);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn break_stmt() {
+    let tokens = [Please, Break, Out, Of, This, While, Dot].map(token);
+    let parsed = parse(tokens, Parser::stmt);
+
+    insta::assert_debug_snapshot!(parsed);
+}

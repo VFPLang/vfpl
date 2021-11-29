@@ -258,11 +258,39 @@ impl Parser {
     }
 
     pub fn while_stmt(&mut self) -> ParseResult<While> {
-        self.parse_rule(|_parser| todo!())
+        self.parse_rule(|parser| {
+            parser.in_while_depth -= 1;
+
+            let repeat_span = parser.expect_kind(TokenKind::Repeat)?;
+            parser.expect_kind(TokenKind::While)?;
+
+            let cond = parser.expr()?;
+
+            parser.expect_kind(TokenKind::Do)?;
+            let body = parser.body()?;
+            parser.expect_kinds([TokenKind::Please, TokenKind::End])?;
+            let while_span = parser.expect_kind(TokenKind::While)?;
+
+            parser.in_while_depth += 1;
+
+            Ok(While {
+                span: repeat_span.extend(while_span),
+                cond,
+                body,
+            })
+        })
     }
 
     pub fn break_stmt(&mut self) -> ParseResult<Break> {
-        self.parse_rule(|_parser| todo!())
+        self.parse_rule(|parser| {
+            let first_span = parser.expect_kind(TokenKind::Break)?;
+            parser.expect_kinds([TokenKind::Out, TokenKind::Of, TokenKind::This])?;
+            let last_span = parser.expect_kind(TokenKind::While)?;
+
+            Ok(Break {
+                span: first_span.extend(last_span),
+            })
+        })
     }
 
     pub fn fn_decl(&mut self) -> ParseResult<FnDecl> {
@@ -290,7 +318,18 @@ impl Parser {
     }
 
     pub fn return_stmt(&mut self) -> ParseResult<Return> {
-        self.parse_rule(|_parser| todo!())
+        self.parse_rule(|parser| {
+            let ret_span = parser.expect_kind(TokenKind::Return)?;
+            let expr = parser.expr()?;
+
+            parser.expect_kinds([TokenKind::From, TokenKind::The])?;
+            let fn_keyword_span = parser.expect_kind(TokenKind::Function)?;
+
+            Ok(Return {
+                span: ret_span.extend(fn_keyword_span),
+                expr,
+            })
+        })
     }
 
     pub fn terminate(&mut self) -> ParseResult<Terminate> {

@@ -1,0 +1,15 @@
+---
+source: src/parse/test.rs
+expression: parsed
+
+---
+Ok(
+    Break(
+        Break {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+        },
+    ),
+)

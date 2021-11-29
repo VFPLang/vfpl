@@ -60,6 +60,7 @@ pub fn compute_keyword(identifier: &str) -> Option<TokenKind> {
         "or" => TokenKind::Or,
         "repeat" => TokenKind::Repeat,
         "return" => TokenKind::Return,
+        "while" => TokenKind::While,
         _ => return None,
     })
 }

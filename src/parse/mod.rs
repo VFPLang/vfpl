@@ -18,6 +18,8 @@ type ParseResult<T> = Result<T, ParseError>;
 struct Parser {
     tokens: PeekMoreIterator<vec::IntoIter<Token>>,
     depth: usize,
+    /// For restricting uses of the "break" keyword
+    in_while_depth: usize,
 }
 
 impl Parser {
@@ -25,6 +27,7 @@ impl Parser {
         Parser {
             tokens: tokens.peekmore(),
             depth: 0,
+            in_while_depth: 0,
         }
     }
 }

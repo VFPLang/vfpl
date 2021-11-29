@@ -71,6 +71,7 @@ pub enum TokenKind {
     Or,
     Repeat,
     Return,
+    While,
 
     // literals
     String(String),
@@ -157,6 +158,7 @@ impl Display for TokenKind {
             TokenKind::ParenClose => f.write_str("`)`"),
             TokenKind::Comma => f.write_str("`,`"),
             TokenKind::And => f.write_str("keyword `and`"),
+            TokenKind::While => f.write_str("keyword `while`"),
         }
     }
 }
@@ -176,11 +178,11 @@ impl Token {
             span: Span::start_end(start, end),
         }
     }
-    
+
     pub fn new_from_len(kind: TokenKind, start: usize, end: usize) -> Self {
         Token {
             kind,
-            span: Span::start_len(start, end)
+            span: Span::start_len(start, end),
         }
     }
 }
