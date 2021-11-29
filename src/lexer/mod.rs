@@ -7,6 +7,7 @@ use unicode_xid::UnicodeXID;
 use tokens::Token;
 
 use crate::error::Span;
+use crate::lexer::helper::compute_keyword;
 use crate::lexer::tokens::TokenKind;
 
 mod helper;
@@ -16,9 +17,10 @@ type LexerResult<T> = Result<T, LexerError>;
 
 enum LexerError {
     UnexpectedEOF,
-    StringNotClosed(Span),
     IntParseError(Span),
     FloatParseError(Span),
+    InvalidCharacter(Span),
+    InvalidEscapeCharacter(Span),
 }
 
 struct Lexer<'a> {
@@ -48,21 +50,31 @@ impl Lexer<'_> {
                 '(' => tokens.push(Token::new_from_single(TokenKind::ParenOpen, idx)),
                 ')' => tokens.push(Token::new_from_single(TokenKind::ParenClose, idx)),
                 ',' => tokens.push(Token::new_from_single(TokenKind::Comma, idx)),
-                '0'..='9' | '-' => self.compute_number(&mut tokens, char, idx)?,
-                other if other.is_whitespace() => todo!(),
-                other if other.is_xid_start() => todo!(),
+                '0'..='9' | '-' => tokens.push(self.compute_number(char, idx)?),
+                other if other.is_whitespace() => {}
+                other if other.is_xid_start() => tokens.push(self.compute_identifier(char, idx)?),
                 _ => todo!(),
             }
         }
         Ok(tokens)
     }
 
-    fn compute_number(
-        &mut self,
-        tokens: &mut Vec<Token>,
-        char: char,
-        idx: usize,
-    ) -> LexerResult<()> {
+    fn compute_identifier(&mut self, char: char, idx: usize) -> LexerResult<Token> {
+        let mut identifier = String::from(char);
+        while let Some((_, char)) = self.peek() {
+            if char.is_xid_continue() {
+                self.next();
+                identifier.push(char);
+            } else {
+                break;
+            }
+        }
+        let end = idx + identifier.len();
+        let kind = compute_keyword(&identifier).unwrap_or(TokenKind::Ident(identifier));
+        Ok(Token::new(kind, idx, end))
+    }
+
+    fn compute_number(&mut self, char: char, idx: usize) -> LexerResult<Token> {
         let mut number = String::from(char);
         let mut is_decimal = false;
         while let Some((i, n)) = self.peek() {
@@ -71,8 +83,7 @@ impl Lexer<'_> {
                     let number = number
                         .parse::<f64>()
                         .map_err(|_| LexerError::FloatParseError(Span::start_end(idx, i)))?;
-                    tokens.push(Token::new(TokenKind::Float(number), idx, i));
-                    break;
+                    return Ok(Token::new(TokenKind::Float(number), idx, i));
                 }
                 '.' => {
                     self.next();
@@ -83,9 +94,7 @@ impl Lexer<'_> {
                         let number = number
                             .parse::<i64>()
                             .map_err(|_| LexerError::IntParseError(Span::start_end(idx, i)))?;
-                        tokens.push(Token::new(TokenKind::Int(number), idx, i));
-                        tokens.push(Token::new_from_single(TokenKind::Dot, i));
-                        break;
+                        return Ok(Token::new(TokenKind::Int(number), idx, i));
                     }
                 }
                 '0'..='9' => {
@@ -101,8 +110,8 @@ impl Lexer<'_> {
                     };
                 }
                 _ => {
-                    if is_decimal {
-                        tokens.push(Token::new(
+                    return if is_decimal {
+                        Ok(Token::new(
                             TokenKind::Float(number.parse().map_err(|_| {
                                 LexerError::FloatParseError(Span::start_end(idx, i))
                             })?),
@@ -110,7 +119,7 @@ impl Lexer<'_> {
                             i,
                         ))
                     } else {
-                        tokens.push(Token::new(
+                        Ok(Token::new(
                             TokenKind::Int(
                                 number.parse().map_err(|_| {
                                     LexerError::IntParseError(Span::start_end(idx, i))
@@ -119,25 +128,41 @@ impl Lexer<'_> {
                             idx,
                             i,
                         ))
-                    }
+                    };
                 }
             }
         }
-        Ok(())
+        Err(LexerError::UnexpectedEOF)
     }
 
     fn compute_string(&mut self, start: usize) -> LexerResult<Token> {
         let mut str = String::new();
         while let Some((idx, char)) = self.next() {
-            if char != '"' {
-                str.push(char);
-            } else {
-                return Ok(Token {
-                    span: Span::start_end(start, idx),
-                    kind: TokenKind::Please,
-                });
+            match char {
+                '\\' => {
+                    let (_, next_char) = self.next().ok_or(LexerError::UnexpectedEOF)?;
+                    match next_char {
+                        '"' => str.push('\"'),
+                        'n' => str.push('\n'),
+                        'r' => str.push('\r'),
+                        't' => str.push('\t'),
+                        '0' => str.push('\0'),
+                        '\\' => str.push('\\'),
+                        _ => {
+                            return Err(LexerError::InvalidEscapeCharacter(Span::start_end(
+                                idx,
+                                idx + 1,
+                            )))
+                        }
+                    }
+                }
+                '"' => {
+                    str.push(char);
+                    return Ok(Token::new(TokenKind::String(str), start, idx));
+                }
+                other => str.push(other),
             }
         }
-        Err(LexerError::StringNotClosed(Span::single(start)))
+        Err(LexerError::UnexpectedEOF)
     }
 }
