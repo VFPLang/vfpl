@@ -1,5 +1,4 @@
 use std::iter::Peekable;
-use std::num::ParseFloatError;
 use std::option::Option::Some;
 use std::str::CharIndices;
 
