@@ -15,8 +15,9 @@ impl Parser {
             let mut stmts = Vec::new();
 
             loop {
-                if matches!(parser.peek_kind(), Ok(TokenKind::Please))
-                    && matches!(parser.peek_nth_kind(1), Ok(TokenKind::End))
+                if (matches!(parser.peek_kind(), Ok(TokenKind::Please))
+                    && matches!(parser.peek_nth_kind(1), Ok(TokenKind::End)))
+                    || matches!(parser.peek_kind(), Ok(TokenKind::Otherwise))
                 {
                     break;
                 }
@@ -50,7 +51,30 @@ impl Parser {
     }
 
     pub fn stmt(&mut self) -> ParseResult<Stmt> {
-        self.parse_rule(|_parser| todo!())
+        self.parse_rule(|parser| {
+            parser.expect_kind(TokenKind::Please)?;
+
+            let stmt = match parser.peek_kind()? {
+                TokenKind::Initialize => Stmt::VarInit(parser.var_init()?),
+                TokenKind::Set => Stmt::VarSet(parser.var_set()?),
+                TokenKind::Add => Stmt::Add(parser.add()?),
+                TokenKind::Sub => Stmt::Sub(parser.subtract()?),
+                TokenKind::Mul => Stmt::Mul(parser.multiply()?),
+                TokenKind::Div => Stmt::Div(parser.divide()?),
+                TokenKind::Take => Stmt::Mod(parser.modulo()?),
+                TokenKind::Check => Stmt::If(parser.if_stmt()?),
+                TokenKind::Repeat => Stmt::While(parser.while_stmt()?),
+                TokenKind::Create => Stmt::FnDecl(parser.fn_decl()?),
+                TokenKind::Break => Stmt::Break(parser.break_stmt()?),
+                TokenKind::Return => Stmt::Return(parser.return_stmt()?),
+                TokenKind::Go => Stmt::Terminate(parser.terminate()?),
+                _ => Stmt::Expr(parser.expr()?),
+            };
+
+            parser.expect_kind(TokenKind::Dot)?;
+
+            Ok(stmt)
+        })
     }
 
     pub fn var_init(&mut self) -> ParseResult<VarInit> {
@@ -200,7 +224,7 @@ impl Parser {
 
             let body = parser.body()?;
 
-            let else_part = if parser.peek().is_ok() {
+            let else_part = if let TokenKind::Otherwise = parser.peek_kind()? {
                 Some(parser.else_stmt()?)
             } else {
                 None
@@ -233,15 +257,15 @@ impl Parser {
         })
     }
 
-    pub fn while_stmt(&mut self) -> ParseResult<Todo> {
+    pub fn while_stmt(&mut self) -> ParseResult<While> {
         self.parse_rule(|_parser| todo!())
     }
 
-    pub fn break_stmt(&mut self) -> ParseResult<Todo> {
+    pub fn break_stmt(&mut self) -> ParseResult<Break> {
         self.parse_rule(|_parser| todo!())
     }
 
-    pub fn fn_decl(&mut self) -> ParseResult<Todo> {
+    pub fn fn_decl(&mut self) -> ParseResult<FnDecl> {
         self.parse_rule(|_parser| todo!())
     }
 
@@ -265,7 +289,7 @@ impl Parser {
         self.parse_rule(|_parser| todo!())
     }
 
-    pub fn return_stmt(&mut self) -> ParseResult<Todo> {
+    pub fn return_stmt(&mut self) -> ParseResult<Return> {
         self.parse_rule(|_parser| todo!())
     }
 

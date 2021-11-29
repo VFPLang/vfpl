@@ -69,6 +69,8 @@ pub enum TokenKind {
     Than,
     Equal,
     Or,
+    Repeat,
+    Return,
 
     // literals
     String(String),
@@ -145,6 +147,8 @@ impl Display for TokenKind {
             TokenKind::Equal => f.write_str("keyword `equal`"),
             TokenKind::Or => f.write_str("keyword `or`"),
             TokenKind::Call => f.write_str("keyword `call`"),
+            TokenKind::Repeat => f.write_str("keyword `repeat`"),
+            TokenKind::Return => f.write_str("keyword `return`"),
             TokenKind::String(value) => f.write_str(&format!("`\"{}\"`", value)),
             TokenKind::Int(value) => f.write_str(&format!("`{}`", value)),
             TokenKind::Float(value) => f.write_str(&format!("`{}`", value)),
@@ -165,11 +169,11 @@ impl Token {
             span: Span::single(idx),
         }
     }
-    
+
     pub fn new(kind: TokenKind, start: usize, end: usize) -> Self {
         Token {
             kind,
-            span: Span::start_end(start, end)
+            span: Span::start_end(start, end),
         }
     }
 }

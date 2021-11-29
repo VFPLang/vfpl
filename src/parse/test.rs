@@ -311,3 +311,76 @@ fn call_three_args() {
 
     insta::assert_debug_snapshot!(parsed);
 }
+
+#[test]
+fn add_stmt() {
+    let tokens = [Please, Add, Int(0), To, Ident("A".to_string()), Dot].map(token);
+    let parsed = parse(tokens, Parser::stmt);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn if_empty_body_true_cond() {
+    let tokens = [Check, Whether, True, Comma, Then, Do, Please, End, Check].map(token);
+    let parsed = parse(tokens, Parser::if_stmt);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn if_empty_body_complex_cond() {
+    let tokens = [
+        Check, Whether, True, Has, The, Value, Absent, Comma, Then, Do, Please, End, Check,
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::if_stmt);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn if_single_stmt_body() {
+    let tokens = [
+        Check, Whether, True, Has, The, Value, Absent, Comma, Then, Do, Please, Go, To, Sleep, Dot,
+        Please, End, Check,
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::if_stmt);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn if_multi_stmt_body() {
+    let tokens = [
+        Check,
+        Whether,
+        True,
+        Has,
+        The,
+        Value,
+        Absent,
+        Comma,
+        Then,
+        Do,
+        Please,
+        Go,
+        To,
+        Sleep,
+        Dot,
+        Please,
+        Add,
+        Int(5),
+        To,
+        Ident("A".to_string()),
+        Dot,
+        Please,
+        End,
+        Check,
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::if_stmt);
+
+    insta::assert_debug_snapshot!(parsed);
+}
