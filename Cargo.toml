@@ -8,6 +8,7 @@ repository = "https://github.com/Nilstrieb/vfpl"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+peekmore = "1.0.0"
 
 [dev-dependencies]
 insta = "1.8.0"

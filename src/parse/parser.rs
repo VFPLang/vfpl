@@ -7,10 +7,14 @@ type Todo = ();
 
 impl Parser {
     pub fn program(&mut self) -> ParseResult<Program> {
-        self.parse_rule(|parser| parser.body())
+        self.parse_rule(Parser::body)
     }
 
     pub fn body(&mut self) -> ParseResult<Body> {
+        self.parse_rule(|_parser| todo!())
+    }
+
+    pub fn block(&mut self) -> ParseResult<Body> {
         self.parse_rule(|_parser| todo!())
     }
 
@@ -156,16 +160,60 @@ impl Parser {
         })
     }
 
-    pub fn if_stmt(&mut self) -> ParseResult<Todo> {
-        self.parse_rule(|_parser| todo!())
+    pub fn if_stmt(&mut self) -> ParseResult<If> {
+        self.parse_rule(|parser| {
+            let if_part = parser.if_part()?;
+
+            parser.expect_kinds([TokenKind::Please, TokenKind::End])?;
+            let check2_span = parser.expect_kind(TokenKind::Check)?;
+
+            Ok(If {
+                span: if_part.span.extend(check2_span),
+                if_part,
+            })
+        })
     }
 
-    pub fn if_part(&mut self) -> ParseResult<Todo> {
-        self.parse_rule(|_parser| todo!())
+    pub fn if_part(&mut self) -> ParseResult<IfPart> {
+        self.parse_rule(|parser| {
+            let check_span = parser.expect_kind(TokenKind::Check)?;
+            parser.expect_kind(TokenKind::Whether)?;
+            let cond = parser.expr()?;
+            parser.expect_kinds([TokenKind::Comma, TokenKind::Then, TokenKind::Do])?;
+
+            let body = parser.body()?;
+
+            let else_part = if parser.peek().is_ok() {
+                Some(parser.else_stmt()?)
+            } else {
+                None
+            };
+
+            Ok(IfPart {
+                span: check_span.extend(else_part.as_ref().map(|e| e.span).unwrap_or(body.span)),
+                cond: Box::new(cond),
+                body,
+                else_part,
+            })
+        })
     }
 
-    pub fn else_stmt(&mut self) -> ParseResult<Todo> {
-        self.parse_rule(|_parser| todo!())
+    pub fn else_stmt(&mut self) -> ParseResult<Else> {
+        self.parse_rule(|parser| {
+            let otherwise = parser.expect_kind(TokenKind::Otherwise)?;
+            parser.expect_kind(TokenKind::Comma)?;
+
+            let kind = if let TokenKind::Check = parser.peek_kind()? {
+                ElseKind::ElseIf(Box::new(parser.if_part()?))
+            } else {
+                ElseKind::Else(parser.body()?)
+            };
+
+            Ok(Else {
+                span: otherwise.extend(kind.span()),
+                kind,
+            })
+        })
     }
 
     pub fn while_stmt(&mut self) -> ParseResult<Todo> {

@@ -92,6 +92,15 @@ pub enum ElseKind {
     Else(Body),
 }
 
+impl ElseKind {
+    pub fn span(&self) -> Span {
+        match self {
+            ElseKind::Else(body) => body.span,
+            ElseKind::ElseIf(if_) => if_.span,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct While {
     pub span: Span,

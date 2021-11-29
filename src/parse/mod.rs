@@ -1,8 +1,8 @@
 use crate::error::Span;
 use crate::lexer::tokens::Token;
 use crate::parse::ast::Program;
+use peekmore::{PeekMore, PeekMoreIterator};
 use std::fmt::{Display, Formatter};
-use std::iter::Peekable;
 use std::vec;
 
 pub mod ast;
@@ -16,14 +16,14 @@ type ParseResult<T> = Result<T, ParseError>;
 
 #[derive(Debug)]
 struct Parser {
-    tokens: Peekable<vec::IntoIter<Token>>,
+    tokens: PeekMoreIterator<vec::IntoIter<Token>>,
     depth: usize,
 }
 
 impl Parser {
     fn new(tokens: vec::IntoIter<Token>) -> Self {
         Parser {
-            tokens: tokens.peekable(),
+            tokens: tokens.peekmore(),
             depth: 0,
         }
     }
