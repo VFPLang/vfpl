@@ -64,7 +64,7 @@ please 4.
 
 The language is case-insensitive, but it's a convention to refer to them in UPPERCASE when mutating them.
 
-`please fuck off.` terminates the program
+`please go to sleep.` terminates the program
 
 If the program ends but is not explicitly terminated, the Interpreter hangs and reminds the user of it's presence (the interpreter never sleeps unless asked to)
 
