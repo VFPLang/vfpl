@@ -330,11 +330,61 @@ impl Parser {
     }
 
     pub fn params(&mut self) -> ParseResult<FnParams> {
-        self.parse_rule(|_parser| todo!())
+        self.parse_rule(|parser| {
+            if let Some(no_token) = parser.try_consume_kind(TokenKind::No)? {
+                let param_span = parser.expect_kind(TokenKind::Parameters)?;
+                Ok(FnParams {
+                    span: no_token.span.extend(param_span),
+                    params: vec![],
+                })
+            } else if let Some(the_token) = parser.try_consume_kind(TokenKind::The)? {
+                if parser.try_consume_kind(TokenKind::Parameter)?.is_some() {
+                    let param = parser.typed_ident()?;
+
+                    Ok(FnParams {
+                        span: the_token.span.extend(param.span),
+                        params: vec![],
+                    })
+                } else if parser.try_consume_kind(TokenKind::Parameters)?.is_some() {
+                    parser.multi_params(the_token.span)
+                } else {
+                    let next = parser.peek()?;
+                    Err(ParseError {
+                        span: next.span,
+                        message: format!("Expected `parameter(s)`, found {}", next.kind),
+                    })
+                }
+            } else {
+                let next = parser.peek()?;
+                Err(ParseError {
+                    span: next.span,
+                    message: format!("Expected `the` or `no`, found {}", next.kind),
+                })
+            }
+        })
     }
 
-    pub fn multi_param(&mut self) -> ParseResult<FnParams> {
-        self.parse_rule(|_parser| todo!())
+    pub fn multi_params(&mut self, the_span: Span) -> ParseResult<FnParams> {
+        self.parse_rule(|parser| {
+            let first = parser.typed_ident()?;
+
+            let mut params = vec![first];
+
+            while parser.try_consume_kind(TokenKind::Comma).is_ok() {
+                let next = parser.typed_ident()?;
+                params.push(next);
+            }
+
+            parser.expect_kind(TokenKind::And)?;
+            let last = parser.typed_ident()?;
+            let last_span = last.span;
+            params.push(last);
+
+            Ok(FnParams {
+                span: the_span.extend(last_span),
+                params,
+            })
+        })
     }
 
     pub fn fn_return(&mut self) -> ParseResult<FnReturn> {
