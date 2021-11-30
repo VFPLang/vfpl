@@ -1,9 +1,7 @@
-#![allow(dead_code)]
-
-use std::iter::Peekable;
 use std::option::Option::Some;
 use std::str::CharIndices;
 
+use peekmore::{PeekMore, PeekMoreIterator};
 use unicode_xid::UnicodeXID;
 
 use tokens::Token;
@@ -11,6 +9,7 @@ use tokens::Token;
 use crate::error::Span;
 use crate::lexer::helper::compute_keyword;
 use crate::lexer::tokens::TokenKind;
+use crate::lexer::LexerError::{InvalidCharacter, UnexpectedEOF};
 
 mod helper;
 #[cfg(test)]
@@ -26,11 +25,12 @@ pub enum LexerError {
     FloatParseError(Span),
     InvalidCharacter(Span),
     InvalidEscapeCharacter(Span),
+    LetterInNumber(Span),
 }
 
 #[derive(Debug)]
 pub struct Lexer<'a> {
-    char_indices: Peekable<CharIndices<'a>>,
+    char_indices: PeekMoreIterator<CharIndices<'a>>,
 }
 
 impl Lexer<'_> {
@@ -38,13 +38,24 @@ impl Lexer<'_> {
         self.char_indices.next()
     }
 
+    /// Consume elements n times
+    pub fn consume_elements(&mut self, n: usize) {
+        for _ in 0..n {
+            self.next();
+        }
+    }
+
     pub fn peek(&mut self) -> Option<(usize, char)> {
         self.char_indices.peek().copied()
     }
 
+    pub fn peek_nth(&mut self, n: usize) -> Option<(usize, char)> {
+        self.char_indices.peek_nth(n).copied()
+    }
+
     pub fn new(str: &str) -> Lexer {
         Lexer {
-            char_indices: str.char_indices().peekable(),
+            char_indices: str.char_indices().peekmore(),
         }
     }
 
@@ -56,10 +67,32 @@ impl Lexer<'_> {
                 '(' => tokens.push(Token::new_from_single(TokenKind::ParenOpen, idx)),
                 ')' => tokens.push(Token::new_from_single(TokenKind::ParenClose, idx)),
                 ',' => tokens.push(Token::new_from_single(TokenKind::Comma, idx)),
+                '\"' => tokens.push(self.compute_string(idx)?),
+                '<' => {
+                    if self.peek_nth(0).ok_or(LexerError::UnexpectedEOF)?.1 == '!'
+                        && self.peek_nth(1).ok_or(LexerError::UnexpectedEOF)?.1 == '-'
+                        && self.peek_nth(2).ok_or(LexerError::UnexpectedEOF)?.1 == '-'
+                    {
+                        while let Some((_, char)) = self.next() {
+                            if char == '-' {
+                                if self.peek_nth(0).ok_or(UnexpectedEOF)?.1 == '-'
+                                    && self.peek_nth(1).ok_or(UnexpectedEOF)?.1 == '>'
+                                {
+                                    self.consume_elements(2);
+                                    break;
+                                }
+                            } else {
+                                continue;
+                            }
+                        }
+                    } else {
+                        return Err(InvalidCharacter(Span::single(idx)));
+                    }
+                }
                 '0'..='9' | '-' => tokens.push(self.compute_number(char, idx)?),
-                other if other.is_whitespace() => {}
+                other if other.is_whitespace() => continue,
                 other if other.is_xid_start() => tokens.push(self.compute_identifier(char, idx)),
-                _ => todo!(),
+                _ => return Err(InvalidCharacter(Span::single(idx))),
             }
         }
         Ok(tokens)
@@ -75,6 +108,7 @@ impl Lexer<'_> {
                 break;
             }
         }
+        identifier = identifier.to_lowercase();
         let end = identifier.len();
         let kind = compute_keyword(&identifier).unwrap_or(TokenKind::Ident(identifier));
         Token::new_from_len(kind, idx, end)
@@ -82,64 +116,62 @@ impl Lexer<'_> {
 
     fn compute_number(&mut self, char: char, idx: usize) -> LexerResult<Token> {
         let mut number = String::from(char);
-        let mut is_decimal = false;
-        while let Some((i, n)) = self.peek() {
-            match n {
-                '.' if is_decimal => {
-                    let number = number
-                        .parse::<f64>()
-                        .map_err(|_| LexerError::FloatParseError(Span::start_end(idx, i)))?;
-                    return Ok(Token::new(TokenKind::Float(number), idx, i));
-                }
-                '.' => {
-                    self.next();
-                    if self.peek().map_or(false, |(_, c)| c.is_ascii_digit()) {
-                        number.push(n);
-                        is_decimal = true;
-                    } else {
-                        let number = number
-                            .parse::<i64>()
-                            .map_err(|_| LexerError::IntParseError(Span::start_end(idx, i)))?;
-                        return Ok(Token::new(TokenKind::Int(number), idx, i));
+        let mut end = loop {
+            if let Some((i, char)) = self.peek() {
+                match char {
+                    '0'..='9' => {
+                        self.next();
+                        number.push(char)
+                    }
+                    other if other.is_xid_start() => return Err(InvalidCharacter(Span::single(i))),
+                    _ => {
+                        // This works because the character before it will be 1 byte long (0..9 || -)
+                        break i - 1;
                     }
                 }
-                '0'..='9' => {
-                    self.next();
-                    number.push(n);
-                }
-                other if other.is_xid_start() => {
-                    self.next();
-                    return if is_decimal {
-                        Err(LexerError::FloatParseError(Span::start_end(idx, i)))
+            } else {
+                break idx + number.len();
+            }
+        };
+
+        if let Some((i, char)) = self.peek() {
+            if char == '.' {
+                number.push('.');
+                self.next();
+                end = loop {
+                    if let Some((i, char)) = self.peek() {
+                        match char {
+                            '0'..='9' => {
+                                self.next();
+                                number.push(char)
+                            }
+                            other if other.is_xid_start() => {
+                                return Err(InvalidCharacter(Span::single(i)));
+                            }
+                            _ => {
+                                // This works because the character before it will be 1 byte long (0..9 || -)
+                                break i - 1;
+                            }
+                        }
                     } else {
-                        Err(LexerError::IntParseError(Span::start_end(idx, i)))
-                    };
+                        break idx + number.len();
+                    }
                 }
-                _ => break,
+            } else if char.is_ascii_alphabetic() {
+                return Err(LexerError::LetterInNumber(Span::start_end(idx, i)));
             }
         }
 
-        let len = number.len();
-        if is_decimal {
-            Ok(Token::new_from_len(
-                TokenKind::Float(
-                    number
-                        .parse()
-                        .map_err(|_| LexerError::FloatParseError(Span::start_len(idx, len)))?,
-                ),
-                idx,
-                number.len(),
-            ))
+        if number.contains('.') {
+            let number = number
+                .parse::<f64>()
+                .map_err(|_| LexerError::FloatParseError(Span::start_end(idx, end)))?;
+            Ok(Token::new(TokenKind::Float(number), idx, end))
         } else {
-            Ok(Token::new_from_len(
-                TokenKind::Int(
-                    number
-                        .parse()
-                        .map_err(|_| LexerError::IntParseError(Span::start_len(idx, len)))?,
-                ),
-                idx,
-                len,
-            ))
+            let number = number
+                .parse::<i64>()
+                .map_err(|_| LexerError::IntParseError(Span::start_end(idx, end)))?;
+            Ok(Token::new(TokenKind::Int(number), idx, end))
         }
     }
 
@@ -160,12 +192,11 @@ impl Lexer<'_> {
                             return Err(LexerError::InvalidEscapeCharacter(Span::start_end(
                                 idx,
                                 idx + 1,
-                            )))
+                            )));
                         }
                     }
                 }
                 '"' => {
-                    str.push(char);
                     return Ok(Token::new(TokenKind::String(str), start, idx));
                 }
                 other => str.push(other),

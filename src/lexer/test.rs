@@ -16,9 +16,20 @@ fn leading_zeros() {
 }
 
 #[test]
+fn minus_number() {
+    insta::assert_debug_snapshot!(lex("-12"));
+}
+
+#[test]
+fn minus_with_leading_zeros() {
+    insta::assert_debug_snapshot!(lex("-0000012"));
+}
+
+#[test]
 fn alphabetical_char_in_number() {
     insta::assert_debug_snapshot!(lex("12a"));
 }
+
 #[test]
 fn decimal() {
     insta::assert_debug_snapshot!(lex("13.35253"));
@@ -30,7 +41,11 @@ fn decimal_with_leading_zeros() {
 }
 
 #[test]
-#[ignore]
+fn decimal_with_minus_and_leading_zeros() {
+    insta::assert_debug_snapshot!(lex("-00000012.23"))
+}
+
+#[test]
 fn decimal_with_alphabetical_char() {
     insta::assert_debug_snapshot!(lex("00001.as244"))
 }
