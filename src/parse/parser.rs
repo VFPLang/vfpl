@@ -285,6 +285,13 @@ impl Parser {
             parser.expect_kinds([TokenKind::Out, TokenKind::Of, TokenKind::This])?;
             let last_span = parser.expect_kind(TokenKind::While)?;
 
+            if parser.in_while_depth == 0 {
+                return Err(ParseError {
+                    span: first_span.extend(last_span),
+                    message: "Cannot use break outside of while".to_string(),
+                });
+            }
+
             Ok(Break {
                 span: first_span.extend(last_span),
             })
@@ -293,6 +300,8 @@ impl Parser {
 
     pub fn fn_decl(&mut self) -> ParseResult<FnDecl> {
         self.parse_rule(|parser| {
+            parser.in_fn_depth += 1;
+
             let create_span = parser.expect_kind(TokenKind::Create)?;
             parser.expect_kind(TokenKind::Function)?;
 
@@ -318,6 +327,8 @@ impl Parser {
                     ),
                 });
             }
+
+            parser.in_fn_depth -= 1;
 
             Ok(FnDecl {
                 span: create_span.extend(end_span),
@@ -408,6 +419,13 @@ impl Parser {
 
             parser.expect_kinds([TokenKind::From, TokenKind::The])?;
             let fn_keyword_span = parser.expect_kind(TokenKind::Function)?;
+
+            if parser.in_fn_depth != 0 {
+                return Err(ParseError {
+                    span: ret_span.extend(fn_keyword_span),
+                    message: "Cannot return outside of function".to_string(),
+                });
+            }
 
             Ok(Return {
                 span: ret_span.extend(fn_keyword_span),

@@ -87,6 +87,8 @@ please end function void.
 
 `[..] I thought about your intentions, and cam to the conclusion that you probably want to return 5 from the function. I suggest you add it.`
 
+bug: invalid handle of string literals
+
 # note
 we are aware that this language is lacking any way to structure data together, and we are working on addressing this problem.
 we're currently working on making the fizzbuzzable mvp

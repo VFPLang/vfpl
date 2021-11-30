@@ -1,0 +1,25 @@
+please initialize variable x as Integer with the value of 15.
+please set the variable X to the value of 5.
+please add 5 to X.
+
+please create function print_x with the parameter x as Integer that returns absent.
+    please print x to the console.
+    please return absent from the function.
+please end function print_x.
+
+please call print_x with the argument x as x.
+
+please create function add with the parameters a as Integer and b as Integer that returns Integer.
+    please add b to A.
+    please return a from the function.
+please end function add.
+
+please initialize variable add_result as Integer with the value of
+    (call add with the arguments 5 as a and 8 as b).
+
+please repeat while 5 is smaller than 6 do
+    please print "I want to stop!!!" to the console.
+    please break out of this while.
+please end while.
+
+please go to sleep.

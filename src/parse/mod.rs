@@ -1,3 +1,6 @@
+//!
+//! Parses the source tokens using recursive descent
+
 use crate::error::Span;
 use crate::lexer::tokens::Token;
 use crate::parse::ast::Program;
@@ -18,8 +21,10 @@ type ParseResult<T> = Result<T, ParseError>;
 struct Parser {
     tokens: PeekMoreIterator<vec::IntoIter<Token>>,
     depth: usize,
-    /// For restricting uses of the "break" keyword
+    /// For restricting uses of the "break" statement
     in_while_depth: usize,
+    /// For restricting uses of the "return" statement
+    in_fn_depth: usize,
 }
 
 impl Parser {
@@ -28,6 +33,7 @@ impl Parser {
             tokens: tokens.peekmore(),
             depth: 0,
             in_while_depth: 0,
+            in_fn_depth: 0,
         }
     }
 }
