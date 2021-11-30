@@ -416,3 +416,167 @@ fn break_stmt() {
 
     insta::assert_debug_snapshot!(parsed);
 }
+
+#[test]
+fn while_loop_no_body() {
+    let tokens = [Repeat, While, True, Do, Please, End, While].map(token);
+    let parsed = parse(tokens, Parser::while_stmt);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn while_stmt_with_body() {
+    let tokens = [
+        Please,
+        Repeat,
+        While,
+        Absent,
+        Has,
+        The,
+        Value,
+        False,
+        Do,
+        Please,
+        Add,
+        Int(9),
+        To,
+        Ident("A".to_string()),
+        Dot,
+        Please,
+        End,
+        While,
+        Dot,
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::stmt);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn return_ty_absent() {
+    let tokens = [That, Returns, Absent].map(token);
+    let parsed = parse(tokens, Parser::fn_return);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn fn_decl_no_params_empty_body() {
+    let tokens = [
+        Create,
+        Function,
+        Ident("void".to_string()),
+        With,
+        No,
+        Parameters,
+        That,
+        Returns,
+        Absent,
+        Please,
+        End,
+        Function,
+        Ident("void".to_string()),
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::fn_decl);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn fn_decl_single_param_emtpy_body() {
+    let tokens = [
+        Create,
+        Function,
+        Ident("print".to_string()),
+        With,
+        The,
+        Parameter,
+        Ident("_".to_string()),
+        As,
+        Absent,
+        That,
+        Returns,
+        Absent,
+        Please,
+        End,
+        Function,
+        Ident("print".to_string()),
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::fn_decl);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn fn_decl_two_param_emtpy_body() {
+    let tokens = [
+        Create,
+        Function,
+        Ident("add".to_string()),
+        With,
+        The,
+        Parameters,
+        Ident("_".to_string()),
+        As,
+        Absent,
+        And,
+        Ident("_hi".to_string()),
+        As,
+        Null,
+        That,
+        Returns,
+        Absent,
+        Please,
+        End,
+        Function,
+        Ident("add".to_string()),
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::fn_decl);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn fn_decl_three_param_with_body() {
+    let tokens = [
+        Create,
+        Function,
+        Ident("add".to_string()),
+        With,
+        The,
+        Parameters,
+        Ident("_".to_string()),
+        As,
+        Absent,
+        Comma,
+        Ident("a".to_string()),
+        As,
+        NoValue,
+        And,
+        Ident("_hi".to_string()),
+        As,
+        Null,
+        That,
+        Returns,
+        Absent,
+        Please,
+        Add,
+        Int(5),
+        To,
+        Ident("a".to_string()),
+        Dot,
+        Please,
+        End,
+        Function,
+        Ident("add".to_string()),
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::fn_decl);
+
+    insta::assert_debug_snapshot!(parsed);
+}

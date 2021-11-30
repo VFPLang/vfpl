@@ -257,7 +257,7 @@ impl Parser {
 
     pub fn while_stmt(&mut self) -> ParseResult<While> {
         self.parse_rule(|parser| {
-            parser.in_while_depth -= 1;
+            parser.in_while_depth += 1;
 
             let repeat_span = parser.expect_kind(TokenKind::Repeat)?;
             parser.expect_kind(TokenKind::While)?;
@@ -269,7 +269,7 @@ impl Parser {
             parser.expect_kinds([TokenKind::Please, TokenKind::End])?;
             let while_span = parser.expect_kind(TokenKind::While)?;
 
-            parser.in_while_depth += 1;
+            parser.in_while_depth -= 1;
 
             Ok(While {
                 span: repeat_span.extend(while_span),
@@ -343,7 +343,7 @@ impl Parser {
 
                     Ok(FnParams {
                         span: the_token.span.extend(param.span),
-                        params: vec![],
+                        params: vec![param],
                     })
                 } else if parser.try_consume_kind(TokenKind::Parameters)?.is_some() {
                     parser.multi_params(the_token.span)
@@ -370,7 +370,7 @@ impl Parser {
 
             let mut params = vec![first];
 
-            while parser.try_consume_kind(TokenKind::Comma).is_ok() {
+            while let Ok(Some(_)) = parser.try_consume_kind(TokenKind::Comma) {
                 let next = parser.typed_ident()?;
                 params.push(next);
             }
@@ -388,7 +388,17 @@ impl Parser {
     }
 
     pub fn fn_return(&mut self) -> ParseResult<FnReturn> {
-        self.parse_rule(|_parser| todo!())
+        self.parse_rule(|parser| {
+            let that_span = parser.expect_kind(TokenKind::That)?;
+            parser.expect_kind(TokenKind::Returns)?;
+
+            let ty = parser.ty()?;
+
+            Ok(FnReturn {
+                span: that_span.extend(ty.span),
+                ty,
+            })
+        })
     }
 
     pub fn return_stmt(&mut self) -> ParseResult<Return> {
