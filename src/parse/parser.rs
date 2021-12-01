@@ -300,6 +300,7 @@ impl Parser {
 
     pub fn fn_decl(&mut self) -> ParseResult<FnDecl> {
         self.parse_rule(|parser| {
+            // todo is the while depth getting fucked up here?
             parser.in_fn_depth += 1;
 
             let create_span = parser.expect_kind(TokenKind::Create)?;

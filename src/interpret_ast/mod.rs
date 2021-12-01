@@ -2,6 +2,7 @@
 
 use crate::error::Span;
 use crate::parse::ast::{Body, Program, TyKind};
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::rc::Rc;
@@ -10,9 +11,19 @@ mod exec;
 
 type Ident = Rc<str>;
 
-type IResult = Result<(), InterpreterError>;
+type IResult = Result<(), Interrupt>;
 
 type ValueResult = Result<Value, InterpreterError>;
+
+type RcEnv = Rc<RefCell<Env>>;
+
+#[derive(Debug)]
+enum Interrupt {
+    Break,
+    Terminate,
+    Return(Value),
+    Error(InterpreterError),
+}
 
 #[derive(Debug)]
 pub struct InterpreterError {
@@ -39,25 +50,53 @@ enum Value {
     String(Rc<str>),
     Int(i64),
     Float(f64),
-    Fn {
-        params: Vec<(Ident, TyKind)>,
-        ret_ty: TyKind,
-        body: Body,
-    },
+    Fn(Box<RuntimeFn>),
+}
+
+#[derive(Debug, Clone)]
+struct RuntimeFn {
+    params: Vec<(Ident, TyKind)>,
+    ret_ty: TyKind,
+    body: Body,
+    captured_env: RcEnv,
+}
+
+impl PartialEq for RuntimeFn {
+    fn eq(&self, _: &Self) -> bool {
+        false
+    }
 }
 
 #[derive(Debug, Default)]
 struct Env {
-    outer: Option<Box<Env>>,
+    outer: Option<RcEnv>,
     vars: HashMap<Ident, Value>,
 }
 
 impl Env {
-    fn lookup(&mut self, ident: Ident) -> Option<&mut Value> {
-        self.vars.get_mut(&ident).or_else(|| match &mut self.outer {
-            Some(outer) => outer.lookup(ident),
-            None => None,
-        })
+    fn replace(&mut self, ident: Ident, value: Value) -> Option<()> {
+        match self.vars.get_mut(&ident) {
+            Some(var) => *var = value,
+            None => match &self.outer {
+                Some(outer) => outer.borrow_mut().replace(ident, value)?,
+                None => return None,
+            },
+        }
+        Some(())
+    }
+
+    fn modify_var<F, E>(&mut self, ident: Ident, f: F, err: E) -> IResult
+    where
+        F: FnOnce(&mut Value) -> IResult,
+        E: FnOnce() -> Interrupt,
+    {
+        match self.vars.get_mut(&ident) {
+            Some(var) => f(var),
+            None => match &self.outer {
+                Some(outer) => outer.borrow_mut().modify_var(ident, f, err),
+                None => Err(err()),
+            },
+        }
     }
 
     fn insert(&mut self, ident: Ident, value: Value) {
@@ -67,13 +106,23 @@ impl Env {
 
 #[derive(Debug, Default)]
 struct Vm {
-    current_env: Env,
+    current_env: RcEnv,
+    recur_depth: usize,
 }
 
 pub fn run(program: Program) -> Result<(), InterpreterError> {
     let mut vm = Vm::default();
 
-    vm.start(program)
+    match vm.start(program) {
+        Ok(()) => Err(InterpreterError {
+            span: Span::dummy(),
+            msg: "Program did not terminate properly.".to_string(),
+        }),
+        Err(Interrupt::Error(err)) => Err(err),
+        Err(Interrupt::Break) => unreachable!("break on top level, this should not parse"),
+        Err(Interrupt::Return(_)) => unreachable!("return on top level, this should not parse"),
+        Err(Interrupt::Terminate) => Ok(()),
+    }
 }
 
 impl Value {
@@ -89,5 +138,11 @@ impl Value {
             Value::Float(_) => "Float",
             Value::Fn { .. } => "Function",
         }
+    }
+}
+
+impl From<InterpreterError> for Interrupt {
+    fn from(error: InterpreterError) -> Self {
+        Interrupt::Error(error)
     }
 }

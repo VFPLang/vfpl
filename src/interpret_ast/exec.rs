@@ -1,29 +1,54 @@
 use crate::error::Span;
-use crate::interpret_ast::{IResult, Ident, InterpreterError, Value, ValueResult, Vm};
-use crate::parse::ast::{
-    ArithmeticOp, Break, Call, Comparison, ComparisonKind, Else, ElseKind, Expr, FnDecl, IfPart,
-    Literal, LiteralKind, Program, Return, Stmt, Terminate, TyKind, VarInit, VarSet, While,
+use crate::interpret_ast::{
+    Env, IResult, Ident, InterpreterError, Interrupt, RuntimeFn, Value, ValueResult, Vm,
 };
+use crate::parse::ast::{
+    ArithmeticOp, Call, Comparison, ComparisonKind, Else, ElseKind, Expr, FnDecl, IfPart, Literal,
+    LiteralKind, Program, Return, Stmt, TyKind, VarInit, VarSet, While,
+};
+use std::cell::RefCell;
 use std::rc::Rc;
 
 impl Vm {
     pub fn start(&mut self, ast: Program) -> IResult {
-        self.dispatch_stmts(&ast.stmts)
+        for stmt in &ast.stmts {
+            self.dispatch(stmt)?;
+        }
+
+        Ok(())
     }
 
     fn store(&mut self, ident: Ident, value: Value) {
-        self.current_env.insert(ident, value);
+        self.env().insert(ident, value);
     }
 
-    fn load(&mut self, ident: Ident) -> Option<&mut Value> {
-        self.current_env.lookup(ident)
+    fn env(&mut self) -> std::cell::RefMut<'_, Env> {
+        RefCell::borrow_mut(&self.current_env)
     }
+
+    fn enter_env(&mut self) {
+        let new_env = Rc::new(RefCell::new(Env::default()));
+        let outer_env = std::mem::take(&mut self.current_env);
+        new_env.borrow_mut().outer = Some(outer_env);
+        self.current_env = new_env;
+    }
+
+    fn leave_env(&mut self) {
+        let old_env = std::mem::take(&mut self.current_env);
+        let outer = match old_env.borrow().outer {
+            Some(ref s) => Rc::clone(s),
+            None => panic!("Cannot leave outer env"),
+        };
+        self.current_env = outer;
+    }
+
+    ////// dispatch
 
     fn eval(&mut self, expr: &Expr) -> ValueResult {
         match expr {
             Expr::Literal(lit) => Ok(self.eval_literal(lit)),
-            Expr::Call(_call) => todo!(),
-            Expr::Comparison(_comp) => todo!(),
+            Expr::Call(call) => self.eval_call(call),
+            Expr::Comparison(comp) => self.eval_comparison(comp),
         }
     }
 
@@ -76,10 +101,12 @@ impl Vm {
         Ok(Value::Bool(bool))
     }
 
-    fn dispatch_stmts(&mut self, stmts: &[Stmt]) -> IResult {
+    fn dispatch_stmts_in_env(&mut self, stmts: &[Stmt]) -> IResult {
+        self.enter_env();
         for stmt in stmts {
             self.dispatch(stmt)?;
         }
+        self.leave_env();
 
         Ok(())
     }
@@ -96,9 +123,9 @@ impl Vm {
             Stmt::If(inner) => self.dispatch_if(&inner.if_part),
             Stmt::While(inner) => self.dispatch_while(inner),
             Stmt::FnDecl(inner) => self.dispatch_fn_decl(inner),
-            Stmt::Break(inner) => self.dispatch_break(inner),
+            Stmt::Break(_) => self.dispatch_break(),
             Stmt::Return(inner) => self.dispatch_return(inner),
-            Stmt::Terminate(inner) => self.dispatch_terminate(inner),
+            Stmt::Terminate(_) => self.dispatch_terminate(),
             Stmt::Expr(inner) => self.dispatch_expr(inner),
         }
     }
@@ -119,177 +146,228 @@ impl Vm {
         let name: Rc<_> = set.name.clone().into();
         let value = self.eval(&set.expr)?;
 
-        if self.load(Rc::clone(&name)).is_some() {
-            self.store(name, value);
-            Ok(())
-        } else {
-            Err(InterpreterError {
-                span: set.span,
-                msg: format!("Variable not found: {}", set.name),
-            })
-        }
+        self.env().modify_var(
+            Rc::clone(&name),
+            |var| {
+                *var = value;
+
+                Ok(())
+            },
+            || {
+                InterpreterError {
+                    span: set.span,
+                    msg: format!("Variable not found: {}", set.name),
+                }
+                .into()
+            },
+        )
     }
 
     fn dispatch_add(&mut self, op: &ArithmeticOp) -> IResult {
         let var_name: Rc<_> = op.var.clone().into();
         let value = self.eval(&op.expr)?;
 
-        let var_value = self.load(var_name).ok_or_else(|| InterpreterError {
-            span: op.span,
-            msg: format!("Variable not found: {}", &op.var),
-        })?;
+        self.env().modify_var(
+            Rc::clone(&var_name),
+            |var_value| {
+                let new = match (&var_value, value) {
+                    (&&mut Value::Int(var1), Value::Int(var2)) => Value::Int(var1 + var2),
+                    (&&mut Value::Float(var1), Value::Float(var2)) => Value::Float(var1 + var2),
+                    (&&mut Value::Float(var1), Value::Int(var2)) => {
+                        Value::Float(var1 + var2 as f64)
+                    }
+                    (&&mut Value::String(ref str), Value::String(new)) => {
+                        let mut new_string = String::with_capacity(str.len() + new.len());
+                        new_string.push_str(str);
+                        new_string.push_str(&new);
 
-        // that double borrow is awful
-        let new = match (&var_value, value) {
-            (&&mut Value::Int(var1), Value::Int(var2)) => Value::Int(var1 + var2),
-            (&&mut Value::Float(var1), Value::Float(var2)) => Value::Float(var1 + var2),
-            (&&mut Value::Float(var1), Value::Int(var2)) => Value::Float(var1 + var2 as f64),
-            (&&mut Value::String(ref str), Value::String(new)) => {
-                let mut new_string = String::with_capacity(str.len() + new.len());
-                new_string.push_str(str);
-                new_string.push_str(&new);
+                        Value::String(new_string.into())
+                    }
+                    (var, new) => {
+                        return Err(InterpreterError {
+                            span: op.span,
+                            msg: format!(
+                                "Invalid arguments to addition. Cannot add {} to {}",
+                                var.display_type(),
+                                new.display_type()
+                            ),
+                        }
+                        .into())
+                    }
+                };
 
-                Value::String(new_string.into())
-            }
-            (var, new) => {
-                return Err(InterpreterError {
+                *var_value = new;
+
+                Ok(())
+            },
+            || {
+                InterpreterError {
                     span: op.span,
-                    msg: format!(
-                        "Invalid arguments to addition. Cannot add {} to {}",
-                        var.display_type(),
-                        new.display_type()
-                    ),
-                })
-            }
-        };
-
-        *var_value = new;
-
-        Ok(())
+                    msg: format!("Variable not found: {}", &op.var),
+                }
+                .into()
+            },
+        )
     }
 
     fn dispatch_sub(&mut self, op: &ArithmeticOp) -> IResult {
         let var_name: Rc<_> = op.var.clone().into();
         let value = self.eval(&op.expr)?;
 
-        let var_value = self.load(var_name).ok_or_else(|| InterpreterError {
-            span: op.span,
-            msg: format!("Variable not found: {}", &op.var),
-        })?;
+        self.env().modify_var(
+            Rc::clone(&var_name),
+            |var_value| {
+                let new = match (&var_value, value) {
+                    (&&mut Value::Int(var1), Value::Int(var2)) => Value::Int(var1 - var2),
+                    (&&mut Value::Float(var1), Value::Float(var2)) => Value::Float(var1 - var2),
+                    (&&mut Value::Float(var1), Value::Int(var2)) => {
+                        Value::Float(var1 - var2 as f64)
+                    }
+                    (var, new) => {
+                        return Err(InterpreterError {
+                            span: op.span,
+                            msg: format!(
+                                "Invalid arguments to subtraction. Cannot add {} to {}",
+                                var.display_type(),
+                                new.display_type()
+                            ),
+                        }
+                        .into())
+                    }
+                };
 
-        // that double borrow is awful
-        let new = match (&var_value, value) {
-            (&&mut Value::Int(var1), Value::Int(var2)) => Value::Int(var1 - var2),
-            (&&mut Value::Float(var1), Value::Float(var2)) => Value::Float(var1 - var2),
-            (&&mut Value::Float(var1), Value::Int(var2)) => Value::Float(var1 - var2 as f64),
-            (var, new) => {
-                return Err(InterpreterError {
+                *var_value = new;
+
+                Ok(())
+            },
+            || {
+                InterpreterError {
                     span: op.span,
-                    msg: format!(
-                        "Invalid arguments to subtraction. Cannot add {} to {}",
-                        var.display_type(),
-                        new.display_type()
-                    ),
-                })
-            }
-        };
-
-        *var_value = new;
-
-        Ok(())
+                    msg: format!("Variable not found: {}", &op.var),
+                }
+                .into()
+            },
+        )
     }
 
     fn dispatch_mul(&mut self, op: &ArithmeticOp) -> IResult {
         let var_name: Rc<_> = op.var.clone().into();
         let value = self.eval(&op.expr)?;
 
-        let var_value = self.load(var_name).ok_or_else(|| InterpreterError {
-            span: op.span,
-            msg: format!("Variable not found: {}", &op.var),
-        })?;
+        self.env().modify_var(
+            Rc::clone(&var_name),
+            |var_value| {
+                let new = match (&var_value, value) {
+                    (&&mut Value::Int(var1), Value::Int(var2)) => Value::Int(var1 * var2),
+                    (&&mut Value::Float(var1), Value::Float(var2)) => Value::Float(var1 * var2),
+                    (&&mut Value::Float(var1), Value::Int(var2)) => {
+                        Value::Float(var1 * var2 as f64)
+                    }
+                    (var, new) => {
+                        return Err(InterpreterError {
+                            span: op.span,
+                            msg: format!(
+                                "Invalid arguments to multiplication. Cannot add {} to {}",
+                                var.display_type(),
+                                new.display_type()
+                            ),
+                        }
+                        .into())
+                    }
+                };
 
-        // that double borrow is awful
-        let new = match (&var_value, value) {
-            (&&mut Value::Int(var1), Value::Int(var2)) => Value::Int(var1 * var2),
-            (&&mut Value::Float(var1), Value::Float(var2)) => Value::Float(var1 * var2),
-            (&&mut Value::Float(var1), Value::Int(var2)) => Value::Float(var1 * var2 as f64),
-            (var, new) => {
-                return Err(InterpreterError {
+                *var_value = new;
+
+                Ok(())
+            },
+            || {
+                InterpreterError {
                     span: op.span,
-                    msg: format!(
-                        "Invalid arguments to multiplication. Cannot add {} to {}",
-                        var.display_type(),
-                        new.display_type()
-                    ),
-                })
-            }
-        };
-
-        *var_value = new;
-
-        Ok(())
+                    msg: format!("Variable not found: {}", &op.var),
+                }
+                .into()
+            },
+        )
     }
 
     fn dispatch_div(&mut self, op: &ArithmeticOp) -> IResult {
         let var_name: Rc<_> = op.var.clone().into();
         let value = self.eval(&op.expr)?;
 
-        let var_value = self.load(var_name).ok_or_else(|| InterpreterError {
-            span: op.span,
-            msg: format!("Variable not found: {}", &op.var),
-        })?;
+        self.env().modify_var(
+            Rc::clone(&var_name),
+            |var_value| {
+                let new = match (&var_value, value) {
+                    (&&mut Value::Int(var1), Value::Int(var2)) => Value::Int(var1 / var2),
+                    (&&mut Value::Float(var1), Value::Float(var2)) => Value::Float(var1 / var2),
+                    (&&mut Value::Float(var1), Value::Int(var2)) => {
+                        Value::Float(var1 / var2 as f64)
+                    }
+                    (var, new) => {
+                        return Err(InterpreterError {
+                            span: op.span,
+                            msg: format!(
+                                "Invalid arguments to division. Cannot add {} to {}",
+                                var.display_type(),
+                                new.display_type()
+                            ),
+                        }
+                        .into())
+                    }
+                };
 
-        // that double borrow is awful
-        let new = match (&var_value, value) {
-            (&&mut Value::Int(var1), Value::Int(var2)) => Value::Int(var1 / var2),
-            (&&mut Value::Float(var1), Value::Float(var2)) => Value::Float(var1 / var2),
-            (&&mut Value::Float(var1), Value::Int(var2)) => Value::Float(var1 / var2 as f64),
-            (var, new) => {
-                return Err(InterpreterError {
+                *var_value = new;
+
+                Ok(())
+            },
+            || {
+                InterpreterError {
                     span: op.span,
-                    msg: format!(
-                        "Invalid arguments to division. Cannot add {} to {}",
-                        var.display_type(),
-                        new.display_type()
-                    ),
-                })
-            }
-        };
-
-        *var_value = new;
-
-        Ok(())
+                    msg: format!("Variable not found: {}", &op.var),
+                }
+                .into()
+            },
+        )
     }
 
     fn dispatch_mod(&mut self, op: &ArithmeticOp) -> IResult {
         let var_name: Rc<_> = op.var.clone().into();
         let value = self.eval(&op.expr)?;
 
-        let var_value = self.load(var_name).ok_or_else(|| InterpreterError {
-            span: op.span,
-            msg: format!("Variable not found: {}", &op.var),
-        })?;
+        self.env().modify_var(
+            Rc::clone(&var_name),
+            |var_value| {
+                let new = match (&var_value, value) {
+                    (&&mut Value::Int(var1), Value::Int(var2)) => Value::Int(var1 % var2),
+                    (&&mut Value::Float(var1), Value::Float(var2)) => Value::Float(var1 % var2),
+                    (&&mut Value::Float(var1), Value::Int(var2)) => {
+                        Value::Float(var1 % var2 as f64)
+                    }
+                    (var, new) => {
+                        return Err(InterpreterError {
+                            span: op.span,
+                            msg: format!(
+                                "Invalid arguments to subtraction. Cannot add {} to {}",
+                                var.display_type(),
+                                new.display_type()
+                            ),
+                        }
+                        .into())
+                    }
+                };
 
-        // that double borrow is awful
-        let new = match (&var_value, value) {
-            (&&mut Value::Int(var1), Value::Int(var2)) => Value::Int(var1 % var2),
-            (&&mut Value::Float(var1), Value::Float(var2)) => Value::Float(var1 % var2),
-            (&&mut Value::Float(var1), Value::Int(var2)) => Value::Float(var1 % var2 as f64),
-            (var, new) => {
-                return Err(InterpreterError {
+                *var_value = new;
+
+                Ok(())
+            },
+            || {
+                InterpreterError {
                     span: op.span,
-                    msg: format!(
-                        "Invalid arguments to modulo. Cannot add {} to {}",
-                        var.display_type(),
-                        new.display_type()
-                    ),
-                })
-            }
-        };
-
-        *var_value = new;
-
-        Ok(())
+                    msg: format!("Variable not found: {}", &op.var),
+                }
+                .into()
+            },
+        )
     }
 
     fn dispatch_if(&mut self, if_part: &IfPart) -> IResult {
@@ -297,32 +375,32 @@ impl Vm {
 
         self.type_check(&cond, &TyKind::Boolean, if_part.cond.span())?;
 
-        // todo environments
         if let Value::Bool(true) = cond {
-            self.dispatch_stmts(&if_part.body.stmts)
+            self.dispatch_stmts_in_env(&if_part.body.stmts)?;
         } else {
             match &if_part.else_part {
                 Some(Else {
                     kind: ElseKind::Else(body),
                     ..
-                }) => self.dispatch_stmts(&body.stmts),
+                }) => self.dispatch_stmts_in_env(&body.stmts)?,
                 Some(Else {
                     kind: ElseKind::ElseIf(else_if),
                     ..
-                }) => self.dispatch_if(else_if),
-                None => Ok(()),
+                }) => self.dispatch_if(else_if)?,
+                None => {}
             }
         }
+
+        Ok(())
     }
 
     fn dispatch_while(&mut self, while_stmt: &While) -> IResult {
-        // todo environments
         while let Value::Bool(true) = {
             let cond = self.eval(&while_stmt.cond)?;
             self.type_check(&cond, &TyKind::Boolean, while_stmt.cond.span())?;
             cond
         } {
-            self.dispatch_stmts(&while_stmt.body.stmts)?;
+            self.dispatch_stmts_in_env(&while_stmt.body.stmts)?;
         }
 
         Ok(())
@@ -337,27 +415,29 @@ impl Vm {
             .map(|typed_ident| (typed_ident.clone().name.into(), typed_ident.ty.kind.clone()))
             .collect::<Vec<_>>();
 
-        let fn_value = Value::Fn {
+        let fn_value = Value::Fn(Box::new(RuntimeFn {
             params,
             ret_ty: TyKind::Integer,
             body: decl.body.clone(),
-        };
+            captured_env: Rc::clone(&self.current_env),
+        }));
 
         self.store(name, fn_value);
 
         Ok(())
     }
 
-    fn dispatch_break(&mut self, _inner: &Break) -> IResult {
-        todo!()
+    fn dispatch_break(&mut self) -> IResult {
+        Err(Interrupt::Break)
     }
 
-    fn dispatch_return(&mut self, _inner: &Return) -> IResult {
-        todo!()
+    fn dispatch_return(&mut self, ret: &Return) -> IResult {
+        let value = self.eval(&ret.expr)?;
+        Err(Interrupt::Return(value))
     }
 
-    fn dispatch_terminate(&mut self, _inner: &Terminate) -> IResult {
-        todo!()
+    fn dispatch_terminate(&mut self) -> IResult {
+        Err(Interrupt::Terminate)
     }
 
     fn dispatch_expr(&mut self, expr: &Expr) -> IResult {
@@ -382,7 +462,8 @@ impl Vm {
                     value.display_type(),
                     ty_kind
                 ),
-            }),
+            }
+            .into()),
         }
     }
 }
