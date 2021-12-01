@@ -1,13 +1,13 @@
 ---
 source: src/lexer/test.rs
-expression: "lex(\"12a\")"
+expression: "lex(\"00001.as244\")"
 
 ---
 Err(
     InvalidCharacter(
         Span {
-            start: 2,
-            end: 3,
+            start: 6,
+            end: 7,
         },
     ),
 )
