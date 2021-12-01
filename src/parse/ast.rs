@@ -175,6 +175,10 @@ pub struct Ty {
 #[derive(Debug, Clone, PartialEq)]
 pub enum TyKind {
     Name(Ident),
+    Integer,
+    Float,
+    Boolean,
+    String,
     Absent,
     Null,
     NoValue,

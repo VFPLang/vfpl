@@ -1,7 +1,7 @@
 use crate::interpret_ast::{IResult, Ident, InterpreterError, Value, Vm};
 use crate::parse::ast::{
-    ArithmeticOp, Break, Expr, FnDecl, If, Program, Return, Stmt, Terminate, Ty, VarInit, VarSet,
-    While,
+    ArithmeticOp, Break, Expr, FnDecl, If, Program, Return, Stmt, Terminate, Ty, TyKind, VarInit,
+    VarSet, While,
 };
 use std::rc::Rc;
 
@@ -109,7 +109,16 @@ impl Vm {
         todo!()
     }
 
-    fn type_check(&self, _value: &Value, _ty: &Ty) -> IResult {
-        Ok(())
+    fn type_check(&self, value: &Value, ty: &Ty) -> IResult {
+        match (value, &ty.kind) {
+            (Value::Bool(_), TyKind::Boolean) => Ok(()),
+            _ => Err(InterpreterError {
+                span: ty.span,
+                msg: format!(
+                    "Type mismatch! {:?} is not assignable to {:?}",
+                    value, ty.kind
+                ),
+            }),
+        }
     }
 }

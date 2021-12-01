@@ -60,7 +60,7 @@ fn different_literals() {
 
 #[test]
 fn ident_ty() {
-    let tokens = [Ident("Integer".to_string())].map(token);
+    let tokens = [Ident("Test".to_string())].map(token);
     let parsed = parse(tokens, Parser::ty);
 
     insta::assert_debug_snapshot!(parsed);
@@ -73,6 +73,19 @@ fn nullable_ty() {
         [NoValue].map(token),
         [Null].map(token),
         [Undefined].map(token),
+    ];
+    let parsed = tys.map(|tokens| parse(tokens, Parser::ty));
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn other_tys() {
+    let tys = [
+        [Ident("Boolean".to_string())].map(token),
+        [Ident("Integer".to_string())].map(token),
+        [Ident("String".to_string())].map(token),
+        [Ident("Float".to_string())].map(token),
     ];
     let parsed = tys.map(|tokens| parse(tokens, Parser::ty));
 

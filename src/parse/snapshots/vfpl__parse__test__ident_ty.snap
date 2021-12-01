@@ -10,7 +10,7 @@ Ok(
             end: 0,
         },
         kind: Name(
-            "Integer",
+            "Test",
         ),
     },
 )

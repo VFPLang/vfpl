@@ -551,7 +551,13 @@ impl Parser {
                 TokenKind::Null => TyKind::Null,
                 TokenKind::NoValue => TyKind::NoValue,
                 TokenKind::Undefined => TyKind::Undefined,
-                TokenKind::Ident(value) => TyKind::Name(value),
+                TokenKind::Ident(value) => match &*value {
+                    "Integer" => TyKind::Integer,
+                    "Float" => TyKind::Float,
+                    "Boolean" => TyKind::Boolean,
+                    "String" => TyKind::String,
+                    _ => TyKind::Name(value),
+                },
                 _ => {
                     return Err(ParseError {
                         span: token.span,
