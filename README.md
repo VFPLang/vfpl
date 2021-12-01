@@ -85,7 +85,7 @@ please create function void with no parameters that returns absent.
 please end function void.
 ```
 
-`[..] I thought about your intentions, and cam to the conclusion that you probably want to return 5 from the function. I suggest you add it.`
+`[..] I thought about your intentions, and came to the conclusion that you probably want to return 5 from the function. I suggest you add it.`
 
 bug: invalid handle of string literals
 

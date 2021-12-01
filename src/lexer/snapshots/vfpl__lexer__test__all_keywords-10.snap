@@ -1,0 +1,16 @@
+---
+source: src/lexer/test.rs
+expression: "lex(\"The\")"
+
+---
+Ok(
+    [
+        Token {
+            span: Span {
+                start: 0,
+                end: 3,
+            },
+            kind: The,
+        },
+    ],
+)

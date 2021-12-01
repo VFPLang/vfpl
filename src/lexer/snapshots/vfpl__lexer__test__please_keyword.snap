@@ -1,0 +1,16 @@
+---
+source: src/lexer/test.rs
+expression: "lex(\"please\")"
+
+---
+Ok(
+    [
+        Token {
+            span: Span {
+                start: 0,
+                end: 6,
+            },
+            kind: Please,
+        },
+    ],
+)
