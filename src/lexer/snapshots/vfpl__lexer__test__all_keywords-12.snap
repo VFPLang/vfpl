@@ -1,0 +1,16 @@
+---
+source: src/lexer/test.rs
+expression: "lex(\"Of\")"
+
+---
+Ok(
+    [
+        Token {
+            span: Span {
+                start: 0,
+                end: 2,
+            },
+            kind: Of,
+        },
+    ],
+)
