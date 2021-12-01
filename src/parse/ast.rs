@@ -1,4 +1,5 @@
 use crate::error::Span;
+use std::fmt::{Display, Formatter, Write};
 
 type Ident = String;
 
@@ -257,4 +258,17 @@ pub struct CallArg {
     pub span: Span,
     pub expr: Expr,
     pub name: Ident,
+}
+
+impl Display for ComparisonKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ComparisonKind::NotEq => f.write_str("!="),
+            ComparisonKind::Eq => f.write_str("=="),
+            ComparisonKind::Greater => f.write_char('>'),
+            ComparisonKind::Less => f.write_char('<'),
+            ComparisonKind::GreaterEq => f.write_str(">="),
+            ComparisonKind::LessEq => f.write_str("<="),
+        }
+    }
 }

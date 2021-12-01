@@ -1,8 +1,8 @@
 use crate::error::Span;
-use crate::interpret_ast::{IResult, Ident, InterpreterError, Value, Vm};
+use crate::interpret_ast::{IResult, Ident, InterpreterError, Value, ValueResult, Vm};
 use crate::parse::ast::{
-    ArithmeticOp, Break, Else, ElseKind, Expr, FnDecl, IfPart, Program, Return, Stmt, Terminate,
-    TyKind, VarInit, VarSet, While,
+    ArithmeticOp, Break, Call, Comparison, ComparisonKind, Else, ElseKind, Expr, FnDecl, IfPart,
+    Literal, LiteralKind, Program, Return, Stmt, Terminate, TyKind, VarInit, VarSet, While,
 };
 use std::rc::Rc;
 
@@ -19,8 +19,61 @@ impl Vm {
         self.current_env.lookup(ident)
     }
 
-    fn eval(&mut self, _expr: &Expr) -> Value {
-        Value::Absent
+    fn eval(&mut self, expr: &Expr) -> ValueResult {
+        match expr {
+            Expr::Literal(lit) => Ok(self.eval_literal(lit)),
+            Expr::Call(_call) => todo!(),
+            Expr::Comparison(_comp) => todo!(),
+        }
+    }
+
+    fn eval_literal(&mut self, lit: &Literal) -> Value {
+        match &lit.kind {
+            LiteralKind::Absent => Value::Absent,
+            LiteralKind::Null => Value::Null,
+            LiteralKind::NoValue => Value::NoValue,
+            LiteralKind::Undefined => Value::Undefined,
+            LiteralKind::String(string) => Value::String(string.clone().into()),
+            LiteralKind::Int(int) => Value::Int(*int),
+            LiteralKind::Float(float) => Value::Float(*float),
+            LiteralKind::True => Value::Bool(true),
+            LiteralKind::False => Value::Bool(false),
+        }
+    }
+
+    fn eval_call(&mut self, _call: &Call) -> ValueResult {
+        todo!()
+    }
+
+    fn eval_comparison(&mut self, comp: &Comparison) -> ValueResult {
+        let lhs = self.eval(&comp.lhs)?;
+        let rhs = self.eval(&comp.rhs)?;
+
+        let bool = match (&comp.kind, lhs, rhs) {
+            (ComparisonKind::Eq, lhs, rhs) => lhs == rhs,
+            (ComparisonKind::NotEq, lhs, rhs) => lhs != rhs,
+            (ComparisonKind::Greater, Value::Int(lhs), Value::Int(rhs)) => lhs > rhs,
+            (ComparisonKind::Greater, Value::Float(lhs), Value::Float(rhs)) => lhs > rhs,
+            (ComparisonKind::GreaterEq, Value::Int(lhs), Value::Int(rhs)) => lhs >= rhs,
+            (ComparisonKind::GreaterEq, Value::Float(lhs), Value::Float(rhs)) => lhs >= rhs,
+            (ComparisonKind::Less, Value::Int(lhs), Value::Int(rhs)) => lhs < rhs,
+            (ComparisonKind::Less, Value::Float(lhs), Value::Float(rhs)) => lhs < rhs,
+            (ComparisonKind::LessEq, Value::Int(lhs), Value::Int(rhs)) => lhs <= rhs,
+            (ComparisonKind::LessEq, Value::Float(lhs), Value::Float(rhs)) => lhs <= rhs,
+            (comp_kind, lhs, rhs) => {
+                return Err(InterpreterError {
+                    span: comp.span,
+                    msg: format!(
+                        "Cannot compare {} and {} using `{}`",
+                        lhs.display_type(),
+                        rhs.display_type(),
+                        comp_kind
+                    ),
+                })
+            }
+        };
+
+        Ok(Value::Bool(bool))
     }
 
     fn dispatch_stmts(&mut self, stmts: &[Stmt]) -> IResult {
@@ -52,7 +105,7 @@ impl Vm {
 
     fn dispatch_var_init(&mut self, init: &VarInit) -> IResult {
         let name = init.name.name.clone().into();
-        let value = self.eval(&init.init);
+        let value = self.eval(&init.init)?;
         let ty = &init.name.ty;
 
         self.type_check(&value, &ty.kind, ty.span)?;
@@ -64,7 +117,7 @@ impl Vm {
 
     fn dispatch_var_set(&mut self, set: &VarSet) -> IResult {
         let name: Rc<_> = set.name.clone().into();
-        let value = self.eval(&set.expr);
+        let value = self.eval(&set.expr)?;
 
         if self.load(Rc::clone(&name)).is_some() {
             self.store(name, value);
@@ -79,7 +132,7 @@ impl Vm {
 
     fn dispatch_add(&mut self, op: &ArithmeticOp) -> IResult {
         let var_name: Rc<_> = op.var.clone().into();
-        let value = self.eval(&op.expr);
+        let value = self.eval(&op.expr)?;
 
         let var_value = self.load(var_name).ok_or_else(|| InterpreterError {
             span: op.span,
@@ -117,7 +170,7 @@ impl Vm {
 
     fn dispatch_sub(&mut self, op: &ArithmeticOp) -> IResult {
         let var_name: Rc<_> = op.var.clone().into();
-        let value = self.eval(&op.expr);
+        let value = self.eval(&op.expr)?;
 
         let var_value = self.load(var_name).ok_or_else(|| InterpreterError {
             span: op.span,
@@ -148,7 +201,7 @@ impl Vm {
 
     fn dispatch_mul(&mut self, op: &ArithmeticOp) -> IResult {
         let var_name: Rc<_> = op.var.clone().into();
-        let value = self.eval(&op.expr);
+        let value = self.eval(&op.expr)?;
 
         let var_value = self.load(var_name).ok_or_else(|| InterpreterError {
             span: op.span,
@@ -179,7 +232,7 @@ impl Vm {
 
     fn dispatch_div(&mut self, op: &ArithmeticOp) -> IResult {
         let var_name: Rc<_> = op.var.clone().into();
-        let value = self.eval(&op.expr);
+        let value = self.eval(&op.expr)?;
 
         let var_value = self.load(var_name).ok_or_else(|| InterpreterError {
             span: op.span,
@@ -210,7 +263,7 @@ impl Vm {
 
     fn dispatch_mod(&mut self, op: &ArithmeticOp) -> IResult {
         let var_name: Rc<_> = op.var.clone().into();
-        let value = self.eval(&op.expr);
+        let value = self.eval(&op.expr)?;
 
         let var_value = self.load(var_name).ok_or_else(|| InterpreterError {
             span: op.span,
@@ -240,10 +293,11 @@ impl Vm {
     }
 
     fn dispatch_if(&mut self, if_part: &IfPart) -> IResult {
-        let cond = self.eval(&if_part.cond);
+        let cond = self.eval(&if_part.cond)?;
 
         self.type_check(&cond, &TyKind::Boolean, if_part.cond.span())?;
 
+        // todo environments
         if let Value::Bool(true) = cond {
             self.dispatch_stmts(&if_part.body.stmts)
         } else {
@@ -262,8 +316,9 @@ impl Vm {
     }
 
     fn dispatch_while(&mut self, while_stmt: &While) -> IResult {
+        // todo environments
         while let Value::Bool(true) = {
-            let cond = self.eval(&while_stmt.cond);
+            let cond = self.eval(&while_stmt.cond)?;
             self.type_check(&cond, &TyKind::Boolean, while_stmt.cond.span())?;
             cond
         } {
@@ -273,8 +328,24 @@ impl Vm {
         Ok(())
     }
 
-    fn dispatch_fn_decl(&mut self, _inner: &FnDecl) -> IResult {
-        todo!()
+    fn dispatch_fn_decl(&mut self, decl: &FnDecl) -> IResult {
+        let name: Rc<_> = decl.name.clone().into();
+        let params = decl
+            .params
+            .params
+            .iter()
+            .map(|typed_ident| (typed_ident.clone().name.into(), typed_ident.ty.kind.clone()))
+            .collect::<Vec<_>>();
+
+        let fn_value = Value::Fn {
+            params,
+            ret_ty: TyKind::Integer,
+            body: decl.body.clone(),
+        };
+
+        self.store(name, fn_value);
+
+        Ok(())
     }
 
     fn dispatch_break(&mut self, _inner: &Break) -> IResult {
@@ -289,8 +360,9 @@ impl Vm {
         todo!()
     }
 
-    fn dispatch_expr(&mut self, _inner: &Expr) -> IResult {
-        todo!()
+    fn dispatch_expr(&mut self, expr: &Expr) -> IResult {
+        self.eval(expr)?;
+        Ok(())
     }
 
     fn type_check(&self, value: &Value, ty_kind: &TyKind, span: Span) -> IResult {

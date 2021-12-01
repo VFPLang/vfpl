@@ -12,6 +12,8 @@ type Ident = Rc<str>;
 
 type IResult = Result<(), InterpreterError>;
 
+type ValueResult = Result<Value, InterpreterError>;
+
 #[derive(Debug)]
 pub struct InterpreterError {
     span: Span,
@@ -26,7 +28,7 @@ impl Display for InterpreterError {
 
 impl std::error::Error for InterpreterError {}
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 #[allow(clippy::enum_variant_names)]
 enum Value {
     Absent,
@@ -40,7 +42,7 @@ enum Value {
     Fn {
         params: Vec<(Ident, TyKind)>,
         ret_ty: TyKind,
-        body: Rc<Body>,
+        body: Body,
     },
 }
 
