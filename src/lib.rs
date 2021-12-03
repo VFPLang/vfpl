@@ -6,6 +6,7 @@ mod interpret_ast;
 mod lexer;
 mod parse;
 
+pub use error::display_error;
 pub use interpret_ast::run;
 pub use parse::parse;
 

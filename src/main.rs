@@ -9,16 +9,19 @@ fn main() {
             });
 
             let tokens = vfpl::lex(&content).unwrap_or_else(|err| {
-                eprintln!("Lex error: {:?}", err);
+                vfpl::display_error(&content, err);
                 std::process::exit(1);
             });
 
             let ast = vfpl::parse(tokens.into_iter()).unwrap_or_else(|err| {
-                eprintln!("Parse error: {}", err);
+                vfpl::display_error(&content, err);
                 std::process::exit(1);
             });
 
-            println!("{:#?}\nSuccessfully parsed program!", ast);
+            vfpl::run(ast).unwrap_or_else(|err| {
+                vfpl::display_error(&content, err);
+                std::process::exit(1);
+            });
         }
         None => eprintln!("Provide a program name as the program argument."),
     }

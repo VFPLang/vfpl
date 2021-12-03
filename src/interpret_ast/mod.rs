@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::error::Span;
+use crate::error::{CompilerError, Span};
 use crate::parse::ast::{Body, Program, TyKind};
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -28,12 +28,12 @@ enum Interrupt {
 #[derive(Debug)]
 pub struct InterpreterError {
     span: Span,
-    msg: String,
+    message: String,
 }
 
 impl Display for InterpreterError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.msg)
+        f.write_str(&self.message)
     }
 }
 
@@ -117,7 +117,7 @@ pub fn run(program: Program) -> Result<(), InterpreterError> {
     match vm.start(program) {
         Ok(()) => Err(InterpreterError {
             span: Span::dummy(),
-            msg: "Program did not terminate properly.".to_string(),
+            message: "Program did not terminate properly.".to_string(),
         }),
         Err(Interrupt::Error(err)) => Err(err),
         Err(Interrupt::Break) => unreachable!("break on top level, this should not parse"),
@@ -145,5 +145,19 @@ impl Value {
 impl From<InterpreterError> for Interrupt {
     fn from(error: InterpreterError) -> Self {
         Interrupt::Error(error)
+    }
+}
+
+impl CompilerError for InterpreterError {
+    fn span(&self) -> Span {
+        self.span
+    }
+
+    fn message(&self) -> String {
+        self.message.clone()
+    }
+
+    fn note(&self) -> Option<String> {
+        None
     }
 }

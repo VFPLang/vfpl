@@ -1,12 +1,13 @@
 //!
 //! Parses the source tokens using recursive descent
 
-use crate::error::Span;
+use std::vec;
+
+use peekmore::{PeekMore, PeekMoreIterator};
+
+use crate::error::{CompilerError, Span};
 use crate::lexer::tokens::Token;
 use crate::parse::ast::Program;
-use peekmore::{PeekMore, PeekMoreIterator};
-use std::fmt::{Display, Formatter};
-use std::vec;
 
 pub mod ast;
 mod helper;
@@ -49,10 +50,16 @@ pub struct ParseError {
     message: String,
 }
 
-impl Display for ParseError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.message)
+impl CompilerError for ParseError {
+    fn span(&self) -> Span {
+        self.span
+    }
+
+    fn message(&self) -> String {
+        self.message.clone()
+    }
+
+    fn note(&self) -> Option<String> {
+        None
     }
 }
-
-impl std::error::Error for ParseError {}

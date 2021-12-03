@@ -79,7 +79,7 @@ impl Vm {
                 } else {
                     return Err(InterpreterError {
                         span: call.span,
-                        msg: format!("Variable is not a function: {}", call.fn_name),
+                        message: format!("Variable is not a function: {}", call.fn_name),
                     }
                     .into());
                 }
@@ -87,7 +87,7 @@ impl Vm {
             || {
                 InterpreterError {
                     span: call.span,
-                    msg: format!("Variable not found: {}", call.fn_name),
+                    message: format!("Variable not found: {}", call.fn_name),
                 }
                 .into()
             },
@@ -102,7 +102,7 @@ impl Vm {
         if params.len() != args.len() {
             return Err(InterpreterError {
                 span: call.args.span,
-                msg: format!(
+                message: format!(
                     "Called function with {} instead of {} arguments",
                     args.len(),
                     params.len()
@@ -138,7 +138,7 @@ impl Vm {
                 if *param_name != arg.name {
                     return Err(Interrupt::Error(InterpreterError {
                         span: arg.span,
-                        msg: format!(
+                        message: format!(
                             "Mismatched names: expected {}, got {}",
                             param_name, arg.name
                         ),
@@ -173,7 +173,7 @@ impl Vm {
             Err(err) => Err(err),
             Ok(_) => Err(InterpreterError {
                 span: function.body.span,
-                msg: "Function did not return any value".to_string(),
+                message: "Function did not return any value".to_string(),
             }
             .into()),
         }
@@ -197,7 +197,7 @@ impl Vm {
             (comp_kind, lhs, rhs) => {
                 return Err(InterpreterError {
                     span: comp.span,
-                    msg: format!(
+                    message: format!(
                         "Cannot compare {} and {} using `{}`",
                         lhs.display_type(),
                         rhs.display_type(),
@@ -266,7 +266,7 @@ impl Vm {
             || {
                 InterpreterError {
                     span: set.span,
-                    msg: format!("Variable not found: {}", set.name),
+                    message: format!("Variable not found: {}", set.name),
                 }
                 .into()
             },
@@ -296,7 +296,7 @@ impl Vm {
                     (var, new) => {
                         return Err(InterpreterError {
                             span: op.span,
-                            msg: format!(
+                            message: format!(
                                 "Invalid arguments to addition. Cannot add {} to {}",
                                 var.display_type(),
                                 new.display_type()
@@ -313,7 +313,7 @@ impl Vm {
             || {
                 InterpreterError {
                     span: op.span,
-                    msg: format!("Variable not found: {}", &op.var),
+                    message: format!("Variable not found: {}", &op.var),
                 }
                 .into()
             },
@@ -336,7 +336,7 @@ impl Vm {
                     (var, new) => {
                         return Err(InterpreterError {
                             span: op.span,
-                            msg: format!(
+                            message: format!(
                                 "Invalid arguments to subtraction. Cannot add {} to {}",
                                 var.display_type(),
                                 new.display_type()
@@ -353,7 +353,7 @@ impl Vm {
             || {
                 InterpreterError {
                     span: op.span,
-                    msg: format!("Variable not found: {}", &op.var),
+                    message: format!("Variable not found: {}", &op.var),
                 }
                 .into()
             },
@@ -376,7 +376,7 @@ impl Vm {
                     (var, new) => {
                         return Err(InterpreterError {
                             span: op.span,
-                            msg: format!(
+                            message: format!(
                                 "Invalid arguments to multiplication. Cannot add {} to {}",
                                 var.display_type(),
                                 new.display_type()
@@ -393,7 +393,7 @@ impl Vm {
             || {
                 InterpreterError {
                     span: op.span,
-                    msg: format!("Variable not found: {}", &op.var),
+                    message: format!("Variable not found: {}", &op.var),
                 }
                 .into()
             },
@@ -416,7 +416,7 @@ impl Vm {
                     (var, new) => {
                         return Err(InterpreterError {
                             span: op.span,
-                            msg: format!(
+                            message: format!(
                                 "Invalid arguments to division. Cannot add {} to {}",
                                 var.display_type(),
                                 new.display_type()
@@ -433,7 +433,7 @@ impl Vm {
             || {
                 InterpreterError {
                     span: op.span,
-                    msg: format!("Variable not found: {}", &op.var),
+                    message: format!("Variable not found: {}", &op.var),
                 }
                 .into()
             },
@@ -456,7 +456,7 @@ impl Vm {
                     (var, new) => {
                         return Err(InterpreterError {
                             span: op.span,
-                            msg: format!(
+                            message: format!(
                                 "Invalid arguments to subtraction. Cannot add {} to {}",
                                 var.display_type(),
                                 new.display_type()
@@ -473,7 +473,7 @@ impl Vm {
             || {
                 InterpreterError {
                     span: op.span,
-                    msg: format!("Variable not found: {}", &op.var),
+                    message: format!("Variable not found: {}", &op.var),
                 }
                 .into()
             },
@@ -567,7 +567,7 @@ impl Vm {
             (Value::Float(_), TyKind::Float) => Ok(()),
             _ => Err(InterpreterError {
                 span,
-                msg: format!(
+                message: format!(
                     "Type mismatch! {} is not assignable to {:?}",
                     value.display_type(),
                     ty_kind

@@ -6,10 +6,9 @@ use unicode_xid::UnicodeXID;
 
 use tokens::Token;
 
-use crate::error::Span;
+use crate::error::{CompilerError, Span};
 use crate::lexer::helper::compute_keyword;
 use crate::lexer::tokens::TokenKind;
-use crate::lexer::LexerError::{InvalidCharacter, UnexpectedEOF};
 
 mod helper;
 #[cfg(test)]
@@ -17,16 +16,6 @@ mod test;
 pub mod tokens;
 
 pub type LexerResult<T> = Result<T, LexerError>;
-
-#[derive(Debug)]
-pub enum LexerError {
-    UnexpectedEOF,
-    IntParseError(Span),
-    FloatParseError(Span),
-    InvalidCharacter(Span),
-    InvalidEscapeCharacter(Span),
-    LetterInNumber(Span),
-}
 
 #[derive(Debug)]
 pub struct Lexer<'a> {
@@ -75,8 +64,8 @@ impl Lexer<'_> {
                     {
                         while let Some((_, char)) = self.next() {
                             if char == '-' {
-                                if self.peek_nth(0).ok_or(UnexpectedEOF)?.1 == '-'
-                                    && self.peek_nth(1).ok_or(UnexpectedEOF)?.1 == '>'
+                                if self.peek_nth(0).ok_or(LexerError::UnexpectedEOF)?.1 == '-'
+                                    && self.peek_nth(1).ok_or(LexerError::UnexpectedEOF)?.1 == '>'
                                 {
                                     self.consume_elements(2);
                                     break;
@@ -86,13 +75,13 @@ impl Lexer<'_> {
                             }
                         }
                     } else {
-                        return Err(InvalidCharacter(Span::single(idx)));
+                        return Err(LexerError::InvalidCharacter(Span::single(idx)));
                     }
                 }
                 '0'..='9' | '-' => tokens.push(self.compute_number(char, idx)?),
                 other if other.is_whitespace() => continue,
                 other if other.is_xid_start() => tokens.push(self.compute_identifier(char, idx)),
-                _ => return Err(InvalidCharacter(Span::single(idx))),
+                _ => return Err(LexerError::InvalidCharacter(Span::single(idx))),
             }
         }
         Ok(tokens)
@@ -123,7 +112,9 @@ impl Lexer<'_> {
                         self.next();
                         number.push(char)
                     }
-                    other if other.is_xid_start() => return Err(InvalidCharacter(Span::single(i))),
+                    other if other.is_xid_start() => {
+                        return Err(LexerError::InvalidCharacter(Span::single(i)))
+                    }
                     _ => {
                         // This works because the character before it will be 1 byte long (0..9 || -)
                         break i - 1;
@@ -146,7 +137,7 @@ impl Lexer<'_> {
                                 number.push(char)
                             }
                             other if other.is_xid_start() => {
-                                return Err(InvalidCharacter(Span::single(i)));
+                                return Err(LexerError::InvalidCharacter(Span::single(i)));
                             }
                             _ => {
                                 // This works because the character before it will be 1 byte long (0..9 || -)
@@ -203,5 +194,43 @@ impl Lexer<'_> {
             }
         }
         Err(LexerError::UnexpectedEOF)
+    }
+}
+
+#[derive(Debug)]
+pub enum LexerError {
+    UnexpectedEOF,
+    IntParseError(Span),
+    FloatParseError(Span),
+    InvalidCharacter(Span),
+    InvalidEscapeCharacter(Span),
+    LetterInNumber(Span),
+}
+
+impl CompilerError for LexerError {
+    fn span(&self) -> Span {
+        match self {
+            LexerError::UnexpectedEOF => Span::dummy(),
+            LexerError::IntParseError(span) => *span,
+            LexerError::FloatParseError(span) => *span,
+            LexerError::InvalidCharacter(span) => *span,
+            LexerError::InvalidEscapeCharacter(span) => *span,
+            LexerError::LetterInNumber(span) => *span,
+        }
+    }
+
+    fn message(&self) -> String {
+        match self {
+            LexerError::UnexpectedEOF => "Unexpected EOF".to_string(),
+            LexerError::IntParseError(_) => "Error parsing integer literal".to_string(),
+            LexerError::FloatParseError(_) => "Error parsing float literal".to_string(),
+            LexerError::InvalidCharacter(_) => "Invalid character".to_string(),
+            LexerError::InvalidEscapeCharacter(_) => "Invalid escape character".to_string(),
+            LexerError::LetterInNumber(_) => "Invalid letter in number".to_string(),
+        }
+    }
+
+    fn note(&self) -> Option<String> {
+        None
     }
 }
