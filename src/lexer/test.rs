@@ -62,7 +62,7 @@ fn string() {
 
 #[test]
 fn string_with_escape_chars() {
-    insta::assert_debug_snapshot!(lex("\"What is a \\\"unit test\\\"?\""))
+    insta::assert_debug_snapshot!(lex(r#""What is a \"unit test\"?""#))
 }
 
 #[test]
@@ -135,4 +135,13 @@ fn all_keywords() {
     insta::assert_debug_snapshot!(lex("Repeat"));
     insta::assert_debug_snapshot!(lex("Return"));
     insta::assert_debug_snapshot!(lex("While"));
+}
+
+#[test]
+#[ignore]
+fn normal_line_of_code() {
+    // todo this test still fails :(
+    insta::assert_debug_snapshot!(lex(
+        "please initialize variable x as Integer with the value of 15.\n"
+    ));
 }
