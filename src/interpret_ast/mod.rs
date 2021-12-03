@@ -13,7 +13,7 @@ type Ident = Rc<str>;
 
 type IResult = Result<(), Interrupt>;
 
-type ValueResult = Result<Value, InterpreterError>;
+type ValueResult = Result<Value, Interrupt>;
 
 type RcEnv = Rc<RefCell<Env>>;
 
@@ -50,7 +50,7 @@ enum Value {
     String(Rc<str>),
     Int(i64),
     Float(f64),
-    Fn(Box<RuntimeFn>),
+    Fn(Rc<RefCell<RuntimeFn>>),
 }
 
 #[derive(Debug, Clone)]
@@ -85,9 +85,9 @@ impl Env {
         Some(())
     }
 
-    fn modify_var<F, E>(&mut self, ident: Ident, f: F, err: E) -> IResult
+    fn modify_var<F, E, R>(&mut self, ident: Ident, f: F, err: E) -> Result<R, Interrupt>
     where
-        F: FnOnce(&mut Value) -> IResult,
+        F: FnOnce(&mut Value) -> Result<R, Interrupt>,
         E: FnOnce() -> Interrupt,
     {
         match self.vars.get_mut(&ident) {
@@ -107,6 +107,7 @@ impl Env {
 #[derive(Debug, Default)]
 struct Vm {
     current_env: RcEnv,
+    call_stack: Vec<RcEnv>,
     recur_depth: usize,
 }
 

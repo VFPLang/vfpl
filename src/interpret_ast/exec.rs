@@ -66,8 +66,117 @@ impl Vm {
         }
     }
 
-    fn eval_call(&mut self, _call: &Call) -> ValueResult {
-        todo!()
+    fn eval_call(&mut self, call: &Call) -> ValueResult {
+        let fn_name = call.fn_name.clone().into();
+
+        // get the function value out
+        let function = self.env().modify_var(
+            fn_name,
+            |function| {
+                if let Value::Fn(function) = function {
+                    let function = Rc::clone(function);
+                    Ok(function)
+                } else {
+                    return Err(InterpreterError {
+                        span: call.span,
+                        msg: format!("Variable is not a function: {}", call.fn_name),
+                    }
+                    .into());
+                }
+            },
+            || {
+                InterpreterError {
+                    span: call.span,
+                    msg: format!("Variable not found: {}", call.fn_name),
+                }
+                .into()
+            },
+        )?;
+
+        // this will be incredibly ugly
+        let function = function.borrow_mut();
+
+        let params = &function.params;
+        let args = &call.args.args;
+
+        if params.len() != args.len() {
+            return Err(InterpreterError {
+                span: call.args.span,
+                msg: format!(
+                    "Called function with {} instead of {} arguments",
+                    args.len(),
+                    params.len()
+                ),
+            }
+            .into());
+        }
+
+        struct EvalCallArg {
+            value: Value,
+            span: Span,
+            name: Ident,
+        }
+
+        let arg_values = args
+            .iter()
+            .map(|arg| {
+                Ok(EvalCallArg {
+                    value: self.eval(&arg.expr)?,
+                    span: arg.span,
+                    name: arg.name.clone().into(),
+                })
+            })
+            .collect::<Result<Vec<_>, Interrupt>>()?;
+
+        // do param type and name checking
+
+        params
+            .iter()
+            .zip(arg_values.iter())
+            .try_for_each(|((param_name, param_ty), arg)| {
+                self.type_check(&arg.value, param_ty, arg.span)?;
+                if *param_name != arg.name {
+                    return Err(Interrupt::Error(InterpreterError {
+                        span: arg.span,
+                        msg: format!(
+                            "Mismatched names: expected {}, got {}",
+                            param_name, arg.name
+                        ),
+                    }));
+                }
+                Ok(())
+            })?;
+
+        self.call_stack.push(Rc::clone(&self.current_env));
+
+        {
+            // only borrow the env mutably for this short time
+            // insert the arguments into the new environment to make them available as variables
+            let mut new_env = function.captured_env.borrow_mut();
+            for arg_value in arg_values {
+                new_env.vars.insert(arg_value.name, arg_value.value);
+            }
+        }
+
+        self.current_env = Rc::clone(&function.captured_env);
+
+        let result = self.dispatch_stmts_in_env(&function.body.stmts);
+
+        // leave call
+        self.current_env = self
+            .call_stack
+            .pop()
+            .expect("Call stack empty after fn call");
+
+        match result {
+            Err(Interrupt::Return(ret)) => Ok(ret),
+            Err(err) => Err(err),
+            Ok(_) => Err(InterpreterError {
+                span: function.body.span,
+                msg: "Function did not return any value".to_string(),
+            }
+            .into()),
+        }
     }
 
     fn eval_comparison(&mut self, comp: &Comparison) -> ValueResult {
@@ -94,7 +203,8 @@ impl Vm {
                         rhs.display_type(),
                         comp_kind
                     ),
-                })
+                }
+                .into())
             }
         };
 
@@ -415,12 +525,12 @@ impl Vm {
             .map(|typed_ident| (typed_ident.clone().name.into(), typed_ident.ty.kind.clone()))
             .collect::<Vec<_>>();
 
-        let fn_value = Value::Fn(Box::new(RuntimeFn {
+        let fn_value = Value::Fn(Rc::new(RefCell::new(RuntimeFn {
             params,
             ret_ty: TyKind::Integer,
             body: decl.body.clone(),
             captured_env: Rc::clone(&self.current_env),
-        }));
+        })));
 
         self.store(name, fn_value);
 
