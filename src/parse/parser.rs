@@ -673,6 +673,7 @@ impl Parser {
                 TokenKind::String(value) => LiteralKind::String(value),
                 TokenKind::Int(value) => LiteralKind::Int(value),
                 TokenKind::Float(value) => LiteralKind::Float(value),
+                TokenKind::Ident(name) => LiteralKind::Ident(name),
                 _ => {
                     return Err(ParseError {
                         span: token.span,

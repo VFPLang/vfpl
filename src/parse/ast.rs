@@ -221,6 +221,7 @@ pub enum LiteralKind {
     Float(f64),
     True,
     False,
+    Ident(Ident),
 }
 
 #[derive(Debug, Clone, PartialEq)]

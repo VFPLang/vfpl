@@ -146,6 +146,15 @@ struct Vm {
     stdout: Box<dyn Write>,
 }
 
+impl Vm {
+    fn with_stdout(stdout: Box<dyn Write>) -> Self {
+        Self {
+            stdout,
+            ..Default::default()
+        }
+    }
+}
+
 impl Debug for Vm {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Vm")

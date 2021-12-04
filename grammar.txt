@@ -117,7 +117,7 @@
 
 # literals
 
-<literal> = <nullable> | STRING | <number> | "true" | "false"
+<literal> = <nullable> | STRING | <number> | "true" | "false" | IDENT
 
 <number> = <int> | <float>
 

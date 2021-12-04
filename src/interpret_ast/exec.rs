@@ -66,6 +66,7 @@ impl Vm {
             LiteralKind::Float(float) => Value::Float(*float),
             LiteralKind::True => Value::Bool(true),
             LiteralKind::False => Value::Bool(false),
+            LiteralKind::Ident(_) => todo!(),
         }
     }
 

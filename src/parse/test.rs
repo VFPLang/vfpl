@@ -109,6 +109,14 @@ fn literal_expr() {
 }
 
 #[test]
+fn ident_literal() {
+    let tokens = [Ident("uwu".to_string())].map(token);
+    let parsed = parse(tokens, Parser::expr);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
 fn not_equal_expr() {
     let tokens = [Absent, Does, Not, Have, The, Value, Null].map(token);
     let parsed = parse(tokens, Parser::expr);
