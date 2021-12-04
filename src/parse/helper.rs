@@ -3,7 +3,7 @@ use crate::lexer::tokens::{Token, TokenKind};
 use crate::parse::{ParseError, ParseResult, Parser};
 
 impl Parser {
-    const MAX_DEPTH: usize = 50;
+    const MAX_DEPTH: usize = 200;
 
     pub(super) fn parse_rule<F, R>(&mut self, f: F) -> ParseResult<R>
     where

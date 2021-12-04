@@ -8,6 +8,7 @@ mod parse;
 
 pub use error::display_error;
 pub use interpret_ast::run;
+pub use interpret_ast::Vm;
 pub use parse::parse;
 
 /// Lexes an input stream into Tokens

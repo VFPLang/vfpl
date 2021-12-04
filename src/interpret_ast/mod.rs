@@ -14,19 +14,10 @@ mod native;
 mod test;
 
 /// Runs the parsed program
-pub fn run(program: Program) -> Result<(), InterpreterError> {
+pub fn run(program: &Program) -> Result<(), InterpreterError> {
     let mut vm = Vm::default();
 
-    match vm.start(&program) {
-        Ok(()) => Err(InterpreterError {
-            span: Span::dummy(),
-            message: "Program did not terminate properly.".to_string(),
-        }),
-        Err(Interrupt::Error(err)) => Err(err),
-        Err(Interrupt::Break) => unreachable!("break on top level, this should not parse"),
-        Err(Interrupt::Return(_)) => unreachable!("return on top level, this should not parse"),
-        Err(Interrupt::Terminate) => Ok(()),
-    }
+    vm.run(&program)
 }
 
 type Ident = Rc<str>;
@@ -38,7 +29,7 @@ type ValueResult = Result<Value, Interrupt>;
 type RcEnv = Rc<RefCell<Env>>;
 
 // manual debug impl
-struct Vm {
+pub struct Vm {
     current_env: RcEnv,
     call_stack: Vec<RcEnv>,
     recur_depth: usize,
@@ -127,10 +118,23 @@ impl Env {
 }
 
 impl Vm {
-    fn with_stdout(stdout: Rc<RefCell<dyn Write>>) -> Self {
+    pub fn with_stdout(stdout: Rc<RefCell<dyn Write>>) -> Self {
         Self {
             stdout,
             ..Default::default()
+        }
+    }
+
+    pub fn run(&mut self, program: &Program) -> Result<(), InterpreterError> {
+        match self.start(program) {
+            Ok(()) => Err(InterpreterError {
+                span: Span::dummy(),
+                message: "Program did not terminate properly.".to_string(),
+            }),
+            Err(Interrupt::Error(err)) => Err(err),
+            Err(Interrupt::Break) => unreachable!("break on top level, this should not parse"),
+            Err(Interrupt::Return(_)) => unreachable!("return on top level, this should not parse"),
+            Err(Interrupt::Terminate) => Ok(()),
         }
     }
 }

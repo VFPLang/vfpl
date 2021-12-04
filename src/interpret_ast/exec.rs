@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 impl Vm {
-    pub fn start(&mut self, ast: &Program) -> IResult {
+    pub(super) fn start(&mut self, ast: &Program) -> IResult {
         self.add_global_functions();
 
         for stmt in &ast.stmts {
