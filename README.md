@@ -4,6 +4,8 @@ Pronounced "Veepl", the f is silent
 
 A politely verbose programming language for building next-gen reliable applications
 
+See the docs on [https://vfplang.github.io/docs/](https://vfplang.github.io/docs/)
+
 # Syntax
 
 ```
@@ -39,7 +41,7 @@ VFPL has null value*s*
 ```
 please initialize variable x1 as Integer with the value of 1.
 please initialize variable x2 as String with the value of "undefined".
-please initialize variable x3 as Boolean with the value of true.
+please initialize variable x3 as Boolean with the value of True.
 please initialize variable x4 as Novalue with the value of noValue.
 
 please check whether x1 has the value absent, then do
@@ -62,7 +64,7 @@ this is pain.
 please 4.
 ```
 
-The language is case-insensitive, but it's a convention to refer to variables in UPPERCASE when mutating them.
+The language is case-insensitive, but it's a convention to refer to variables in Uppercase when mutating them.
 
 `please initialize the variable x as Integer with the value of 5.`  
 `please add 1 to X.`
