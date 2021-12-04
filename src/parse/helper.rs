@@ -15,53 +15,52 @@ impl Parser {
         result
     }
 
-    pub(super) fn next(&mut self) -> ParseResult<Token> {
+    pub(super) fn next(&mut self, parser_name: &str) -> ParseResult<Token> {
         self.tokens.next().ok_or_else(|| ParseError {
             span: Span::dummy(),
-            message: "reached end of file".to_string(),
+            message: format!("reached end of file in {}", parser_name),
         })
     }
 
-    pub(super) fn peek(&mut self) -> ParseResult<&Token> {
+    pub fn next_token_kind_named(&mut self, token_kind: &TokenKind) -> ParseResult<Token> {
+        self.tokens.next().ok_or_else(|| ParseError {
+            span: Span::dummy(),
+            message: format!("reached end of file expecting {}", token_kind),
+        })
+    }
+
+    pub(super) fn maybe_peek_kind(&mut self) -> Option<&TokenKind> {
+        self.tokens.peek().map(|token| &token.kind)
+    }
+
+    pub(super) fn peek(&mut self, parser_name: &str) -> ParseResult<&Token> {
         self.tokens.peek().ok_or_else(|| ParseError {
             span: Span::dummy(),
-            message: "reached end of file".to_string(),
+            message: format!("reached end of file in {}", parser_name),
         })
     }
 
-    pub(super) fn peek_nth_kind(&mut self, n: usize) -> ParseResult<&TokenKind> {
-        self.tokens
-            .peek_nth(n)
-            .map(|token| &token.kind)
-            .ok_or_else(|| ParseError {
-                span: Span::dummy(),
-                message: "reached end of file".to_string(),
-            })
+    pub(super) fn maybe_peek_nth_kind(&mut self, n: usize) -> Option<&TokenKind> {
+        self.tokens.peek_nth(n).map(|token| &token.kind)
     }
 
-    pub(super) fn peek_kind(&mut self) -> ParseResult<&TokenKind> {
-        self.tokens
-            .peek()
-            .map(|token| &token.kind)
-            .ok_or_else(|| ParseError {
-                span: Span::dummy(),
-                message: "reached end of file".to_string(),
-            })
+    pub(super) fn peek_kind(&mut self, parser_name: &str) -> ParseResult<&TokenKind> {
+        self.peek(parser_name).map(|token| &token.kind)
     }
 
     pub(super) fn try_consume_kind(
         &mut self,
         expected_kind: TokenKind,
     ) -> ParseResult<Option<Token>> {
-        if self.peek_kind()? == &expected_kind {
-            Ok(Some(self.next()?))
+        if self.peek_kind("")? == &expected_kind {
+            Ok(Some(self.next("")?))
         } else {
             Ok(None)
         }
     }
 
     pub(super) fn expect_kind(&mut self, expected_kind: TokenKind) -> ParseResult<Span> {
-        let next = self.next()?;
+        let next = self.next_token_kind_named(&expected_kind)?;
         if next.kind == expected_kind {
             Ok(next.span)
         } else {

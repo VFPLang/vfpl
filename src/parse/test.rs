@@ -252,6 +252,25 @@ fn mod_number() {
 }
 
 #[test]
+fn nested_add_number() {
+    let tokens = [
+        Add,
+        Int(5),
+        To,
+        ParenOpen,
+        Add,
+        Int(6),
+        To,
+        Int(7),
+        ParenClose,
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::term);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
 fn terminate() {
     let tokens = [Go, To, Sleep].map(token);
     let parsed = parse(tokens, Parser::terminate);
@@ -598,6 +617,27 @@ fn fn_decl_three_param_with_body() {
     ]
     .map(token);
     let parsed = parse(tokens, Parser::fn_decl);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn multiple_body_statements() {
+    let tokens = [
+        Please,
+        Add,
+        Int(5),
+        To,
+        Int(6),
+        Dot,
+        Please,
+        Go,
+        To,
+        Sleep,
+        Dot,
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::body);
 
     insta::assert_debug_snapshot!(parsed);
 }

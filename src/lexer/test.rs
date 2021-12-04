@@ -83,7 +83,7 @@ fn all_keywords() {
         "Sub",
         "Mul",
         "Div",
-        "Mod",
+        "Modulo",
         "Initialize",
         "Variable",
         "With",

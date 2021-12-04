@@ -8,7 +8,7 @@ pub fn compute_keyword(identifier: &str) -> Option<TokenKind> {
         "sub" => TokenKind::Sub,
         "mul" => TokenKind::Mul,
         "div" => TokenKind::Div,
-        "mod" => TokenKind::Mod,
+        "modulo" => TokenKind::Mod,
         "initialize" => TokenKind::Initialize,
         "variable" => TokenKind::Variable,
         "with" => TokenKind::With,

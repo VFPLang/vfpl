@@ -100,4 +100,4 @@ we're currently working on making the fizzbuzzable mvp
 
 Prints a value to stdout
 
-`please create function print with the parameter value as <Any> that returns absent`
+`please create function print with the parameter x as <Any> that returns absent`

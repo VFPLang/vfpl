@@ -3,4 +3,4 @@ source: src/interpret_ast/test.rs
 expression: state
 
 ---
-"absent"
+"absent\n"

@@ -57,7 +57,7 @@ macro_rules! vfpl_error_test {
             insta::assert_display_snapshot!(stderr);
         }
     };
-    (#[ignore], $name:ident, $code:expr) => {
+    (ignore, $name:ident, $code:expr) => {
         #[test]
         #[ignore]
         fn $name() {
@@ -78,7 +78,7 @@ macro_rules! vfpl_run_test {
             insta::assert_display_snapshot!(stderr);
         }
     };
-    (#[ignore], $name:ident, $code:expr) => {
+    (ignore, $name:ident, $code:expr) => {
         #[test]
         #[ignore]
         fn $name() {

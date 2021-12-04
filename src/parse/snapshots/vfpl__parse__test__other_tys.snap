@@ -10,7 +10,9 @@ expression: parsed
                 start: 0,
                 end: 0,
             },
-            kind: Boolean,
+            kind: Name(
+                "Boolean",
+            ),
         },
     ),
     Ok(
@@ -19,7 +21,9 @@ expression: parsed
                 start: 0,
                 end: 0,
             },
-            kind: Integer,
+            kind: Name(
+                "Integer",
+            ),
         },
     ),
     Ok(
@@ -28,7 +32,9 @@ expression: parsed
                 start: 0,
                 end: 0,
             },
-            kind: String,
+            kind: Name(
+                "String",
+            ),
         },
     ),
     Ok(
@@ -37,7 +43,9 @@ expression: parsed
                 start: 0,
                 end: 0,
             },
-            kind: Float,
+            kind: Name(
+                "Float",
+            ),
         },
     ),
 ]

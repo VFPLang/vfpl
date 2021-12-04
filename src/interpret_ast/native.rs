@@ -15,7 +15,7 @@ impl Vm {
         let mut env = (*self.current_env).borrow_mut();
         let vars = &mut env.vars;
 
-        vars.insert(ident("print"), print());
+        vars.insert(ident("println"), println());
     }
 }
 
@@ -24,25 +24,25 @@ impl Vm {
 ///
 /// print a value to stdout
 /// Takes a single arg of any type, called "value"
-fn print() -> Value {
+fn println() -> Value {
     Value::Fn(Rc::new(RefCell::new(RuntimeFn {
-        params: vec![(ident("value"), TyKind::Any)],
+        params: vec![(ident("x"), TyKind::Any)],
         ret_ty: TyKind::Absent,
-        body: FnImpl::Native(print_impl),
+        body: FnImpl::Native(println_impl),
         captured_env: Rc::new(RefCell::new(Env::default())),
     })))
 }
 
-fn print_impl(vm: &mut Vm) -> IResult {
+fn println_impl(vm: &mut Vm) -> IResult {
     let env = (*vm.current_env).borrow_mut();
 
     let value = env
-        .get_value("value")
+        .get_value("x")
         .unwrap_or_else(|| unreachable!("did not find function parameter"));
 
     let mut stdout_lock = vm.stdout.borrow_mut();
 
-    write!(stdout_lock, "{}", value).map_err(|err| {
+    writeln!(stdout_lock, "{}", value).map_err(|err| {
         Interrupt::Error(InterpreterError {
             span: Span::dummy(),
             message: format!("Failed to write to stdout: {}", err),

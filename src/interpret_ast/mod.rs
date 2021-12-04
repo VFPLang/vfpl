@@ -17,7 +17,7 @@ mod test;
 pub fn run(program: &Program) -> Result<(), InterpreterError> {
     let mut vm = Vm::default();
 
-    vm.run(&program)
+    vm.run(program)
 }
 
 type Ident = Rc<str>;
