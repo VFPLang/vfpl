@@ -4,10 +4,14 @@ use crate::error::{CompilerError, Span};
 use crate::parse::ast::{Body, Program, TyKind};
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::fmt::{Display, Formatter};
+use std::fmt::{Debug, Display, Formatter};
+use std::io::Write;
 use std::rc::Rc;
 
 mod exec;
+mod native;
+#[cfg(test)]
+mod test;
 
 type Ident = Rc<str>;
 
@@ -57,14 +61,45 @@ enum Value {
 struct RuntimeFn {
     params: Vec<(Ident, TyKind)>,
     ret_ty: TyKind,
-    body: Body,
+    body: FnImpl,
     captured_env: RcEnv,
+}
+
+#[derive(Clone)]
+enum FnImpl {
+    Native(fn(&mut Vm) -> IResult),
+    Custom(Body),
+}
+
+impl FnImpl {
+    fn span(&self) -> Span {
+        match self {
+            FnImpl::Native(_) => Span::dummy(),
+            FnImpl::Custom(body) => body.span,
+        }
+    }
+}
+
+impl Debug for FnImpl {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FnImpl::Native(_) => f.write_str("[native code]"),
+            FnImpl::Custom(body) => body.fmt(f),
+        }
+    }
 }
 
 impl PartialEq for RuntimeFn {
     fn eq(&self, _: &Self) -> bool {
         false
     }
+}
+
+#[derive(Debug, Clone)]
+struct EvalCallArg {
+    value: Value,
+    span: Span,
+    name: Ident,
 }
 
 #[derive(Debug, Default)]
@@ -104,11 +139,32 @@ impl Env {
     }
 }
 
-#[derive(Debug, Default)]
 struct Vm {
     current_env: RcEnv,
     call_stack: Vec<RcEnv>,
     recur_depth: usize,
+    stdout: Box<dyn Write>,
+}
+
+impl Debug for Vm {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Vm")
+            .field("current_env", &self.current_env)
+            .field("call_stack", &self.call_stack)
+            .field("recur_depth", &self.recur_depth)
+            .finish()
+    }
+}
+
+impl Default for Vm {
+    fn default() -> Self {
+        Self {
+            current_env: Default::default(),
+            call_stack: Default::default(),
+            recur_depth: Default::default(),
+            stdout: Box::new(std::io::stdout()),
+        }
+    }
 }
 
 pub fn run(program: Program) -> Result<(), InterpreterError> {
@@ -138,6 +194,25 @@ impl Value {
             Value::Int(_) => "Integer",
             Value::Float(_) => "Float",
             Value::Fn { .. } => "Function",
+        }
+    }
+}
+
+impl Display for Value {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Value::Absent => f.write_str("absent"),
+            Value::Null => f.write_str("null"),
+            Value::NoValue => f.write_str("no value"),
+            Value::Undefined => f.write_str("undefined"),
+            Value::Bool(value) => Display::fmt(value, f),
+            Value::String(value) => Display::fmt(value, f),
+            Value::Int(value) => Display::fmt(value, f),
+            Value::Float(value) => Display::fmt(value, f),
+            Value::Fn(value) => match &value.borrow().body {
+                FnImpl::Native(_) => f.write_str("[native function]"),
+                FnImpl::Custom(_) => f.write_str("[function]"),
+            },
         }
     }
 }

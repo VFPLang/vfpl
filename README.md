@@ -92,3 +92,12 @@ bug: invalid handle of string literals
 # note
 we are aware that this language is lacking any way to structure data together, and we are working on addressing this problem.
 we're currently working on making the fizzbuzzable mvp
+
+
+# Reference
+
+## Native global functions
+
+Prints a value to stdout
+
+`please create function print with the parameter value as <Any> that returns absent`

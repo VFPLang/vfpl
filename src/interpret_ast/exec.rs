@@ -1,6 +1,7 @@
 use crate::error::Span;
 use crate::interpret_ast::{
-    Env, IResult, Ident, InterpreterError, Interrupt, RuntimeFn, Value, ValueResult, Vm,
+    Env, EvalCallArg, FnImpl, IResult, Ident, InterpreterError, Interrupt, RuntimeFn, Value,
+    ValueResult, Vm,
 };
 use crate::parse::ast::{
     ArithmeticOp, Call, Comparison, ComparisonKind, Else, ElseKind, Expr, FnDecl, IfPart, Literal,
@@ -11,6 +12,8 @@ use std::rc::Rc;
 
 impl Vm {
     pub fn start(&mut self, ast: Program) -> IResult {
+        self.add_global_functions();
+
         for stmt in &ast.stmts {
             self.dispatch(stmt)?;
         }
@@ -111,12 +114,6 @@ impl Vm {
             .into());
         }
 
-        struct EvalCallArg {
-            value: Value,
-            span: Span,
-            name: Ident,
-        }
-
         let arg_values = args
             .iter()
             .map(|arg| {
@@ -160,7 +157,10 @@ impl Vm {
 
         self.current_env = Rc::clone(&function.captured_env);
 
-        let result = self.dispatch_stmts_in_env(&function.body.stmts);
+        let result: IResult = match &function.body {
+            FnImpl::Native(f) => f(self),
+            FnImpl::Custom(body) => self.dispatch_stmts_in_env(&body.stmts),
+        };
 
         // leave call
         self.current_env = self
@@ -172,7 +172,7 @@ impl Vm {
             Err(Interrupt::Return(ret)) => Ok(ret),
             Err(err) => Err(err),
             Ok(_) => Err(InterpreterError {
-                span: function.body.span,
+                span: function.body.span(),
                 message: "Function did not return any value".to_string(),
             }
             .into()),
@@ -528,7 +528,7 @@ impl Vm {
         let fn_value = Value::Fn(Rc::new(RefCell::new(RuntimeFn {
             params,
             ret_ty: TyKind::Integer,
-            body: decl.body.clone(),
+            body: FnImpl::Custom(decl.body.clone()),
             captured_env: Rc::clone(&self.current_env),
         })));
 
