@@ -1,0 +1,99 @@
+---
+source: src/lexer/test.rs
+expression: "lex(\"please initialize variable x as Integer with the value of 15.3.\\n\")"
+
+---
+Ok(
+    [
+        Token {
+            span: Span {
+                start: 0,
+                end: 6,
+            },
+            kind: Please,
+        },
+        Token {
+            span: Span {
+                start: 7,
+                end: 17,
+            },
+            kind: Initialize,
+        },
+        Token {
+            span: Span {
+                start: 18,
+                end: 26,
+            },
+            kind: Variable,
+        },
+        Token {
+            span: Span {
+                start: 27,
+                end: 28,
+            },
+            kind: Ident(
+                "x",
+            ),
+        },
+        Token {
+            span: Span {
+                start: 29,
+                end: 31,
+            },
+            kind: As,
+        },
+        Token {
+            span: Span {
+                start: 32,
+                end: 39,
+            },
+            kind: Ident(
+                "integer",
+            ),
+        },
+        Token {
+            span: Span {
+                start: 40,
+                end: 44,
+            },
+            kind: With,
+        },
+        Token {
+            span: Span {
+                start: 45,
+                end: 48,
+            },
+            kind: The,
+        },
+        Token {
+            span: Span {
+                start: 49,
+                end: 54,
+            },
+            kind: Value,
+        },
+        Token {
+            span: Span {
+                start: 55,
+                end: 57,
+            },
+            kind: Of,
+        },
+        Token {
+            span: Span {
+                start: 58,
+                end: 62,
+            },
+            kind: Float(
+                15.3,
+            ),
+        },
+        Token {
+            span: Span {
+                start: 62,
+                end: 63,
+            },
+            kind: Dot,
+        },
+    ],
+)

@@ -9,6 +9,7 @@ use tokens::Token;
 use crate::error::{CompilerError, Span};
 use crate::lexer::helper::compute_keyword;
 use crate::lexer::tokens::TokenKind;
+use crate::LexerError::InvalidCharacter;
 
 mod helper;
 #[cfg(test)]
@@ -117,7 +118,7 @@ impl Lexer<'_> {
                     }
                     _ => {
                         // This works because the character before it will be 1 byte long (0..9 || -)
-                        break i - 1;
+                        break i;
                     }
                 }
             } else {
@@ -127,25 +128,35 @@ impl Lexer<'_> {
 
         if let Some((i, char)) = self.peek() {
             if char == '.' {
-                number.push('.');
-                self.next();
-                end = loop {
-                    if let Some((i, char)) = self.peek() {
-                        match char {
-                            '0'..='9' => {
-                                self.next();
-                                number.push(char);
-                            }
-                            other if other.is_xid_start() => {
-                                return Err(LexerError::InvalidCharacter(Span::single(i)));
-                            }
-                            _ => {
-                                // This works because the character before it will be 1 byte long (0..9 || -)
-                                break i - 1;
+                if let Some((i, char)) = self.peek_nth(1) {
+                    println!("{}", char);
+                    if char.is_ascii_digit() {
+                        number.push('.');
+                        self.next();
+                        number.push(char);
+                        self.next();
+
+                        end = loop {
+                            if let Some((i, char)) = self.peek() {
+                                match char {
+                                    '0'..='9' => {
+                                        self.next();
+                                        number.push(char)
+                                    }
+                                    other if other.is_xid_start() => {
+                                        return Err(LexerError::InvalidCharacter(Span::single(i)));
+                                    }
+                                    _ => {
+                                        // This works because the character before it will be 1 byte long (0..9 || -)
+                                        break i;
+                                    }
+                                }
+                            } else {
+                                break idx + number.len();
                             }
                         }
-                    } else {
-                        break idx + number.len();
+                    } else if char.is_xid_start() {
+                        return Err(LexerError::InvalidCharacter(Span::single(i)));
                     }
                 }
             } else if char.is_ascii_alphabetic() {
