@@ -1,18 +1,21 @@
 use crate::error::Span;
 use crate::interpret_ast::Vm;
 use crate::parse::ast::*;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 /// Runs the code and returns stdout
-fn run_code(_ast: &Program) -> String {
-    // let mut vec = Vec::new();
-    //
-    // let stdout = Box::new(&mut vec);
-    //
-    // let mut vm = Vm::with_stdout(stdout);
-    // vm.start(ast).unwrap();
-    //
-    // String::from_utf8(vec).unwrap()
-    todo!()
+fn run_code(ast: &Program) -> String {
+    let vec = Rc::new(RefCell::new(Vec::new()));
+
+    let stdout = Rc::clone(&vec);
+
+    let mut vm = Vm::with_stdout(stdout);
+    vm.start(ast).unwrap();
+
+    let cloned_vec = RefCell::borrow(&vec);
+
+    String::from_utf8((cloned_vec).clone()).unwrap()
 }
 
 fn var_init(name: &str, ty: TyKind, val: LiteralKind) -> Stmt {

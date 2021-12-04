@@ -4,7 +4,6 @@ use crate::interpret_ast::{
 };
 use crate::parse::ast::TyKind;
 use std::cell::RefCell;
-use std::io::Write;
 use std::rc::Rc;
 
 fn ident(str: &str) -> Rc<str> {
@@ -40,7 +39,9 @@ fn print_impl(vm: &mut Vm) -> IResult {
     env.modify_var(
         ident("print"),
         |value| {
-            write!(vm.stdout, "{}", value).map_err(|err| {
+            let mut stdout_lock = vm.stdout.borrow_mut();
+
+            write!(stdout_lock, "{}", value).map_err(|err| {
                 Interrupt::Error(InterpreterError {
                     span: Span::dummy(),
                     message: format!("Failed to write to stdout: {}", err),

@@ -143,11 +143,11 @@ struct Vm {
     current_env: RcEnv,
     call_stack: Vec<RcEnv>,
     recur_depth: usize,
-    stdout: Box<dyn Write>,
+    stdout: Rc<RefCell<dyn Write>>,
 }
 
 impl Vm {
-    fn with_stdout(stdout: Box<dyn Write>) -> Self {
+    fn with_stdout(stdout: Rc<RefCell<dyn Write>>) -> Self {
         Self {
             stdout,
             ..Default::default()
@@ -171,7 +171,7 @@ impl Default for Vm {
             current_env: Rc::default(),
             call_stack: Vec::default(),
             recur_depth: 0,
-            stdout: Box::new(std::io::stdout()),
+            stdout: Rc::new(RefCell::new(std::io::stdout())),
         }
     }
 }
