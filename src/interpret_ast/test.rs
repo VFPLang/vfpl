@@ -55,7 +55,6 @@ fn print(name: &str) -> Stmt {
 }
 
 #[test]
-#[ignore]
 fn initialize_global_variable() {
     let ast = Body {
         span: Span::default(),
@@ -71,7 +70,6 @@ fn initialize_global_variable() {
 }
 
 #[test]
-#[ignore]
 fn double_initialize_global_variable() {
     let ast = Body {
         span: Span::default(),

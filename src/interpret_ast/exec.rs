@@ -1,7 +1,6 @@
 use crate::error::Span;
 use crate::interpret_ast::{
-    Env, EvalCallArg, FnImpl, IResult, Ident, InterpreterError, Interrupt, RuntimeFn, Value,
-    ValueResult, Vm,
+    Env, FnImpl, IResult, Ident, InterpreterError, Interrupt, RuntimeFn, Value, ValueResult, Vm,
 };
 use crate::parse::ast::{
     ArithmeticOp, Call, Comparison, ComparisonKind, Else, ElseKind, Expr, FnDecl, IfPart, Literal,
@@ -49,53 +48,53 @@ impl Vm {
 
     fn eval(&mut self, expr: &Expr) -> ValueResult {
         match expr {
-            Expr::Literal(lit) => Ok(self.eval_literal(lit)),
+            Expr::Literal(lit) => self.eval_literal(lit),
             Expr::Call(call) => self.eval_call(call),
             Expr::Comparison(comp) => self.eval_comparison(comp),
         }
     }
 
-    fn eval_literal(&self, lit: &Literal) -> Value {
+    fn eval_literal(&mut self, lit: &Literal) -> ValueResult {
         match &lit.kind {
-            LiteralKind::Absent => Value::Absent,
-            LiteralKind::Null => Value::Null,
-            LiteralKind::NoValue => Value::NoValue,
-            LiteralKind::Undefined => Value::Undefined,
-            LiteralKind::String(string) => Value::String(string.clone().into()),
-            LiteralKind::Int(int) => Value::Int(*int),
-            LiteralKind::Float(float) => Value::Float(*float),
-            LiteralKind::True => Value::Bool(true),
-            LiteralKind::False => Value::Bool(false),
-            LiteralKind::Ident(_) => todo!(),
+            LiteralKind::Absent => Ok(Value::Absent),
+            LiteralKind::Null => Ok(Value::Null),
+            LiteralKind::NoValue => Ok(Value::NoValue),
+            LiteralKind::Undefined => Ok(Value::Undefined),
+            LiteralKind::String(string) => Ok(Value::String(string.clone().into())),
+            LiteralKind::Int(int) => Ok(Value::Int(*int)),
+            LiteralKind::Float(float) => Ok(Value::Float(*float)),
+            LiteralKind::True => Ok(Value::Bool(true)),
+            LiteralKind::False => Ok(Value::Bool(false)),
+            LiteralKind::Ident(name) => self.env().get_value(name).ok_or_else(|| {
+                InterpreterError {
+                    span: lit.span,
+                    message: format!("Variable not found: {}", name),
+                }
+                .into()
+            }),
         }
     }
 
     fn eval_call(&mut self, call: &Call) -> ValueResult {
-        let fn_name = call.fn_name.clone().into();
+        let fn_name = &call.fn_name;
 
         // get the function value out
-        let function = self.env().modify_var(
-            fn_name,
-            |function| {
-                if let Value::Fn(function) = function {
-                    let function = Rc::clone(function);
-                    Ok(function)
-                } else {
-                    return Err(InterpreterError {
-                        span: call.span,
-                        message: format!("Variable is not a function: {}", call.fn_name),
-                    }
-                    .into());
-                }
-            },
-            || {
-                InterpreterError {
-                    span: call.span,
-                    message: format!("Variable not found: {}", call.fn_name),
-                }
-                .into()
-            },
-        )?;
+        let function = self.env().get_value(fn_name).ok_or_else(|| {
+            Interrupt::Error(InterpreterError {
+                span: call.span,
+                message: format!("Variable not found: {}", call.fn_name),
+            })
+        })?;
+
+        let function = if let Value::Fn(function) = function {
+            function
+        } else {
+            return Err(InterpreterError {
+                span: call.span,
+                message: format!("Variable is not a function: {}", call.fn_name),
+            }
+            .into());
+        };
 
         // this will be incredibly ugly
         let function = function.borrow_mut();
@@ -115,6 +114,15 @@ impl Vm {
             .into());
         }
 
+        // this is only needed here as a convenience struct
+
+        #[derive(Debug)]
+        struct EvalCallArg {
+            value: Value,
+            span: Span,
+            name: Ident,
+        }
+
         let arg_values = args
             .iter()
             .map(|arg| {
@@ -127,7 +135,6 @@ impl Vm {
             .collect::<Result<Vec<_>, Interrupt>>()?;
 
         // do param type and name checking
-
         params
             .iter()
             .zip(arg_values.iter())
@@ -566,6 +573,7 @@ impl Vm {
             (Value::String(_), TyKind::String) => Ok(()),
             (Value::Int(_), TyKind::Integer) => Ok(()),
             (Value::Float(_), TyKind::Float) => Ok(()),
+            (_, TyKind::Any) => Ok(()),
             _ => Err(InterpreterError {
                 span,
                 message: format!(

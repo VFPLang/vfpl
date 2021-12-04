@@ -13,6 +13,22 @@ mod native;
 #[cfg(test)]
 mod test;
 
+/// Runs the parsed program
+pub fn run(program: Program) -> Result<(), InterpreterError> {
+    let mut vm = Vm::default();
+
+    match vm.start(&program) {
+        Ok(()) => Err(InterpreterError {
+            span: Span::dummy(),
+            message: "Program did not terminate properly.".to_string(),
+        }),
+        Err(Interrupt::Error(err)) => Err(err),
+        Err(Interrupt::Break) => unreachable!("break on top level, this should not parse"),
+        Err(Interrupt::Return(_)) => unreachable!("return on top level, this should not parse"),
+        Err(Interrupt::Terminate) => Ok(()),
+    }
+}
+
 type Ident = Rc<str>;
 
 type IResult = Result<(), Interrupt>;
@@ -21,27 +37,13 @@ type ValueResult = Result<Value, Interrupt>;
 
 type RcEnv = Rc<RefCell<Env>>;
 
-#[derive(Debug)]
-enum Interrupt {
-    Break,
-    Terminate,
-    Return(Value),
-    Error(InterpreterError),
+// manual debug impl
+struct Vm {
+    current_env: RcEnv,
+    call_stack: Vec<RcEnv>,
+    recur_depth: usize,
+    stdout: Rc<RefCell<dyn Write>>,
 }
-
-#[derive(Debug)]
-pub struct InterpreterError {
-    span: Span,
-    message: String,
-}
-
-impl Display for InterpreterError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.message)
-    }
-}
-
-impl std::error::Error for InterpreterError {}
 
 #[derive(Debug, Clone, PartialEq)]
 #[allow(clippy::enum_variant_names)]
@@ -71,35 +73,12 @@ enum FnImpl {
     Custom(Body),
 }
 
-impl FnImpl {
-    fn span(&self) -> Span {
-        match self {
-            FnImpl::Native(_) => Span::dummy(),
-            FnImpl::Custom(body) => body.span,
-        }
-    }
-}
-
-impl Debug for FnImpl {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            FnImpl::Native(_) => f.write_str("[native code]"),
-            FnImpl::Custom(body) => body.fmt(f),
-        }
-    }
-}
-
-impl PartialEq for RuntimeFn {
-    fn eq(&self, _: &Self) -> bool {
-        false
-    }
-}
-
-#[derive(Debug, Clone)]
-struct EvalCallArg {
-    value: Value,
-    span: Span,
-    name: Ident,
+#[derive(Debug)]
+enum Interrupt {
+    Break,
+    Terminate,
+    Return(Value),
+    Error(InterpreterError),
 }
 
 #[derive(Debug, Default)]
@@ -120,6 +99,14 @@ impl Env {
         Some(())
     }
 
+    fn get_value(&self, ident: &str) -> Option<Value> {
+        self.vars.get(ident).cloned().or_else(|| {
+            self.outer
+                .as_ref()
+                .and_then(|outer| outer.borrow().get_value(ident))
+        })
+    }
+
     fn modify_var<F, E, R>(&mut self, ident: Ident, f: F, err: E) -> Result<R, Interrupt>
     where
         F: FnOnce(&mut Value) -> Result<R, Interrupt>,
@@ -137,13 +124,6 @@ impl Env {
     fn insert(&mut self, ident: Ident, value: Value) {
         self.vars.insert(ident, value);
     }
-}
-
-struct Vm {
-    current_env: RcEnv,
-    call_stack: Vec<RcEnv>,
-    recur_depth: usize,
-    stdout: Rc<RefCell<dyn Write>>,
 }
 
 impl Vm {
@@ -173,23 +153,6 @@ impl Default for Vm {
             recur_depth: 0,
             stdout: Rc::new(RefCell::new(std::io::stdout())),
         }
-    }
-}
-
-///
-/// Runs the parsed program
-pub fn run(program: Program) -> Result<(), InterpreterError> {
-    let mut vm = Vm::default();
-
-    match vm.start(&program) {
-        Ok(()) => Err(InterpreterError {
-            span: Span::dummy(),
-            message: "Program did not terminate properly.".to_string(),
-        }),
-        Err(Interrupt::Error(err)) => Err(err),
-        Err(Interrupt::Break) => unreachable!("break on top level, this should not parse"),
-        Err(Interrupt::Return(_)) => unreachable!("return on top level, this should not parse"),
-        Err(Interrupt::Terminate) => Ok(()),
     }
 }
 
@@ -227,6 +190,44 @@ impl Display for Value {
         }
     }
 }
+
+impl FnImpl {
+    fn span(&self) -> Span {
+        match self {
+            FnImpl::Native(_) => Span::dummy(),
+            FnImpl::Custom(body) => body.span,
+        }
+    }
+}
+
+impl Debug for FnImpl {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FnImpl::Native(_) => f.write_str("[native code]"),
+            FnImpl::Custom(body) => body.fmt(f),
+        }
+    }
+}
+
+impl PartialEq for RuntimeFn {
+    fn eq(&self, _: &Self) -> bool {
+        false
+    }
+}
+
+#[derive(Debug)]
+pub struct InterpreterError {
+    span: Span,
+    message: String,
+}
+
+impl Display for InterpreterError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.message)
+    }
+}
+
+impl std::error::Error for InterpreterError {}
 
 impl From<InterpreterError> for Interrupt {
     fn from(error: InterpreterError) -> Self {
