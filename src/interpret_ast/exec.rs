@@ -395,12 +395,22 @@ impl Vm {
     }
 
     fn dispatch_while(&mut self, while_stmt: &While) -> IResult {
+        let stmts = &while_stmt.body.stmts;
+
         while let Value::Bool(true) = {
             let cond = self.eval(&while_stmt.cond)?;
             self.type_check(&cond, &TyKind::Boolean, while_stmt.cond.span())?;
             cond
         } {
-            self.dispatch_stmts_in_env(&while_stmt.body.stmts)?;
+            self.enter_env();
+            for stmt in stmts {
+                match self.dispatch(stmt) {
+                    Err(Interrupt::Break) => return Ok(()),
+                    Err(err) => return Err(err),
+                    _ => {}
+                }
+            }
+            self.leave_env();
         }
 
         Ok(())

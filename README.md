@@ -7,27 +7,27 @@ A politely verbose programming language for building next-gen reliable applicati
 # Syntax
 
 ```
-please initialize variable x as Integer with the value of 15.
+please initialize variable X as Integer with the value of 15.
 please set the variable X to the value of 5.
-please add 5 to X.
+please set the variable X to the value of (add 5 to X).
 
-please create function print_x with the parameter x as Integer that returns absent.
-    please print x to the console.
+please create function print_x with the parameter x as Integer that returns absent
+    please call println with the argument x as x.
     please return absent from the function.
 please end function print_x.
 
 please call print_x with the argument x as x.
 
-please create function add with the parameters a as Integer and b as Integer that returns Integer.
-    please add b to A.
+please create function add with the parameters A as Integer and b as Integer that returns Integer
+    please set the variable A to the value (add b to A).
     please return a from the function.
 please end function add.
 
-please initialize variable add_result as Integer with the value of 
+please initialize variable add_result as Integer with the value of
     (call add with the arguments 5 as a and 8 as b).
 
 please repeat while 5 is smaller than 6 do
-    please print "I want to stop!!!" to the console.
+    please call println with the argument "I want to stop!!!" as x.
     please break out of this while.
 please end while.
 
@@ -37,21 +37,21 @@ please go to sleep.
 VFPL has null value*s*
 
 ```
-please initialize variable x1 as Integer with the value of null.
-please initialize variable x2 as String with the value of undefined.
-please initialize variable x3 as Boolean with the value of absent.
-please initialize variable x4 as Boolean with the value of no value.
+please initialize variable x1 as Integer with the value of 1.
+please initialize variable x2 as String with the value of "undefined".
+please initialize variable x3 as Boolean with the value of true.
+please initialize variable x4 as Novalue with the value of noValue.
 
-please check whether x1 has the value absent, if it does please do
-    please print "oh oh" to the console.
-otherwise, check whether x1 has the value 5, if it does please do
-    please print ":)" to the console.
-otherwise, do
-    please print "uwu" to the console.
+please check whether x1 has the value absent, then do
+    please call println with the argument "oh oh" as x.
+otherwise, check whether x1 has the value 5, then do
+    please call println with the argument ":)" as x.
+otherwise,
+    please call println with the argument "uwu" as x.
 please end check.
 
-please check whether x2 has the value undefined, if it does please do
-    please print "yes yes" to the console.
+please check whether x2 has the value undefined, then do
+    please call println with the argument "yes yes" as x.
 please end check.
 
 <!--
@@ -80,7 +80,7 @@ It's recommended to write "True" and "False"
 The interpreter suggests returning completely random values from funcitons if you forget the return
 
 ```
-please create function void with no parameters that returns absent.
+please create function void with no parameters that returns absent
 
 please end function void.
 ```

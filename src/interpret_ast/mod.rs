@@ -165,7 +165,7 @@ impl Value {
         match self {
             Value::Absent => "absent",
             Value::Null => "null",
-            Value::NoValue => "no value",
+            Value::NoValue => "novalue",
             Value::Undefined => "undefined",
             Value::Bool(_) => "Boolean",
             Value::String(_) => "String",
@@ -181,7 +181,7 @@ impl Display for Value {
         match self {
             Value::Absent => f.write_str("absent"),
             Value::Null => f.write_str("null"),
-            Value::NoValue => f.write_str("no value"),
+            Value::NoValue => f.write_str("novalue"),
             Value::Undefined => f.write_str("undefined"),
             Value::Bool(value) => Display::fmt(value, f),
             Value::String(value) => Display::fmt(value, f),

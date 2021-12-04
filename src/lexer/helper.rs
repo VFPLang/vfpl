@@ -44,7 +44,7 @@ pub fn compute_keyword(identifier: &str) -> Option<TokenKind> {
         "sleep" => TokenKind::Sleep,
         "absent" => TokenKind::Absent,
         "null" => TokenKind::Null,
-        "noValue" => TokenKind::NoValue,
+        "novalue" => TokenKind::NoValue,
         "undefined" => TokenKind::Undefined,
         "true" => TokenKind::True,
         "false" => TokenKind::False,

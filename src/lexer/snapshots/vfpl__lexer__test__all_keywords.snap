@@ -462,9 +462,7 @@ expression: tokens
                     start: 0,
                     end: 7,
                 },
-                kind: Ident(
-                    "novalue",
-                ),
+                kind: NoValue,
             },
         ],
     ),

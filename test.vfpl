@@ -1,17 +1,25 @@
-please initialize variable Number as Integer with the value of 1.
+please initialize variable X as Integer with the value of 15.
+please set the variable X to the value of 5.
+please set the variable X to the value of (add 5 to X).
 
-please repeat while Number is less or equal than 100 do
-    please check whether (take number modulo 15) has the value 0, then do
-        please call println with the argument "FizzBuzz" as x.
-    otherwise, check whether (take number modulo 5) has the value 0, then do
-        please call println with the argument "Buzz" as x.
-    otherwise, check whether (take number modulo 3) has the value 0, then do
-        please call println with the argument "Fizz" as x.
-    otherwise,
-        please call println with the argument number as x.
-    please end check.
+please create function print_x with the parameter x as Integer that returns absent
+    please call println with the argument x as x.
+    please return absent from the function.
+please end function print_x.
 
-    please set the variable Number to the value of (add 1 to Number).
+please call print_x with the argument x as x.
+
+please create function my_add with the parameters A as Integer and b as Integer that returns Integer
+    please set the variable A to the value of (add b to A).
+    please return a from the function.
+please end function my_add.
+
+please initialize variable add_result as Integer with the value of
+    (call my_add with the arguments 5 as a and 8 as b).
+
+please repeat while 5 is less than 6 do
+    please call println with the argument "I want to stop!!!" as x.
+    please break out of this while.
 please end while.
 
 please go to sleep.

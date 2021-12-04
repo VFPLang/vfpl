@@ -130,7 +130,7 @@ impl Display for TokenKind {
             TokenKind::Sleep => f.write_str("keyword `sleep`"),
             TokenKind::Absent => f.write_str("keyword `absent`"),
             TokenKind::Null => f.write_str("keyword `null`"),
-            TokenKind::NoValue => f.write_str("keyword `no value` )"),
+            TokenKind::NoValue => f.write_str("keyword `novalue` )"),
             TokenKind::Undefined => f.write_str("keyword `undefined`"),
             TokenKind::True => f.write_str("keyword `true`"),
             TokenKind::False => f.write_str("keyword `false`"),

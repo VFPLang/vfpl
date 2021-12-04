@@ -337,7 +337,7 @@ impl Parser {
             parser.expect_kinds([TokenKind::From, TokenKind::The])?;
             let fn_keyword_span = parser.expect_kind(TokenKind::Function)?;
 
-            if parser.in_fn_depth != 0 {
+            if parser.in_fn_depth == 0 {
                 return Err(ParseError {
                     span: ret_span.extend(fn_keyword_span),
                     message: "Cannot return outside of function".to_string(),

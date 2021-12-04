@@ -40,7 +40,7 @@
 
 # function
 
-<fn-decl> = "create function" IDENT "with" <params> <fn-return> "."
+<fn-decl> = "create function" IDENT "with" <params> <fn-return>
                 <body>
             "please end function" IDENT
 
@@ -77,7 +77,7 @@
 
 <type> = IDENT | <nullable>
 
-<nullable> = "absent" | "null" | "no value" | "undefined"
+<nullable> = "absent" | "null" | "novalue" | "undefined"
 
 # expressions
 
