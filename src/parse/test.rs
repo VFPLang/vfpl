@@ -214,7 +214,7 @@ fn set_variable_string() {
 #[test]
 fn add_number() {
     let tokens = [Add, Int(0), To, Ident("counter".to_string())].map(token);
-    let parsed = parse(tokens, Parser::add);
+    let parsed = parse(tokens, Parser::term);
 
     insta::assert_debug_snapshot!(parsed);
 }
@@ -222,7 +222,7 @@ fn add_number() {
 #[test]
 fn subtract_number() {
     let tokens = [Sub, Int(1), From, Ident("counter".to_string())].map(token);
-    let parsed = parse(tokens, Parser::subtract);
+    let parsed = parse(tokens, Parser::term);
 
     insta::assert_debug_snapshot!(parsed);
 }
@@ -230,7 +230,7 @@ fn subtract_number() {
 #[test]
 fn divide_number() {
     let tokens = [Div, Ident("counter".to_string()), By, Int(2)].map(token);
-    let parsed = parse(tokens, Parser::divide);
+    let parsed = parse(tokens, Parser::factor);
 
     insta::assert_debug_snapshot!(parsed);
 }
@@ -238,7 +238,7 @@ fn divide_number() {
 #[test]
 fn multiply_number() {
     let tokens = [Mul, Ident("counter".to_string()), With, Int(3)].map(token);
-    let parsed = parse(tokens, Parser::multiply);
+    let parsed = parse(tokens, Parser::factor);
 
     insta::assert_debug_snapshot!(parsed);
 }
@@ -246,7 +246,7 @@ fn multiply_number() {
 #[test]
 fn mod_number() {
     let tokens = [Take, Ident("counter".to_string()), Mod, Int(4)].map(token);
-    let parsed = parse(tokens, Parser::modulo);
+    let parsed = parse(tokens, Parser::factor);
 
     insta::assert_debug_snapshot!(parsed);
 }

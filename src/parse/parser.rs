@@ -55,11 +55,6 @@ impl Parser {
             let stmt = match parser.peek_kind()? {
                 TokenKind::Initialize => Stmt::VarInit(parser.var_init()?),
                 TokenKind::Set => Stmt::VarSet(parser.var_set()?),
-                TokenKind::Add => Stmt::Add(parser.add()?),
-                TokenKind::Sub => Stmt::Sub(parser.subtract()?),
-                TokenKind::Mul => Stmt::Mul(parser.multiply()?),
-                TokenKind::Div => Stmt::Div(parser.divide()?),
-                TokenKind::Take => Stmt::Mod(parser.modulo()?),
                 TokenKind::Check => Stmt::If(parser.if_stmt()?),
                 TokenKind::Repeat => Stmt::While(parser.while_stmt()?),
                 TokenKind::Create => Stmt::FnDecl(parser.fn_decl()?),
@@ -115,86 +110,6 @@ impl Parser {
                 span: set_span.extend(expr.span()),
                 name,
                 expr,
-            })
-        })
-    }
-
-    pub fn add(&mut self) -> ParseResult<ArithmeticOp> {
-        self.parse_rule(|parser| {
-            let op_span = parser.expect_kind(TokenKind::Add)?;
-            let expr = parser.expr()?;
-            parser.expect_kind(TokenKind::To)?;
-            let (var, var_span) = parser.ident()?;
-
-            Ok(ArithmeticOp {
-                span: op_span.extend(var_span),
-                expr,
-                var,
-                kind: ArithmeticOpKind::Add,
-            })
-        })
-    }
-
-    pub fn subtract(&mut self) -> ParseResult<ArithmeticOp> {
-        self.parse_rule(|parser| {
-            let op_span = parser.expect_kind(TokenKind::Sub)?;
-            let expr = parser.expr()?;
-            parser.expect_kind(TokenKind::From)?;
-            let (var, var_span) = parser.ident()?;
-
-            Ok(ArithmeticOp {
-                span: op_span.extend(var_span),
-                expr,
-                var,
-                kind: ArithmeticOpKind::Sub,
-            })
-        })
-    }
-
-    pub fn multiply(&mut self) -> ParseResult<ArithmeticOp> {
-        self.parse_rule(|parser| {
-            let op_span = parser.expect_kind(TokenKind::Mul)?;
-            let (var, var_span) = parser.ident()?;
-            parser.expect_kind(TokenKind::With)?;
-            let expr = parser.expr()?;
-
-            Ok(ArithmeticOp {
-                span: op_span.extend(var_span),
-                expr,
-                var,
-                kind: ArithmeticOpKind::Mul,
-            })
-        })
-    }
-
-    pub fn divide(&mut self) -> ParseResult<ArithmeticOp> {
-        self.parse_rule(|parser| {
-            let op_span = parser.expect_kind(TokenKind::Div)?;
-            let (var, var_span) = parser.ident()?;
-            parser.expect_kind(TokenKind::By)?;
-            let expr = parser.expr()?;
-
-            Ok(ArithmeticOp {
-                span: op_span.extend(var_span),
-                expr,
-                var,
-                kind: ArithmeticOpKind::Div,
-            })
-        })
-    }
-
-    pub fn modulo(&mut self) -> ParseResult<ArithmeticOp> {
-        self.parse_rule(|parser| {
-            let op_span = parser.expect_kind(TokenKind::Take)?;
-            let (var, var_span) = parser.ident()?;
-            parser.expect_kind(TokenKind::Mod)?;
-            let expr = parser.expr()?;
-
-            Ok(ArithmeticOp {
-                span: op_span.extend(var_span),
-                expr,
-                var,
-                kind: ArithmeticOpKind::Mod,
             })
         })
     }
@@ -580,7 +495,7 @@ impl Parser {
 
     pub fn comparison(&mut self) -> ParseResult<Expr> {
         self.parse_rule(|parser| {
-            let lhs = parser.call_expr()?;
+            let lhs = parser.term()?;
 
             let (rhs, kind) = match parser.peek_kind() {
                 Ok(&TokenKind::Does) => {
@@ -634,6 +549,83 @@ impl Parser {
                 rhs: Box::new(rhs),
                 kind,
             }))
+        })
+    }
+
+    pub fn term(&mut self) -> ParseResult<Expr> {
+        self.parse_rule(|parser| match parser.peek_kind()? {
+            TokenKind::Add => {
+                let op_span = parser.expect_kind(TokenKind::Add)?;
+                let lhs = parser.factor()?;
+                parser.expect_kind(TokenKind::To)?;
+                let rhs = dbg!(parser.term())?;
+
+                Ok(Expr::ArithmeticOp(ArithmeticOp {
+                    span: op_span.extend(rhs.span()),
+                    lhs: Box::new(lhs),
+                    rhs: Box::new(rhs),
+                    kind: ArithmeticOpKind::Add,
+                }))
+            }
+            TokenKind::Sub => {
+                let op_span = parser.expect_kind(TokenKind::Sub)?;
+                let lhs = parser.factor()?;
+                parser.expect_kind(TokenKind::From)?;
+                let rhs = parser.term()?;
+
+                Ok(Expr::ArithmeticOp(ArithmeticOp {
+                    span: op_span.extend(rhs.span()),
+                    lhs: Box::new(lhs),
+                    rhs: Box::new(rhs),
+                    kind: ArithmeticOpKind::Sub,
+                }))
+            }
+            _ => parser.factor(),
+        })
+    }
+
+    pub fn factor(&mut self) -> ParseResult<Expr> {
+        self.parse_rule(|parser| match parser.peek_kind()? {
+            TokenKind::Mul => {
+                let op_span = parser.expect_kind(TokenKind::Mul)?;
+                let lhs = parser.call_expr()?;
+                parser.expect_kind(TokenKind::With)?;
+                let rhs = parser.factor()?;
+
+                Ok(Expr::ArithmeticOp(ArithmeticOp {
+                    span: op_span.extend(rhs.span()),
+                    lhs: Box::new(lhs),
+                    rhs: Box::new(rhs),
+                    kind: ArithmeticOpKind::Mul,
+                }))
+            }
+            TokenKind::Div => {
+                let op_span = parser.expect_kind(TokenKind::Div)?;
+                let lhs = parser.call_expr()?;
+                parser.expect_kind(TokenKind::By)?;
+                let rhs = parser.factor()?;
+
+                Ok(Expr::ArithmeticOp(ArithmeticOp {
+                    span: op_span.extend(rhs.span()),
+                    lhs: Box::new(lhs),
+                    rhs: Box::new(rhs),
+                    kind: ArithmeticOpKind::Div,
+                }))
+            }
+            TokenKind::Take => {
+                let op_span = parser.expect_kind(TokenKind::Take)?;
+                let lhs = parser.call_expr()?;
+                parser.expect_kind(TokenKind::Mod)?;
+                let rhs = parser.factor()?;
+
+                Ok(Expr::ArithmeticOp(ArithmeticOp {
+                    span: op_span.extend(rhs.span()),
+                    lhs: Box::new(lhs),
+                    rhs: Box::new(rhs),
+                    kind: ArithmeticOpKind::Mod,
+                }))
+            }
+            _ => parser.call_expr(),
         })
     }
 

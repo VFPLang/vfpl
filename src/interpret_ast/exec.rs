@@ -3,8 +3,8 @@ use crate::interpret_ast::{
     Env, FnImpl, IResult, Ident, InterpreterError, Interrupt, RuntimeFn, Value, ValueResult, Vm,
 };
 use crate::parse::ast::{
-    ArithmeticOp, Call, Comparison, ComparisonKind, Else, ElseKind, Expr, FnDecl, IfPart, Literal,
-    LiteralKind, Program, Return, Stmt, TyKind, VarInit, VarSet, While,
+    ArithmeticOp, ArithmeticOpKind, Call, Comparison, ComparisonKind, Else, ElseKind, Expr, FnDecl,
+    IfPart, Literal, LiteralKind, Program, Return, Stmt, TyKind, VarInit, VarSet, While,
 };
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -52,6 +52,7 @@ impl Vm {
             Expr::Literal(lit) => self.eval_literal(lit),
             Expr::Call(call) => self.eval_call(call),
             Expr::Comparison(comp) => self.eval_comparison(comp),
+            Expr::ArithmeticOp(op) => self.dispatch_arithmetic_op(op),
         }
     }
 
@@ -223,6 +224,101 @@ impl Vm {
         Ok(Value::Bool(bool))
     }
 
+    fn dispatch_arithmetic_op(&mut self, op: &ArithmeticOp) -> ValueResult {
+        let lhs = self.eval(&op.lhs)?;
+        let rhs = self.eval(&op.rhs)?;
+
+        Ok(match op.kind {
+            ArithmeticOpKind::Add => match (lhs, rhs) {
+                (Value::Int(var1), Value::Int(var2)) => Value::Int(var1 + var2),
+                (Value::Float(var1), Value::Float(var2)) => Value::Float(var1 + var2),
+                (Value::Float(var1), Value::Int(var2)) => Value::Float(var1 + var2 as f64),
+                (Value::String(ref str), Value::String(new)) => {
+                    let mut new_string = String::with_capacity(str.len() + new.len());
+                    new_string.push_str(str);
+                    new_string.push_str(&new);
+
+                    Value::String(new_string.into())
+                }
+                (var, new) => {
+                    return Err(InterpreterError {
+                        span: op.span,
+                        message: format!(
+                            "Invalid arguments to addition. Cannot add {} to {}",
+                            var.display_type(),
+                            new.display_type()
+                        ),
+                    }
+                    .into())
+                }
+            },
+            ArithmeticOpKind::Sub => match (lhs, rhs) {
+                (Value::Int(var1), Value::Int(var2)) => Value::Int(var1 - var2),
+                (Value::Float(var1), Value::Float(var2)) => Value::Float(var1 - var2),
+                (Value::Float(var1), Value::Int(var2)) => Value::Float(var1 - var2 as f64),
+                (var, new) => {
+                    return Err(InterpreterError {
+                        span: op.span,
+                        message: format!(
+                            "Invalid arguments to subtraction. Cannot add {} to {}",
+                            var.display_type(),
+                            new.display_type()
+                        ),
+                    }
+                    .into())
+                }
+            },
+            ArithmeticOpKind::Mul => match (lhs, rhs) {
+                (Value::Int(var1), Value::Int(var2)) => Value::Int(var1 * var2),
+                (Value::Float(var1), Value::Float(var2)) => Value::Float(var1 * var2),
+                (Value::Float(var1), Value::Int(var2)) => Value::Float(var1 * var2 as f64),
+                (var, new) => {
+                    return Err(InterpreterError {
+                        span: op.span,
+                        message: format!(
+                            "Invalid arguments to multiplication. Cannot add {} to {}",
+                            var.display_type(),
+                            new.display_type()
+                        ),
+                    }
+                    .into())
+                }
+            },
+            ArithmeticOpKind::Div => match (lhs, rhs) {
+                (Value::Int(var1), Value::Int(var2)) => Value::Int(var1 / var2),
+                (Value::Float(var1), Value::Float(var2)) => Value::Float(var1 / var2),
+                (Value::Float(var1), Value::Int(var2)) => Value::Float(var1 / var2 as f64),
+                (var, new) => {
+                    return Err(InterpreterError {
+                        span: op.span,
+                        message: format!(
+                            "Invalid arguments to division. Cannot add {} to {}",
+                            var.display_type(),
+                            new.display_type()
+                        ),
+                    }
+                    .into())
+                }
+            },
+            ArithmeticOpKind::Mod => match (lhs, rhs) {
+                (Value::Int(var1), Value::Int(var2)) => Value::Int(var1 % var2),
+                (Value::Float(var1), Value::Float(var2)) => Value::Float(var1 % var2),
+                (Value::Float(var1), Value::Int(var2)) => Value::Float(var1 % var2 as f64),
+                (var, new) => {
+                    return Err(InterpreterError {
+                        span: op.span,
+                        message: format!(
+                            "Invalid arguments to subtraction. Cannot add {} to {}",
+                            var.display_type(),
+                            new.display_type()
+                        ),
+                    }
+                    .into())
+                }
+            },
+        })
+    }
+
     fn dispatch_stmts_in_env(&mut self, stmts: &[Stmt]) -> IResult {
         self.enter_env();
         for stmt in stmts {
@@ -237,11 +333,6 @@ impl Vm {
         match stmt {
             Stmt::VarInit(inner) => self.dispatch_var_init(inner),
             Stmt::VarSet(inner) => self.dispatch_var_set(inner),
-            Stmt::Add(inner) => self.dispatch_add(inner),
-            Stmt::Sub(inner) => self.dispatch_sub(inner),
-            Stmt::Mul(inner) => self.dispatch_mul(inner),
-            Stmt::Div(inner) => self.dispatch_div(inner),
-            Stmt::Mod(inner) => self.dispatch_mod(inner),
             Stmt::If(inner) => self.dispatch_if(&inner.if_part),
             Stmt::While(inner) => self.dispatch_while(inner),
             Stmt::FnDecl(inner) => self.dispatch_fn_decl(inner),
@@ -276,183 +367,6 @@ impl Vm {
                 Ok(())
             },
             || var_not_found(set.span, &name),
-        )
-    }
-
-    fn dispatch_add(&mut self, op: &ArithmeticOp) -> IResult {
-        let var_name: Rc<_> = op.var.clone().into();
-        let value = self.eval(&op.expr)?;
-
-        self.env().modify_var(
-            Rc::clone(&var_name),
-            |var_value| {
-                let new = match (&var_value, value) {
-                    (&&mut Value::Int(var1), Value::Int(var2)) => Value::Int(var1 + var2),
-                    (&&mut Value::Float(var1), Value::Float(var2)) => Value::Float(var1 + var2),
-                    (&&mut Value::Float(var1), Value::Int(var2)) => {
-                        Value::Float(var1 + var2 as f64)
-                    }
-                    (&&mut Value::String(ref str), Value::String(new)) => {
-                        let mut new_string = String::with_capacity(str.len() + new.len());
-                        new_string.push_str(str);
-                        new_string.push_str(&new);
-
-                        Value::String(new_string.into())
-                    }
-                    (var, new) => {
-                        return Err(InterpreterError {
-                            span: op.span,
-                            message: format!(
-                                "Invalid arguments to addition. Cannot add {} to {}",
-                                var.display_type(),
-                                new.display_type()
-                            ),
-                        }
-                        .into())
-                    }
-                };
-
-                *var_value = new;
-
-                Ok(())
-            },
-            || var_not_found(op.span, &op.var),
-        )
-    }
-
-    fn dispatch_sub(&mut self, op: &ArithmeticOp) -> IResult {
-        let var_name: Rc<_> = op.var.clone().into();
-        let value = self.eval(&op.expr)?;
-
-        self.env().modify_var(
-            Rc::clone(&var_name),
-            |var_value| {
-                let new = match (&var_value, value) {
-                    (&&mut Value::Int(var1), Value::Int(var2)) => Value::Int(var1 - var2),
-                    (&&mut Value::Float(var1), Value::Float(var2)) => Value::Float(var1 - var2),
-                    (&&mut Value::Float(var1), Value::Int(var2)) => {
-                        Value::Float(var1 - var2 as f64)
-                    }
-                    (var, new) => {
-                        return Err(InterpreterError {
-                            span: op.span,
-                            message: format!(
-                                "Invalid arguments to subtraction. Cannot add {} to {}",
-                                var.display_type(),
-                                new.display_type()
-                            ),
-                        }
-                        .into())
-                    }
-                };
-
-                *var_value = new;
-
-                Ok(())
-            },
-            || var_not_found(op.span, &op.var),
-        )
-    }
-
-    fn dispatch_mul(&mut self, op: &ArithmeticOp) -> IResult {
-        let var_name: Rc<_> = op.var.clone().into();
-        let value = self.eval(&op.expr)?;
-
-        self.env().modify_var(
-            Rc::clone(&var_name),
-            |var_value| {
-                let new = match (&var_value, value) {
-                    (&&mut Value::Int(var1), Value::Int(var2)) => Value::Int(var1 * var2),
-                    (&&mut Value::Float(var1), Value::Float(var2)) => Value::Float(var1 * var2),
-                    (&&mut Value::Float(var1), Value::Int(var2)) => {
-                        Value::Float(var1 * var2 as f64)
-                    }
-                    (var, new) => {
-                        return Err(InterpreterError {
-                            span: op.span,
-                            message: format!(
-                                "Invalid arguments to multiplication. Cannot add {} to {}",
-                                var.display_type(),
-                                new.display_type()
-                            ),
-                        }
-                        .into())
-                    }
-                };
-
-                *var_value = new;
-
-                Ok(())
-            },
-            || var_not_found(op.span, &op.var),
-        )
-    }
-
-    fn dispatch_div(&mut self, op: &ArithmeticOp) -> IResult {
-        let var_name: Rc<_> = op.var.clone().into();
-        let value = self.eval(&op.expr)?;
-
-        self.env().modify_var(
-            Rc::clone(&var_name),
-            |var_value| {
-                let new = match (&var_value, value) {
-                    (&&mut Value::Int(var1), Value::Int(var2)) => Value::Int(var1 / var2),
-                    (&&mut Value::Float(var1), Value::Float(var2)) => Value::Float(var1 / var2),
-                    (&&mut Value::Float(var1), Value::Int(var2)) => {
-                        Value::Float(var1 / var2 as f64)
-                    }
-                    (var, new) => {
-                        return Err(InterpreterError {
-                            span: op.span,
-                            message: format!(
-                                "Invalid arguments to division. Cannot add {} to {}",
-                                var.display_type(),
-                                new.display_type()
-                            ),
-                        }
-                        .into())
-                    }
-                };
-
-                *var_value = new;
-
-                Ok(())
-            },
-            || var_not_found(op.span, &op.var),
-        )
-    }
-
-    fn dispatch_mod(&mut self, op: &ArithmeticOp) -> IResult {
-        let var_name: Rc<_> = op.var.clone().into();
-        let value = self.eval(&op.expr)?;
-
-        self.env().modify_var(
-            Rc::clone(&var_name),
-            |var_value| {
-                let new = match (&var_value, value) {
-                    (&&mut Value::Int(var1), Value::Int(var2)) => Value::Int(var1 % var2),
-                    (&&mut Value::Float(var1), Value::Float(var2)) => Value::Float(var1 % var2),
-                    (&&mut Value::Float(var1), Value::Int(var2)) => {
-                        Value::Float(var1 % var2 as f64)
-                    }
-                    (var, new) => {
-                        return Err(InterpreterError {
-                            span: op.span,
-                            message: format!(
-                                "Invalid arguments to subtraction. Cannot add {} to {}",
-                                var.display_type(),
-                                new.display_type()
-                            ),
-                        }
-                        .into())
-                    }
-                };
-
-                *var_value = new;
-
-                Ok(())
-            },
-            || var_not_found(op.span, &var_name),
         )
     }
 

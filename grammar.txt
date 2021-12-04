@@ -6,11 +6,6 @@
 
 <statement> = "please" ( <variable-init>
                         | <variable-set>
-                        | <add>
-                        | <subtract>
-                        | <multiply>
-                        | <divide>
-                        | <mod>
                         | <if>
                         | <while>
                         | <fn-decl>
@@ -23,19 +18,6 @@
 <variable-init> = "initialize variable" <typed-ident> "with the value of" <expr>
 
 <variable-set> = "set the variable" <IDENT> "to the value of" <expr>
-
-
-# arithmetic
-
-<add> = "add" <expr> "to" <IDENT>
-
-<subtract> = "subtract" <expr> "from" <IDENT>
-
-<multiply> = "multiply" <IDENT> "with" <expr>
-
-<divide> = "divide" <IDENT> "by" <expr>
-
-<mod> = "take" <IDENT> "modulo" <expr>
 
 
 # control flow
@@ -101,13 +83,30 @@
 
 <expr> = <comparison>
 
-<comparison> = <call-expr> ( ( "does not have the value"
+<comparison> = <term> ( ( "does not have the value"
                           | "has the value"
                           | "is greater than"
                           | "is less than"
                           | "is greater or equal than"
                           | "is less or equal than"
                          ) <comparison> )?
+
+
+<term> = <add> | <subtract> | <factor>
+
+<add> = "add" <factor> "to" <term>
+
+<subtract> = "subtract" <factor> "from" <term>
+
+
+<factor> = <multiply> | <divide> | <modulo> | <call-expr>
+
+<multiply> = "multiply" <call-expr> "with" <factor>
+
+<divide> = "divide" <call-expr> "by" <factor>
+
+<modulo> = "take" <call-expr> "modulo" <factor>
+
 
 <call-expr> = <call> | <literal>
 

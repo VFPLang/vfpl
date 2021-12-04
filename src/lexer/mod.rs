@@ -9,7 +9,6 @@ use tokens::Token;
 use crate::error::{CompilerError, Span};
 use crate::lexer::helper::compute_keyword;
 use crate::lexer::tokens::TokenKind;
-use crate::LexerError::InvalidCharacter;
 
 mod helper;
 #[cfg(test)]

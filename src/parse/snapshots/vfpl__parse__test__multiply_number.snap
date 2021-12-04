@@ -4,23 +4,35 @@ expression: parsed
 
 ---
 Ok(
-    ArithmeticOp {
-        span: Span {
-            start: 0,
-            end: 0,
-        },
-        expr: Literal(
-            Literal {
-                span: Span {
-                    start: 0,
-                    end: 0,
-                },
-                kind: Int(
-                    3,
-                ),
+    ArithmeticOp(
+        ArithmeticOp {
+            span: Span {
+                start: 0,
+                end: 0,
             },
-        ),
-        var: "counter",
-        kind: Mul,
-    },
+            lhs: Literal(
+                Literal {
+                    span: Span {
+                        start: 0,
+                        end: 0,
+                    },
+                    kind: Ident(
+                        "counter",
+                    ),
+                },
+            ),
+            rhs: Literal(
+                Literal {
+                    span: Span {
+                        start: 0,
+                        end: 0,
+                    },
+                    kind: Int(
+                        3,
+                    ),
+                },
+            ),
+            kind: Mul,
+        },
+    ),
 )

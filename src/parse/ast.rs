@@ -22,11 +22,6 @@ pub struct TypedIdent {
 pub enum Stmt {
     VarInit(VarInit),
     VarSet(VarSet),
-    Add(ArithmeticOp),
-    Sub(ArithmeticOp),
-    Mul(ArithmeticOp),
-    Div(ArithmeticOp),
-    Mod(ArithmeticOp),
     If(If),
     While(While),
     FnDecl(FnDecl),
@@ -41,11 +36,6 @@ impl Stmt {
         match self {
             Stmt::VarInit(inner) => inner.span,
             Stmt::VarSet(inner) => inner.span,
-            Stmt::Add(inner)
-            | Stmt::Sub(inner)
-            | Stmt::Mul(inner)
-            | Stmt::Div(inner)
-            | Stmt::Mod(inner) => inner.span,
             Stmt::If(inner) => inner.span,
             Stmt::While(inner) => inner.span,
             Stmt::FnDecl(inner) => inner.span,
@@ -69,23 +59,6 @@ pub struct VarSet {
     pub span: Span,
     pub name: Ident,
     pub expr: Expr,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct ArithmeticOp {
-    pub span: Span,
-    pub expr: Expr,
-    pub var: Ident,
-    pub kind: ArithmeticOpKind,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum ArithmeticOpKind {
-    Add,
-    Sub,
-    Mul,
-    Div,
-    Mod,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -191,6 +164,7 @@ pub enum TyKind {
 pub enum Expr {
     Literal(Literal),
     Comparison(Comparison),
+    ArithmeticOp(ArithmeticOp),
     Call(Call),
 }
 
@@ -200,6 +174,7 @@ impl Expr {
             Expr::Literal(lit) => lit.span,
             Expr::Comparison(comp) => comp.span,
             Expr::Call(call) => call.span,
+            Expr::ArithmeticOp(op) => op.span,
         }
     }
 }
@@ -230,6 +205,23 @@ pub struct Comparison {
     pub lhs: Box<Expr>,
     pub rhs: Box<Expr>,
     pub kind: ComparisonKind,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ArithmeticOp {
+    pub span: Span,
+    pub lhs: Box<Expr>,
+    pub rhs: Box<Expr>,
+    pub kind: ArithmeticOpKind,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum ArithmeticOpKind {
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Mod,
 }
 
 #[derive(Debug, Clone, PartialEq)]
