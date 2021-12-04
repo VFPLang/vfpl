@@ -65,44 +65,36 @@ impl Vm {
             LiteralKind::Float(float) => Ok(Value::Float(*float)),
             LiteralKind::True => Ok(Value::Bool(true)),
             LiteralKind::False => Ok(Value::Bool(false)),
-            LiteralKind::Ident(name) => {
-                self.env().get_value(name.clone().into()).ok_or_else(|| {
-                    InterpreterError {
-                        span: lit.span,
-                        message: format!("Variable not found: {}", name),
-                    }
-                    .into()
-                })
-            }
+            LiteralKind::Ident(name) => self.env().get_value(name).ok_or_else(|| {
+                InterpreterError {
+                    span: lit.span,
+                    message: format!("Variable not found: {}", name),
+                }
+                .into()
+            }),
         }
     }
 
     fn eval_call(&mut self, call: &Call) -> ValueResult {
-        let fn_name = call.fn_name.clone().into();
+        let fn_name = &call.fn_name;
 
         // get the function value out
-        let function = self.env().modify_var(
-            fn_name,
-            |function| {
-                if let Value::Fn(function) = function {
-                    let function = Rc::clone(function);
-                    Ok(function)
-                } else {
-                    return Err(InterpreterError {
-                        span: call.span,
-                        message: format!("Variable is not a function: {}", call.fn_name),
-                    }
-                    .into());
-                }
-            },
-            || {
-                InterpreterError {
-                    span: call.span,
-                    message: format!("Variable not found: {}", call.fn_name),
-                }
-                .into()
-            },
-        )?;
+        let function = self.env().get_value(fn_name).ok_or_else(|| {
+            Interrupt::Error(InterpreterError {
+                span: call.span,
+                message: format!("Variable not found: {}", call.fn_name),
+            })
+        })?;
+
+        let function = if let Value::Fn(function) = function {
+            function
+        } else {
+            return Err(InterpreterError {
+                span: call.span,
+                message: format!("Variable is not a function: {}", call.fn_name),
+            }
+            .into());
+        };
 
         // this will be incredibly ugly
         let function = function.borrow_mut();
@@ -581,6 +573,7 @@ impl Vm {
             (Value::String(_), TyKind::String) => Ok(()),
             (Value::Int(_), TyKind::Integer) => Ok(()),
             (Value::Float(_), TyKind::Float) => Ok(()),
+            (_, TyKind::Any) => Ok(()),
             _ => Err(InterpreterError {
                 span,
                 message: format!(

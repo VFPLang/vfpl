@@ -34,22 +34,20 @@ fn print() -> Value {
 }
 
 fn print_impl(vm: &mut Vm) -> IResult {
-    let mut env = (*vm.current_env).borrow_mut();
+    let env = (*vm.current_env).borrow_mut();
 
-    env.modify_var(
-        ident("print"),
-        |value| {
-            let mut stdout_lock = vm.stdout.borrow_mut();
+    let value = env
+        .get_value("value")
+        .unwrap_or_else(|| unreachable!("did not find function parameter"));
 
-            write!(stdout_lock, "{}", value).map_err(|err| {
-                Interrupt::Error(InterpreterError {
-                    span: Span::dummy(),
-                    message: format!("Failed to write to stdout: {}", err),
-                })
-            })?;
+    let mut stdout_lock = vm.stdout.borrow_mut();
 
-            Err(Interrupt::Return(Value::Absent))
-        },
-        || unreachable!("did not find function parameter"),
-    )
+    write!(stdout_lock, "{}", value).map_err(|err| {
+        Interrupt::Error(InterpreterError {
+            span: Span::dummy(),
+            message: format!("Failed to write to stdout: {}", err),
+        })
+    })?;
+
+    Err(Interrupt::Return(Value::Absent))
 }

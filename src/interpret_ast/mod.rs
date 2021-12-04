@@ -99,8 +99,8 @@ impl Env {
         Some(())
     }
 
-    fn get_value(&self, ident: Ident) -> Option<Value> {
-        self.vars.get(&ident).cloned().or_else(|| {
+    fn get_value(&self, ident: &str) -> Option<Value> {
+        self.vars.get(ident).cloned().or_else(|| {
             self.outer
                 .as_ref()
                 .and_then(|outer| outer.borrow().get_value(ident))
