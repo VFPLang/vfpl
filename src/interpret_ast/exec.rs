@@ -7,6 +7,7 @@ use crate::parse::ast::{
     LiteralKind, Program, Return, Stmt, TyKind, VarInit, VarSet, While,
 };
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 impl Vm {
@@ -65,13 +66,10 @@ impl Vm {
             LiteralKind::Float(float) => Ok(Value::Float(*float)),
             LiteralKind::True => Ok(Value::Bool(true)),
             LiteralKind::False => Ok(Value::Bool(false)),
-            LiteralKind::Ident(name) => self.env().get_value(name).ok_or_else(|| {
-                InterpreterError {
-                    span: lit.span,
-                    message: format!("Variable not found: {}", name),
-                }
-                .into()
-            }),
+            LiteralKind::Ident(name) => self
+                .env()
+                .get_value(name)
+                .ok_or_else(|| var_not_found(lit.span, name)),
         }
     }
 
@@ -79,12 +77,10 @@ impl Vm {
         let fn_name = &call.fn_name;
 
         // get the function value out
-        let function = self.env().get_value(fn_name).ok_or_else(|| {
-            Interrupt::Error(InterpreterError {
-                span: call.span,
-                message: format!("Variable not found: {}", call.fn_name),
-            })
-        })?;
+        let function = self
+            .env()
+            .get_value(fn_name)
+            .ok_or_else(|| var_not_found(call.span, fn_name))?;
 
         let function = if let Value::Fn(function) = function {
             function
@@ -96,8 +92,7 @@ impl Vm {
             .into());
         };
 
-        // this will be incredibly ugly
-        let function = function.borrow_mut();
+        let function = function.borrow();
 
         let params = &function.params;
         let args = &call.args.args;
@@ -123,6 +118,7 @@ impl Vm {
             name: Ident,
         }
 
+        // evaluate call args
         let arg_values = args
             .iter()
             .map(|arg| {
@@ -154,16 +150,24 @@ impl Vm {
 
         self.call_stack.push(Rc::clone(&self.current_env));
 
+        // insert the arguments into the new environment to make them available as variables
+        let new_env = Rc::new(RefCell::new(Env {
+            outer: Some(Rc::clone(&function.captured_env)),
+            vars: HashMap::default(),
+        }));
+
+        // only borrow for the short time
         {
-            // only borrow the env mutably for this short time
-            // insert the arguments into the new environment to make them available as variables
-            let mut new_env = function.captured_env.borrow_mut();
+            let mut new_env_borrowed = new_env.borrow_mut();
+
             for arg_value in arg_values {
-                new_env.vars.insert(arg_value.name, arg_value.value);
+                new_env_borrowed
+                    .vars
+                    .insert(arg_value.name, arg_value.value);
             }
         }
 
-        self.current_env = Rc::clone(&function.captured_env);
+        self.current_env = new_env;
 
         let result: IResult = match &function.body {
             FnImpl::Native(f) => f(self),
@@ -271,13 +275,7 @@ impl Vm {
 
                 Ok(())
             },
-            || {
-                InterpreterError {
-                    span: set.span,
-                    message: format!("Variable not found: {}", set.name),
-                }
-                .into()
-            },
+            || var_not_found(set.span, &name),
         )
     }
 
@@ -318,13 +316,7 @@ impl Vm {
 
                 Ok(())
             },
-            || {
-                InterpreterError {
-                    span: op.span,
-                    message: format!("Variable not found: {}", &op.var),
-                }
-                .into()
-            },
+            || var_not_found(op.span, &op.var),
         )
     }
 
@@ -358,13 +350,7 @@ impl Vm {
 
                 Ok(())
             },
-            || {
-                InterpreterError {
-                    span: op.span,
-                    message: format!("Variable not found: {}", &op.var),
-                }
-                .into()
-            },
+            || var_not_found(op.span, &op.var),
         )
     }
 
@@ -398,13 +384,7 @@ impl Vm {
 
                 Ok(())
             },
-            || {
-                InterpreterError {
-                    span: op.span,
-                    message: format!("Variable not found: {}", &op.var),
-                }
-                .into()
-            },
+            || var_not_found(op.span, &op.var),
         )
     }
 
@@ -438,13 +418,7 @@ impl Vm {
 
                 Ok(())
             },
-            || {
-                InterpreterError {
-                    span: op.span,
-                    message: format!("Variable not found: {}", &op.var),
-                }
-                .into()
-            },
+            || var_not_found(op.span, &op.var),
         )
     }
 
@@ -478,13 +452,7 @@ impl Vm {
 
                 Ok(())
             },
-            || {
-                InterpreterError {
-                    span: op.span,
-                    message: format!("Variable not found: {}", &op.var),
-                }
-                .into()
-            },
+            || var_not_found(op.span, &var_name),
         )
     }
 
@@ -585,4 +553,12 @@ impl Vm {
             .into()),
         }
     }
+}
+
+fn var_not_found(span: Span, name: &str) -> Interrupt {
+    InterpreterError {
+        span,
+        message: format!("Variable not found: {}", name),
+    }
+    .into()
 }
