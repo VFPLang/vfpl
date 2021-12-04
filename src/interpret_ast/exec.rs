@@ -11,7 +11,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 impl Vm {
-    pub fn start(&mut self, ast: Program) -> IResult {
+    pub fn start(&mut self, ast: &Program) -> IResult {
         self.add_global_functions();
 
         for stmt in &ast.stmts {
@@ -55,7 +55,7 @@ impl Vm {
         }
     }
 
-    fn eval_literal(&mut self, lit: &Literal) -> Value {
+    fn eval_literal(&self, lit: &Literal) -> Value {
         match &lit.kind {
             LiteralKind::Absent => Value::Absent,
             LiteralKind::Null => Value::Null,
@@ -537,7 +537,7 @@ impl Vm {
         Ok(())
     }
 
-    fn dispatch_break(&mut self) -> IResult {
+    fn dispatch_break(&self) -> IResult {
         Err(Interrupt::Break)
     }
 
@@ -546,7 +546,7 @@ impl Vm {
         Err(Interrupt::Return(value))
     }
 
-    fn dispatch_terminate(&mut self) -> IResult {
+    fn dispatch_terminate(&self) -> IResult {
         Err(Interrupt::Terminate)
     }
 

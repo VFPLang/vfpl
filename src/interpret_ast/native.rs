@@ -1,5 +1,7 @@
 use crate::error::Span;
-use crate::interpret_ast::{FnImpl, IResult, InterpreterError, Interrupt, RuntimeFn, Value, Vm};
+use crate::interpret_ast::{
+    Env, FnImpl, IResult, InterpreterError, Interrupt, RuntimeFn, Value, Vm,
+};
 use crate::parse::ast::TyKind;
 use std::cell::RefCell;
 use std::io::Write;
@@ -28,7 +30,7 @@ fn print() -> Value {
         params: vec![(ident("value"), TyKind::Any)],
         ret_ty: TyKind::Absent,
         body: FnImpl::Native(print_impl),
-        captured_env: Rc::new(RefCell::new(Default::default())),
+        captured_env: Rc::new(RefCell::new(Env::default())),
     })))
 }
 

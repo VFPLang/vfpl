@@ -39,6 +39,8 @@ impl Parser {
     }
 }
 
+///
+/// Parses the tokens into an AST
 pub fn parse(tokens: vec::IntoIter<Token>) -> ParseResult<Program> {
     let mut parser = Parser::new(tokens);
     parser.program()

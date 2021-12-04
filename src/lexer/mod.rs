@@ -110,7 +110,7 @@ impl Lexer<'_> {
                 match char {
                     '0'..='9' => {
                         self.next();
-                        number.push(char)
+                        number.push(char);
                     }
                     other if other.is_xid_start() => {
                         return Err(LexerError::InvalidCharacter(Span::single(i)))
@@ -134,7 +134,7 @@ impl Lexer<'_> {
                         match char {
                             '0'..='9' => {
                                 self.next();
-                                number.push(char)
+                                number.push(char);
                             }
                             other if other.is_xid_start() => {
                                 return Err(LexerError::InvalidCharacter(Span::single(i)));

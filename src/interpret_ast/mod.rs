@@ -159,18 +159,20 @@ impl Debug for Vm {
 impl Default for Vm {
     fn default() -> Self {
         Self {
-            current_env: Default::default(),
-            call_stack: Default::default(),
-            recur_depth: Default::default(),
+            current_env: Rc::default(),
+            call_stack: Vec::default(),
+            recur_depth: 0,
             stdout: Box::new(std::io::stdout()),
         }
     }
 }
 
+///
+/// Runs the parsed program
 pub fn run(program: Program) -> Result<(), InterpreterError> {
     let mut vm = Vm::default();
 
-    match vm.start(program) {
+    match vm.start(&program) {
         Ok(()) => Err(InterpreterError {
             span: Span::dummy(),
             message: "Program did not terminate properly.".to_string(),

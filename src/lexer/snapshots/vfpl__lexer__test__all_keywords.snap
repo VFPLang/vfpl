@@ -1,16 +1,647 @@
 ---
 source: src/lexer/test.rs
-expression: "lex(\"As\")"
+expression: tokens
 
 ---
-Ok(
-    [
-        Token {
-            span: Span {
-                start: 0,
-                end: 2,
+[
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 2,
+                },
+                kind: As,
             },
-            kind: As,
-        },
-    ],
-)
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: Add,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: Sub,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: Mul,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: Div,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: Mod,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 10,
+                },
+                kind: Initialize,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 8,
+                },
+                kind: Variable,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: With,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: The,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 5,
+                },
+                kind: Value,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 2,
+                },
+                kind: Of,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: Set,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 2,
+                },
+                kind: To,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: From,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 2,
+                },
+                kind: By,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: Take,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: End,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 5,
+                },
+                kind: Check,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 7,
+                },
+                kind: Whether,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: Then,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 2,
+                },
+                kind: Do,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 9,
+                },
+                kind: Otherwise,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 5,
+                },
+                kind: Break,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: Out,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: This,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 6,
+                },
+                kind: Create,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 8,
+                },
+                kind: Function,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 9,
+                },
+                kind: Parameter,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 10,
+                },
+                kind: Parameters,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: That,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 7,
+                },
+                kind: Returns,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: Call,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 2,
+                },
+                kind: No,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 8,
+                },
+                kind: Argument,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 9,
+                },
+                kind: Arguments,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: And,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 2,
+                },
+                kind: Go,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 5,
+                },
+                kind: Sleep,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 6,
+                },
+                kind: Absent,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: Null,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 7,
+                },
+                kind: Ident(
+                    "novalue",
+                ),
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 9,
+                },
+                kind: Undefined,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: True,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 5,
+                },
+                kind: False,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: Does,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: Has,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 2,
+                },
+                kind: Is,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: Not,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: Have,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 7,
+                },
+                kind: Greater,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: Less,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: Than,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 5,
+                },
+                kind: Equal,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 2,
+                },
+                kind: Or,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 6,
+                },
+                kind: Repeat,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 6,
+                },
+                kind: Return,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 5,
+                },
+                kind: While,
+            },
+        ],
+    ),
+]

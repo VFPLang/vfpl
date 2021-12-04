@@ -10,15 +10,7 @@ pub use error::display_error;
 pub use interpret_ast::run;
 pub use parse::parse;
 
-/// this is mainly to remove the dead code warnings on code that is not actually dead
-pub fn test_parse(code: &str) {
-    let tokens = Lexer::new(code).compute_tokens();
-
-    if let Ok(tokens) = tokens {
-        let _ = parse::parse(tokens.into_iter());
-    }
-}
-
+/// Lexes an input stream into Tokens
 pub fn lex(code: &str) -> Result<Vec<Token>, LexerError> {
     let lower = code.to_lowercase();
     let mut lexer = Lexer::new(&lower);
