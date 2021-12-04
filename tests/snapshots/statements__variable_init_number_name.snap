@@ -6,5 +6,5 @@ expression: stderr
 error: Expected identifier, found `5`
       |
     1 | please initialize variable 5 as Integer with the value of 15
-      |                            
+      |                            ^
 
