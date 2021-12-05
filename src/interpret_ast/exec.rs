@@ -86,10 +86,10 @@ impl Vm {
         let function = if let Value::Fn(function) = function {
             function
         } else {
-            return Err(InterpreterError {
-                span: call.span,
-                message: format!("Variable is not a function: {}", call.fn_name),
-            }
+            return Err(InterpreterError::simple(
+                call.span,
+                format!("Variable is not a function: {}", call.fn_name),
+            )
             .into());
         };
 
@@ -99,14 +99,14 @@ impl Vm {
         let args = &call.args.args;
 
         if params.len() != args.len() {
-            return Err(InterpreterError {
-                span: call.args.span,
-                message: format!(
+            return Err(InterpreterError::simple(
+                call.args.span,
+                format!(
                     "Called function with {} instead of {} arguments",
                     args.len(),
                     params.len()
                 ),
-            }
+            )
             .into());
         }
 
@@ -138,13 +138,13 @@ impl Vm {
             .try_for_each(|((param_name, param_ty), arg)| {
                 self.type_check(&arg.value, param_ty, arg.span)?;
                 if *param_name != arg.name {
-                    return Err(Interrupt::Error(InterpreterError {
-                        span: arg.span,
-                        message: format!(
+                    return Err(Interrupt::Error(InterpreterError::simple(
+                        arg.span,
+                        format!(
                             "Mismatched names: expected {}, got {}",
                             param_name, arg.name
                         ),
-                    }));
+                    )));
                 }
                 Ok(())
             })?;
@@ -184,10 +184,10 @@ impl Vm {
         match result {
             Err(Interrupt::Return(ret)) => Ok(ret),
             Err(err) => Err(err),
-            Ok(_) => Err(InterpreterError {
-                span: function.body.span(),
-                message: "Function did not return any value".to_string(),
-            }
+            Ok(_) => Err(InterpreterError::simple(
+                function.body.span(),
+                "Function did not return any value".to_string(),
+            )
             .into()),
         }
     }
@@ -208,15 +208,15 @@ impl Vm {
             (ComparisonKind::LessEq, Value::Int(lhs), Value::Int(rhs)) => lhs <= rhs,
             (ComparisonKind::LessEq, Value::Float(lhs), Value::Float(rhs)) => lhs <= rhs,
             (comp_kind, lhs, rhs) => {
-                return Err(InterpreterError {
-                    span: comp.span,
-                    message: format!(
+                return Err(InterpreterError::simple(
+                    comp.span,
+                    format!(
                         "Cannot compare {} and {} using `{}`",
                         lhs.display_type(),
                         rhs.display_type(),
                         comp_kind
                     ),
-                }
+                )
                 .into())
             }
         };
@@ -241,14 +241,14 @@ impl Vm {
                     Value::String(new_string.into())
                 }
                 (var, new) => {
-                    return Err(InterpreterError {
-                        span: op.span,
-                        message: format!(
+                    return Err(InterpreterError::simple(
+                        op.span,
+                        format!(
                             "Invalid arguments to addition. Cannot add {} to {}",
                             var.display_type(),
                             new.display_type()
                         ),
-                    }
+                    )
                     .into())
                 }
             },
@@ -257,14 +257,14 @@ impl Vm {
                 (Value::Float(var1), Value::Float(var2)) => Value::Float(var1 - var2),
                 (Value::Float(var1), Value::Int(var2)) => Value::Float(var1 - var2 as f64),
                 (var, new) => {
-                    return Err(InterpreterError {
-                        span: op.span,
-                        message: format!(
+                    return Err(InterpreterError::simple(
+                        op.span,
+                        format!(
                             "Invalid arguments to subtraction. Cannot add {} to {}",
                             var.display_type(),
                             new.display_type()
                         ),
-                    }
+                    )
                     .into())
                 }
             },
@@ -273,14 +273,14 @@ impl Vm {
                 (Value::Float(var1), Value::Float(var2)) => Value::Float(var1 * var2),
                 (Value::Float(var1), Value::Int(var2)) => Value::Float(var1 * var2 as f64),
                 (var, new) => {
-                    return Err(InterpreterError {
-                        span: op.span,
-                        message: format!(
+                    return Err(InterpreterError::simple(
+                         op.span,
+                        format!(
                             "Invalid arguments to multiplication. Cannot add {} to {}",
                             var.display_type(),
                             new.display_type()
                         ),
-                    }
+                    )
                     .into())
                 }
             },
@@ -289,30 +289,33 @@ impl Vm {
                 (Value::Float(var1), Value::Float(var2)) => Value::Float(var1 / var2),
                 (Value::Float(var1), Value::Int(var2)) => Value::Float(var1 / var2 as f64),
                 (var, new) => {
-                    return Err(InterpreterError {
-                        span: op.span,
-                        message: format!(
+                    return Err(InterpreterError::simple(
+                        op.span,
+                        format!(
                             "Invalid arguments to division. Cannot add {} to {}",
                             var.display_type(),
                             new.display_type()
                         ),
-                    }
+                    )
                     .into())
                 }
             },
             ArithmeticOpKind::Mod => match (lhs, rhs) {
                 (Value::Int(var1), Value::Int(var2)) => Value::Int(var1 % var2),
-                (Value::Float(var1), Value::Float(var2)) => Value::Float(var1 % var2),
+                (Value::Int(var1), Value::Float(var2)) => Value::Float(var1 as f64 % var2),
                 (Value::Float(var1), Value::Int(var2)) => Value::Float(var1 % var2 as f64),
+                (Value::Float(var1), Value::Float(var2)) => Value::Float(var1 % var2),
                 (var, new) => {
-                    return Err(InterpreterError {
-                        span: op.span,
-                        message: format!(
-                            "Invalid arguments to subtraction. Cannot add {} to {}",
+                    return Err(InterpreterError::full(
+                        op.span,
+                        format!(
+                            "Invalid arguments to modulo. Cannot take {} mod {}",
                             var.display_type(),
                             new.display_type()
                         ),
-                    }
+                        "As you may have learned in school, modulo is an operation done on a number by an integer. If you haven't, no problem, I'll explain it quickly. Modulo divides the left hand side by the right hand side to make an integer and returns the reminder of that division.".to_string(),
+                        "make the values have other types. Another option would be to use another operation instead of modulo, maybe addition works for your case".to_string()
+                    )
                     .into())
                 }
             },
@@ -466,23 +469,27 @@ impl Vm {
             (Value::Int(_), TyKind::Integer) => Ok(()),
             (Value::Float(_), TyKind::Float) => Ok(()),
             (_, TyKind::Any) => Ok(()),
-            _ => Err(InterpreterError {
+            _ => Err(InterpreterError::full(
                 span,
-                message: format!(
+                format!(
                     "Type mismatch! {} is not assignable to {:?}",
                     value.display_type(),
                     ty_kind
                 ),
-            }
+                "This is a tricky one. Your value has the left type, but what I want you to provide here is the right one. I would love to accept your value, but that would violate the rules, and I am not allowed to do that. I'm very sorry for the inconveniences!".to_string(),
+                    "require a different type, or provide me with another value of the correct type.".to_string()
+            )
             .into()),
         }
     }
 }
 
 fn var_not_found(span: Span, name: &str) -> Interrupt {
-    InterpreterError {
+    InterpreterError::full(
         span,
-        message: format!("Variable not found: {}", name),
-    }
+        format!("Variable not found: {}", name),
+        "I searched really hard, but was not able to find it anywhere.".to_string(),
+        "could check whether you made a typo. I'm sure you can do it!".to_string(),
+    )
     .into()
 }

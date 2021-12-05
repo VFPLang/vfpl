@@ -127,10 +127,12 @@ impl Vm {
 
     pub fn run(&mut self, program: &Program) -> Result<(), InterpreterError> {
         match self.start(program) {
-            Ok(()) => Err(InterpreterError {
-                span: Span::dummy(),
-                message: "Program did not terminate properly.".to_string(),
-            }),
+            Ok(()) => Err(InterpreterError::full(
+                Span::dummy(),
+                "Program did not terminate properly.".to_string(),
+                "You did not tell me to go to sleep. I am still here.".to_string(),
+                "add the `please go to sleep.` statement to the end of the program. I'm really tired.".to_string()
+            )),
             Err(Interrupt::Error(err)) => Err(err),
             Err(Interrupt::Break) => unreachable!("break on top level, this should not parse"),
             Err(Interrupt::Return(_)) => unreachable!("return on top level, this should not parse"),
@@ -223,6 +225,8 @@ impl PartialEq for RuntimeFn {
 pub struct InterpreterError {
     span: Span,
     message: String,
+    note: Option<String>,
+    suggestion: Option<String>,
 }
 
 impl Display for InterpreterError {
@@ -232,6 +236,26 @@ impl Display for InterpreterError {
 }
 
 impl std::error::Error for InterpreterError {}
+
+impl InterpreterError {
+    pub(super) fn simple(span: Span, message: String) -> Self {
+        Self {
+            span,
+            message,
+            note: None,
+            suggestion: None,
+        }
+    }
+
+    pub(super) fn full(span: Span, message: String, note: String, suggestion: String) -> Self {
+        Self {
+            span,
+            message,
+            note: Some(note),
+            suggestion: Some(suggestion),
+        }
+    }
+}
 
 impl From<InterpreterError> for Interrupt {
     fn from(error: InterpreterError) -> Self {
@@ -249,6 +273,10 @@ impl CompilerError for InterpreterError {
     }
 
     fn note(&self) -> Option<String> {
-        None
+        self.note.clone()
+    }
+
+    fn suggestion(&self) -> Option<String> {
+        self.suggestion.clone()
     }
 }

@@ -43,10 +43,12 @@ fn println_impl(vm: &mut Vm) -> IResult {
     let mut stdout_lock = vm.stdout.borrow_mut();
 
     writeln!(stdout_lock, "{}", value).map_err(|err| {
-        Interrupt::Error(InterpreterError {
-            span: Span::dummy(),
-            message: format!("Failed to write to stdout: {}", err),
-        })
+        Interrupt::Error(InterpreterError::full(
+            Span::dummy(),
+            format!("Failed to write to stdout: {}", err),
+            "I have no idea what went wrong here, but something appears to be broken with your setup.".to_string(),
+            "fixing it? I honestly don't know what you could do here, I'm really sorry for that.".to_string()
+        ))
     })?;
 
     Err(Interrupt::Return(Value::Absent))
