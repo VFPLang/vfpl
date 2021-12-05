@@ -3,7 +3,7 @@ mod random;
 mod span;
 
 pub use display::display_error;
-pub use random::random_ident;
+pub use random::{random_ident, random_number};
 pub use span::Span;
 
 /// A trait for any error emitted during process

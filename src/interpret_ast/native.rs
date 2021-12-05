@@ -71,10 +71,13 @@ fn time_impl(_: &mut Vm) -> IResult {
 
     let now = time::SystemTime::now();
     let duration = now.duration_since(time::UNIX_EPOCH).map_err(|_| {
-        Interrupt::Error(InterpreterError {
-            span: Span::dummy(),
-            message: "Time is behind unix epoch".to_string(),
-        })
+        // note: i don't think this can even happen? but would be funny if it did
+        Interrupt::Error(InterpreterError::full(
+            Span::dummy(),
+            "Time is behind unix epoch".to_string(),
+            "You played with your computer time too much and should feel bad. I'm normally very polite, but this is too much. I try to be nice and all but you bring this to me.".to_string(),
+            "fix your time.".to_string()
+        ))
     })?;
 
     Err(Interrupt::Return(Value::Int(duration.as_millis() as i64)))

@@ -283,16 +283,20 @@ impl Parser {
                     parser.multi_params(the_token.span)
                 } else {
                     let next = parser.peek();
-                    Err(ParseError::simple(
+                    Err(ParseError::full(
                         next.span,
                         format!("Expected `parameter(s)`, found {}", next.kind),
+                        "When creating a function, you need to specify the parameters a function takes. This is done using the `parameter` or `parameters` keyword.".to_string(),
+                        "add the `parameter` keyword before this here. If you want to take multiple parameters (which is cool too!), you need to use `parameters` instead.".to_string()
                     ))
                 }
             } else {
                 let next = parser.peek();
-                Err(ParseError::simple(
+                Err(ParseError::full(
                     next.span,
                     format!("Expected `the` or `no`, found {}", next.kind),
+                    "If you don't want to take any parameters, then you need to say that you don't, and if you do you need to say that you do.".to_string(),
+                    "add `no parameters` here, since I think that you don't want to take any paramters here.".to_string()
                 ))
             }
         })
@@ -344,9 +348,11 @@ impl Parser {
             let fn_keyword_span = parser.expect_kind(TokenKind::Function)?;
 
             if parser.in_fn_depth == 0 {
-                return Err(ParseError::simple(
+                return Err(ParseError::full(
                     ret_span.extend(fn_keyword_span),
                     "Cannot return outside of function".to_string(),
+                    "Returning is a process that can only be done within functions. Returning from a program doesn't make sense, where would you want to return to?".to_string(),
+                    "terminate the program using `please go to sleep.` instead. This allows me to get a little break.".to_string()
                 ));
             }
 
@@ -406,22 +412,26 @@ impl Parser {
                     parser.multi_args(the_token.span)
                 } else {
                     let next = parser.peek();
-                    Err(ParseError::simple(
+                    Err(ParseError::full(
                         next.span,
                         format!(
                             "Expected `argument(s)` after `the` in function call, got {}",
                             next.kind
                         ),
+                        "You want to call a function here. But to call a function, you need to specify the arguments you want to pass. I know a keyword just for that, called `argument`, or if you want multiple, `arguments`. It's pretty cool, check it out!".to_string(),
+                        "add the cool keyword in there!".to_string()
                     ))
                 }
             } else {
                 let next = parser.peek();
-                Err(ParseError::simple(
+                Err(ParseError::full(
                     next.span,
                     format!(
                         "Expected `no` or `the` after `with` in function call, got {}",
                         next.kind
                     ),
+                    "You need to tell me the arguments you want to give to that function.".to_string(),
+                    "either use `no arguments` if you don't want to give the poor function any, or `the argument`, `the arguments` if you are nice and want to the function to have some happy little arguments.".to_string()
                 ))
             }
         })
@@ -482,9 +492,11 @@ impl Parser {
                     _ => TyKind::Name(value),
                 },
                 _ => {
-                    return Err(ParseError::simple(
+                    return Err(ParseError::full(
                         token.span,
                         format!("Expected type, found {}", &token.kind),
+                        "If you come from a dynamic language like python or Javascript, this might be new to you, but in VFPL you have to annotate your functions and variables with types, that tell me what types the values have. Using this, I can give you better errors earlier.".to_string(),
+                        "add the type `String` here to try it out!".to_string()
                     ))
                 }
             };
@@ -537,9 +549,11 @@ impl Parser {
                             ComparisonKind::Less
                         }
                     } else {
-                        return Err(ParseError::simple(
+                        return Err(ParseError::full(
                             is_span,
                             "expected `greater` or `less` after `is`".to_string(),
+                            "Looks like you are trying to make a comparison. After the is, we use `less` or `greater` to make clear which one is meant.".to_string(),
+                            "use `greater than` after the `is`.".to_string()
                         ));
                     };
 
@@ -675,9 +689,11 @@ impl Parser {
                 TokenKind::Float(value) => LiteralKind::Float(value),
                 TokenKind::Ident(name) => LiteralKind::Ident(name),
                 _ => {
-                    return Err(ParseError::simple(
+                    return Err(ParseError::full(
                         token.span,
                         format!("Expected literal, found {}", &token.kind),
+                        "A literal is either absent, null, novalue, undefined, True, False, a number, a string or an identifier. Yours is neither of them.".to_string(),
+                            format!("use a number literal with the value {}.", error::random_number()),
                     ))
                 }
             };
