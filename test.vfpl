@@ -1,1 +1,3 @@
-please initialize variable x as Integer with the value of 15.
+    please initialize variable our_time as Integer with the value of (call time with no arguments).
+    please call println with the argument our_time as x.
+    please go to sleep.

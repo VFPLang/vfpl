@@ -25,7 +25,7 @@ fn main() {
                 std::process::exit(1);
             });
 
-            vfpl::run(ast).unwrap_or_else(|err| {
+            vfpl::run(&ast).unwrap_or_else(|err| {
                 vfpl::display_error(&content, err, &mut stderr, true)
                     .expect("Printing to stderr failed");
                 std::process::exit(1);

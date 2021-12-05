@@ -3,7 +3,7 @@ use crate::lexer::tokens::{Token, TokenKind};
 use crate::parse::{ParseError, ParseResult, Parser};
 
 impl Parser {
-    const MAX_DEPTH: usize = 50;
+    const MAX_DEPTH: usize = 200;
 
     pub(super) fn parse_rule<F, R>(&mut self, f: F) -> ParseResult<R>
     where
@@ -15,53 +15,48 @@ impl Parser {
         result
     }
 
-    pub(super) fn next(&mut self) -> ParseResult<Token> {
-        self.tokens.next().ok_or_else(|| ParseError {
-            span: Span::dummy(),
-            message: "reached end of file".to_string(),
-        })
+    /// Returns the next token
+    /// This panics if it doesn't have any more tokens, since the parser shouldn't advance
+    /// more after it gets an EOF
+    pub(super) fn next(&mut self) -> Token {
+        self.tokens.next().expect("Stepped beyond EOF")
     }
 
-    pub(super) fn peek(&mut self) -> ParseResult<&Token> {
-        self.tokens.peek().ok_or_else(|| ParseError {
-            span: Span::dummy(),
-            message: "reached end of file".to_string(),
-        })
+    /// Returns peeked token
+    /// This panics if it doesn't have any more tokens, since the parser shouldn't peek
+    /// more after it gets an EOF
+    pub(super) fn peek(&mut self) -> &Token {
+        self.tokens.peek().expect("Peeked beyond EOF")
     }
 
-    pub(super) fn peek_nth_kind(&mut self, n: usize) -> ParseResult<&TokenKind> {
-        self.tokens
-            .peek_nth(n)
-            .map(|token| &token.kind)
-            .ok_or_else(|| ParseError {
-                span: Span::dummy(),
-                message: "reached end of file".to_string(),
-            })
+    /// Won't panic if peeked beyond EOF
+    pub(super) fn maybe_peek_nth_kind(&mut self, n: usize) -> Option<&TokenKind> {
+        self.tokens.peek_nth(n).map(|token| &token.kind)
     }
 
-    pub(super) fn peek_kind(&mut self) -> ParseResult<&TokenKind> {
-        self.tokens
-            .peek()
-            .map(|token| &token.kind)
-            .ok_or_else(|| ParseError {
-                span: Span::dummy(),
-                message: "reached end of file".to_string(),
-            })
+    /// Returns the kind of a peeked token
+    /// This panics if it doesn't have any more tokens, since the parser shouldn't peek
+    /// more after it gets an EOF
+    pub(super) fn peek_kind(&mut self) -> &TokenKind {
+        &self.peek().kind
     }
 
-    pub(super) fn try_consume_kind(
-        &mut self,
-        expected_kind: TokenKind,
-    ) -> ParseResult<Option<Token>> {
-        if self.peek_kind()? == &expected_kind {
-            Ok(Some(self.next()?))
+    /// Returns the next token if it matches the expected kind
+    /// This panics if it doesn't have any more tokens, since the parser shouldn't advance
+    /// more after it gets an EOF
+    pub(super) fn try_consume_kind(&mut self, expected_kind: TokenKind) -> Option<Token> {
+        if self.peek_kind() == &expected_kind {
+            Some(self.next())
         } else {
-            Ok(None)
+            None
         }
     }
 
+    /// Returns the span of the next token, and an error if it doesn't match
+    /// This panics if it doesn't have any more tokens, since the parser shouldn't advance
+    /// more after it gets an EOF
     pub(super) fn expect_kind(&mut self, expected_kind: TokenKind) -> ParseResult<Span> {
-        let next = self.next()?;
+        let next = self.next();
         if next.kind == expected_kind {
             Ok(next.span)
         } else {

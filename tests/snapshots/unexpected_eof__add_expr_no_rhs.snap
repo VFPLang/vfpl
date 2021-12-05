@@ -1,0 +1,10 @@
+---
+source: tests/unexpected_eof.rs
+expression: stderr
+
+---
+error: Expected literal, found end of file
+      |
+    1 | please add 5 t
+      |               ^
+

@@ -36,10 +36,10 @@ fn var_init(name: &str, ty: TyKind, val: LiteralKind) -> Stmt {
     })
 }
 
-fn print(name: &str) -> Stmt {
+fn println(name: &str) -> Stmt {
     Stmt::Expr(Expr::Call(Call {
         span: Default::default(),
-        fn_name: "print".to_string(),
+        fn_name: "println".to_string(),
         args: CallArgs {
             span: Default::default(),
             args: vec![CallArg {
@@ -48,7 +48,7 @@ fn print(name: &str) -> Stmt {
                     span: Default::default(),
                     kind: LiteralKind::Ident(name.to_string()),
                 }),
-                name: "value".to_string(),
+                name: "x".to_string(),
             }],
         },
     }))
@@ -60,7 +60,7 @@ fn initialize_global_variable() {
         span: Span::default(),
         stmts: vec![
             var_init("uwu", TyKind::Integer, LiteralKind::Int(5)),
-            print("uwu"),
+            println("uwu"),
         ],
     };
 
@@ -76,7 +76,7 @@ fn double_initialize_global_variable() {
         stmts: vec![
             var_init("uwu", TyKind::Integer, LiteralKind::Int(5)),
             var_init("uwu", TyKind::Absent, LiteralKind::Absent),
-            print("uwu"),
+            println("uwu"),
         ],
     };
 

@@ -1,0 +1,58 @@
+---
+source: src/parse/test.rs
+expression: parsed
+
+---
+Ok(
+    ArithmeticOp(
+        ArithmeticOp {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            lhs: Literal(
+                Literal {
+                    span: Span {
+                        start: 0,
+                        end: 0,
+                    },
+                    kind: Int(
+                        5,
+                    ),
+                },
+            ),
+            rhs: ArithmeticOp(
+                ArithmeticOp {
+                    span: Span {
+                        start: 0,
+                        end: 0,
+                    },
+                    lhs: Literal(
+                        Literal {
+                            span: Span {
+                                start: 0,
+                                end: 0,
+                            },
+                            kind: Int(
+                                6,
+                            ),
+                        },
+                    ),
+                    rhs: Literal(
+                        Literal {
+                            span: Span {
+                                start: 0,
+                                end: 0,
+                            },
+                            kind: Int(
+                                7,
+                            ),
+                        },
+                    ),
+                    kind: Add,
+                },
+            ),
+            kind: Add,
+        },
+    ),
+)

@@ -14,12 +14,14 @@ fn token(kind: TokenKind) -> Token {
     }
 }
 
+/// parses the tokens and appends an EOF token
 fn parse<T, F, R>(tokens: T, parse_rule_fn: F) -> R
 where
     T: Into<Vec<Token>>,
     F: FnOnce(&mut Parser) -> R,
 {
-    let vec = tokens.into();
+    let mut vec = tokens.into();
+    vec.push(Token::eof());
     let mut parser = Parser::new(vec.into_iter());
     parse_rule_fn(&mut parser)
 }
@@ -247,6 +249,25 @@ fn multiply_number() {
 fn mod_number() {
     let tokens = [Take, Ident("counter".to_string()), Mod, Int(4)].map(token);
     let parsed = parse(tokens, Parser::factor);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn nested_add_number() {
+    let tokens = [
+        Add,
+        Int(5),
+        To,
+        ParenOpen,
+        Add,
+        Int(6),
+        To,
+        Int(7),
+        ParenClose,
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::term);
 
     insta::assert_debug_snapshot!(parsed);
 }
@@ -598,6 +619,27 @@ fn fn_decl_three_param_with_body() {
     ]
     .map(token);
     let parsed = parse(tokens, Parser::fn_decl);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn multiple_body_statements() {
+    let tokens = [
+        Please,
+        Add,
+        Int(5),
+        To,
+        Int(6),
+        Dot,
+        Please,
+        Go,
+        To,
+        Sleep,
+        Dot,
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::body);
 
     insta::assert_debug_snapshot!(parsed);
 }

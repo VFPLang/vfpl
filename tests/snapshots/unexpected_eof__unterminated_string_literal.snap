@@ -1,0 +1,10 @@
+---
+source: tests/unexpected_eof.rs
+expression: stderr
+
+---
+error: Unexpected EOF
+      |
+    1 | "hell
+      | 
+

@@ -1,0 +1,10 @@
+---
+source: tests/unexpected_eof.rs
+expression: stderr
+
+---
+error: expected keyword `check`, found end of file
+      |
+    4 |     please end
+      |               ^
+

@@ -13,9 +13,10 @@ impl Parser {
             let mut stmts = Vec::new();
 
             loop {
-                if (matches!(parser.peek_kind(), Ok(TokenKind::Please))
-                    && matches!(parser.peek_nth_kind(1), Ok(TokenKind::End)))
-                    || matches!(parser.peek_kind(), Ok(TokenKind::Otherwise))
+                if (matches!(parser.peek_kind(), TokenKind::Please)
+                    && matches!(parser.maybe_peek_nth_kind(1), Some(TokenKind::End)))
+                    || matches!(parser.peek_kind(), TokenKind::Otherwise)
+                    || matches!(parser.peek_kind(), TokenKind::Eof)
                 {
                     break;
                 }
@@ -52,7 +53,7 @@ impl Parser {
         self.parse_rule(|parser| {
             parser.expect_kind(TokenKind::Please)?;
 
-            let stmt = match parser.peek_kind()? {
+            let stmt = match parser.peek_kind() {
                 TokenKind::Initialize => Stmt::VarInit(parser.var_init()?),
                 TokenKind::Set => Stmt::VarSet(parser.var_set()?),
                 TokenKind::Check => Stmt::If(parser.if_stmt()?),
@@ -137,7 +138,7 @@ impl Parser {
 
             let body = parser.body()?;
 
-            let else_part = if let TokenKind::Otherwise = parser.peek_kind()? {
+            let else_part = if let TokenKind::Otherwise = parser.peek_kind() {
                 Some(parser.else_stmt()?)
             } else {
                 None
@@ -157,7 +158,7 @@ impl Parser {
             let otherwise = parser.expect_kind(TokenKind::Otherwise)?;
             parser.expect_kind(TokenKind::Comma)?;
 
-            let kind = if let TokenKind::Check = parser.peek_kind()? {
+            let kind = if let TokenKind::Check = parser.peek_kind() {
                 ElseKind::ElseIf(Box::new(parser.if_part()?))
             } else {
                 ElseKind::Else(parser.body()?)
@@ -258,31 +259,31 @@ impl Parser {
 
     pub fn params(&mut self) -> ParseResult<FnParams> {
         self.parse_rule(|parser| {
-            if let Some(no_token) = parser.try_consume_kind(TokenKind::No)? {
+            if let Some(no_token) = parser.try_consume_kind(TokenKind::No) {
                 let param_span = parser.expect_kind(TokenKind::Parameters)?;
                 Ok(FnParams {
                     span: no_token.span.extend(param_span),
                     params: vec![],
                 })
-            } else if let Some(the_token) = parser.try_consume_kind(TokenKind::The)? {
-                if parser.try_consume_kind(TokenKind::Parameter)?.is_some() {
+            } else if let Some(the_token) = parser.try_consume_kind(TokenKind::The) {
+                if parser.try_consume_kind(TokenKind::Parameter).is_some() {
                     let param = parser.typed_ident()?;
 
                     Ok(FnParams {
                         span: the_token.span.extend(param.span),
                         params: vec![param],
                     })
-                } else if parser.try_consume_kind(TokenKind::Parameters)?.is_some() {
+                } else if parser.try_consume_kind(TokenKind::Parameters).is_some() {
                     parser.multi_params(the_token.span)
                 } else {
-                    let next = parser.peek()?;
+                    let next = parser.peek();
                     Err(ParseError {
                         span: next.span,
                         message: format!("Expected `parameter(s)`, found {}", next.kind),
                     })
                 }
             } else {
-                let next = parser.peek()?;
+                let next = parser.peek();
                 Err(ParseError {
                     span: next.span,
                     message: format!("Expected `the` or `no`, found {}", next.kind),
@@ -297,7 +298,7 @@ impl Parser {
 
             let mut params = vec![first];
 
-            while let Ok(Some(_)) = parser.try_consume_kind(TokenKind::Comma) {
+            while parser.try_consume_kind(TokenKind::Comma).is_some() {
                 let next = parser.typed_ident()?;
                 params.push(next);
             }
@@ -336,7 +337,7 @@ impl Parser {
             parser.expect_kinds([TokenKind::From, TokenKind::The])?;
             let fn_keyword_span = parser.expect_kind(TokenKind::Function)?;
 
-            if parser.in_fn_depth != 0 {
+            if parser.in_fn_depth == 0 {
                 return Err(ParseError {
                     span: ret_span.extend(fn_keyword_span),
                     message: "Cannot return outside of function".to_string(),
@@ -381,24 +382,24 @@ impl Parser {
 
     pub fn call_args(&mut self) -> ParseResult<CallArgs> {
         self.parse_rule(|parser| {
-            if let Some(token) = parser.try_consume_kind(TokenKind::No)? {
+            if let Some(token) = parser.try_consume_kind(TokenKind::No) {
                 let arguments_span = parser.expect_kind(TokenKind::Arguments)?;
                 Ok(CallArgs {
                     span: token.span.extend(arguments_span),
                     args: vec![],
                 })
-            } else if let Some(the_token) = parser.try_consume_kind(TokenKind::The)? {
-                if parser.try_consume_kind(TokenKind::Argument)?.is_some() {
+            } else if let Some(the_token) = parser.try_consume_kind(TokenKind::The) {
+                if parser.try_consume_kind(TokenKind::Argument).is_some() {
                     let arg = parser.call_arg()?;
 
                     Ok(CallArgs {
                         span: the_token.span.extend(arg.span),
                         args: vec![arg],
                     })
-                } else if parser.try_consume_kind(TokenKind::Arguments)?.is_some() {
+                } else if parser.try_consume_kind(TokenKind::Arguments).is_some() {
                     parser.multi_args(the_token.span)
                 } else {
-                    let next = parser.peek()?;
+                    let next = parser.peek();
                     Err(ParseError {
                         span: next.span,
                         message: format!(
@@ -408,7 +409,7 @@ impl Parser {
                     })
                 }
             } else {
-                let next = parser.peek()?;
+                let next = parser.peek();
                 Err(ParseError {
                     span: next.span,
                     message: format!(
@@ -426,7 +427,7 @@ impl Parser {
 
             let mut call_args = vec![arg];
 
-            while parser.try_consume_kind(TokenKind::Comma)?.is_some() {
+            while parser.try_consume_kind(TokenKind::Comma).is_some() {
                 let arg = parser.call_arg()?;
                 call_args.push(arg);
             }
@@ -460,7 +461,7 @@ impl Parser {
 
     pub fn ty(&mut self) -> ParseResult<Ty> {
         self.parse_rule(|parser| {
-            let token = parser.next()?;
+            let token = parser.next();
 
             let ty_kind = match token.kind {
                 TokenKind::Absent => TyKind::Absent,
@@ -468,10 +469,10 @@ impl Parser {
                 TokenKind::NoValue => TyKind::NoValue,
                 TokenKind::Undefined => TyKind::Undefined,
                 TokenKind::Ident(value) => match &*value {
-                    "Integer" => TyKind::Integer,
-                    "Float" => TyKind::Float,
-                    "Boolean" => TyKind::Boolean,
-                    "String" => TyKind::String,
+                    "integer" => TyKind::Integer,
+                    "float" => TyKind::Float,
+                    "boolean" => TyKind::Boolean,
+                    "string" => TyKind::String,
                     _ => TyKind::Name(value),
                 },
                 _ => {
@@ -498,7 +499,7 @@ impl Parser {
             let lhs = parser.term()?;
 
             let (rhs, kind) = match parser.peek_kind() {
-                Ok(&TokenKind::Does) => {
+                TokenKind::Does => {
                     parser.expect_kinds([
                         TokenKind::Does,
                         TokenKind::Not,
@@ -508,22 +509,22 @@ impl Parser {
                     ])?;
                     (parser.comparison()?, ComparisonKind::NotEq)
                 }
-                Ok(&TokenKind::Has) => {
+                TokenKind::Has => {
                     parser.expect_kinds([TokenKind::Has, TokenKind::The, TokenKind::Value])?;
                     (parser.comparison()?, ComparisonKind::Eq)
                 }
-                Ok(&TokenKind::Is) => {
+                TokenKind::Is => {
                     let is_span = parser.expect_kind(TokenKind::Is)?;
 
-                    let comp_kind = if parser.try_consume_kind(TokenKind::Greater)?.is_some() {
-                        if parser.try_consume_kind(TokenKind::Or)?.is_some() {
+                    let comp_kind = if parser.try_consume_kind(TokenKind::Greater).is_some() {
+                        if parser.try_consume_kind(TokenKind::Or).is_some() {
                             parser.expect_kind(TokenKind::Equal)?;
                             ComparisonKind::GreaterEq
                         } else {
                             ComparisonKind::Greater
                         }
-                    } else if parser.try_consume_kind(TokenKind::Less)?.is_some() {
-                        if parser.try_consume_kind(TokenKind::Or)?.is_some() {
+                    } else if parser.try_consume_kind(TokenKind::Less).is_some() {
+                        if parser.try_consume_kind(TokenKind::Or).is_some() {
                             parser.expect_kind(TokenKind::Equal)?;
                             ComparisonKind::LessEq
                         } else {
@@ -553,12 +554,12 @@ impl Parser {
     }
 
     pub fn term(&mut self) -> ParseResult<Expr> {
-        self.parse_rule(|parser| match parser.peek_kind()? {
+        self.parse_rule(|parser| match parser.peek_kind() {
             TokenKind::Add => {
                 let op_span = parser.expect_kind(TokenKind::Add)?;
                 let lhs = parser.factor()?;
                 parser.expect_kind(TokenKind::To)?;
-                let rhs = dbg!(parser.term())?;
+                let rhs = parser.term()?;
 
                 Ok(Expr::ArithmeticOp(ArithmeticOp {
                     span: op_span.extend(rhs.span()),
@@ -585,7 +586,7 @@ impl Parser {
     }
 
     pub fn factor(&mut self) -> ParseResult<Expr> {
-        self.parse_rule(|parser| match parser.peek_kind()? {
+        self.parse_rule(|parser| match parser.peek_kind() {
             TokenKind::Mul => {
                 let op_span = parser.expect_kind(TokenKind::Mul)?;
                 let lhs = parser.call_expr()?;
@@ -630,7 +631,7 @@ impl Parser {
     }
 
     pub fn call_expr(&mut self) -> ParseResult<Expr> {
-        self.parse_rule(|parser| match *parser.peek_kind()? {
+        self.parse_rule(|parser| match *parser.peek_kind() {
             TokenKind::Call => Ok(Expr::Call(parser.call()?)),
             _ => parser.primary_expr(),
         })
@@ -638,8 +639,9 @@ impl Parser {
 
     pub fn primary_expr(&mut self) -> ParseResult<Expr> {
         self.parse_rule(|parser| {
-            let expr = match parser.peek_kind()? {
+            let expr = match parser.peek_kind() {
                 TokenKind::ParenOpen => {
+                    parser.expect_kind(TokenKind::ParenOpen)?;
                     let expr = parser.expr()?;
                     parser.expect_kind(TokenKind::ParenClose)?;
                     expr
@@ -653,7 +655,7 @@ impl Parser {
 
     pub fn literal(&mut self) -> ParseResult<Literal> {
         self.parse_rule(|parser| {
-            let token = parser.next()?;
+            let token = parser.next();
 
             let literal_kind = match token.kind {
                 TokenKind::Absent => LiteralKind::Absent,
@@ -683,7 +685,7 @@ impl Parser {
 
     pub fn ident(&mut self) -> ParseResult<(String, Span)> {
         self.parse_rule(|parser| {
-            let next = parser.next()?;
+            let next = parser.next();
 
             if let TokenKind::Ident(name) = next.kind {
                 Ok((name, next.span))

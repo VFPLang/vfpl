@@ -87,6 +87,9 @@ pub enum TokenKind {
     ParenClose,
     /// ,
     Comma,
+
+    /// The last token
+    Eof,
 }
 
 impl Display for TokenKind {
@@ -130,7 +133,7 @@ impl Display for TokenKind {
             TokenKind::Sleep => f.write_str("keyword `sleep`"),
             TokenKind::Absent => f.write_str("keyword `absent`"),
             TokenKind::Null => f.write_str("keyword `null`"),
-            TokenKind::NoValue => f.write_str("keyword `no value` )"),
+            TokenKind::NoValue => f.write_str("keyword `novalue` )"),
             TokenKind::Undefined => f.write_str("keyword `undefined`"),
             TokenKind::True => f.write_str("keyword `true`"),
             TokenKind::False => f.write_str("keyword `false`"),
@@ -159,6 +162,7 @@ impl Display for TokenKind {
             TokenKind::Comma => f.write_str("`,`"),
             TokenKind::And => f.write_str("keyword `and`"),
             TokenKind::While => f.write_str("keyword `while`"),
+            TokenKind::Eof => f.write_str("end of file"),
         }
     }
 }
@@ -183,6 +187,13 @@ impl Token {
         Token {
             kind,
             span: Span::start_len(start, end),
+        }
+    }
+
+    pub fn eof() -> Self {
+        Token {
+            span: Span::eof(),
+            kind: TokenKind::Eof,
         }
     }
 }

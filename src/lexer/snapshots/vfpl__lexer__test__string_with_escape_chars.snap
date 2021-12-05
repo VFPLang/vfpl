@@ -1,6 +1,6 @@
 ---
 source: src/lexer/test.rs
-expression: "lex(\"\\\"What is a \\\\\\\"unit test\\\\\\\"?\\\"\")"
+expression: "lex(r#\"\"What is a \\\"unit test\\\"?\"\"#)"
 
 ---
 Ok(
@@ -13,6 +13,13 @@ Ok(
             kind: String(
                 "what is a \"unit test\"?",
             ),
+        },
+        Token {
+            span: Span {
+                start: 18446744073709551615,
+                end: 18446744073709551615,
+            },
+            kind: Eof,
         },
     ],
 )

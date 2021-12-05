@@ -1,0 +1,10 @@
+---
+source: tests/unexpected_eof.rs
+expression: stderr
+
+---
+error: expected keyword `please`, found end of file
+      |
+    3 |         please add 5 to 6.
+      |                           ^
+
