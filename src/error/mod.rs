@@ -1,114 +1,47 @@
+mod display;
+mod random;
 mod span;
 
+pub use display::display_error;
+pub use random::random_ident;
 pub use span::Span;
-use std::fmt::Debug;
-use std::io;
-use std::io::Write;
 
+/// A trait for any error emitted during process
 pub trait CompilerError {
+    /// Return the span where the error occurred, for nicer error reporting. If no span is found,
+    /// use [Span::dummy].
     fn span(&self) -> Span;
+
+    /// The main message of the compiler error. It should be polite and not too long, but doesn't
+    /// need extra verbosity.
+    ///
+    /// This needs to be a full sentence.
+    ///
+    /// # Examples
+    ///
+    /// `You have tried to add a String to a function.`
     fn message(&self) -> String;
-    fn note(&self) -> Option<String>;
-}
 
-/// A wrapper around a color that is not Display
-struct ColorWrapper(&'static str);
-
-impl ColorWrapper {
-    fn display(&self, with_color: bool) -> &'static str {
-        if with_color {
-            self.0
-        } else {
-            ""
-        }
-    }
-}
-
-pub fn display_error<E, W>(source: &str, error: E, mut w: W, with_color: bool) -> io::Result<()>
-where
-    E: CompilerError + Debug,
-    W: Write,
-{
-    let span = if error.span() == Span::eof() {
-        // todo this should be handled better
-        Span::single(source.len() - 1)
-    } else {
-        error.span()
-    };
-
-    let mut chars = 0;
-    let lines = source.split_inclusive('\n').enumerate();
-    for (idx, line) in lines {
-        if chars + line.len() + 1 > span.start {
-            let offset_on_line = span.start - chars;
-
-            writeln!(
-                w,
-                "{}error: {}{}",
-                RED.display(with_color),
-                error.message(),
-                RESET.display(with_color)
-            )?;
-            writeln!(
-                w,
-                "      {}|{}",
-                CYAN.display(with_color),
-                RESET.display(with_color)
-            )?;
-            writeln!(
-                w,
-                "{}{:>5} |{} {}",
-                CYAN.display(with_color),
-                idx + 1,
-                RESET.display(with_color),
-                &line[..line.len() - 1]
-            )?;
-            write!(
-                w,
-                "      {}|{} ",
-                CYAN.display(with_color),
-                RESET.display(with_color)
-            )?;
-            writeln!(
-                w,
-                "{}{}{}{}",
-                " ".repeat(offset_on_line),
-                RED.display(with_color),
-                "^".repeat(span.len()),
-                RESET.display(with_color),
-            )?;
-            if let Some(note) = error.note() {
-                writeln!(
-                    w,
-                    "      {}|{}",
-                    CYAN.display(with_color),
-                    RESET.display(with_color)
-                )?;
-                writeln!(
-                    w,
-                    "      {}|{}   {}note: {}{}",
-                    CYAN.display(with_color),
-                    RESET.display(with_color),
-                    GREEN.display(with_color),
-                    note,
-                    RESET.display(with_color)
-                )?;
-            }
-            break;
-        }
-        chars += line.len();
+    /// An additional note to give more context to the message. It can be long, but also needs to be
+    /// polite.
+    ///
+    /// This needs to be a full sentence.
+    ///
+    /// # Examples
+    /// `Due to the constraints of our spacetime, we have not found a sensible
+    /// way to add a String to a function.`
+    fn note(&self) -> Option<String> {
+        None
     }
 
-    Ok(())
+    /// A suggestion about what the programmer could do to resolve the error. It must be polite,
+    /// and is allowed to be very wrong and not what the programmer intended, but it should fix the problem.
+    ///
+    /// This needs to be appendable to the phrase `You could `
+    ///
+    /// # Example
+    /// `add another String to the String, for example "Function".`
+    fn suggestion(&self) -> Option<String> {
+        None
+    }
 }
-
-macro_rules! color {
-    ($name:ident: $value:literal) => {
-        const $name: ColorWrapper = ColorWrapper(concat!("\x1B[", $value));
-    };
-}
-
-color!(RED: "0;31m");
-color!(RESET: "0m");
-color!(CYAN: "0;36m");
-color!(GREEN: "0;32m");

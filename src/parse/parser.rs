@@ -1,4 +1,5 @@
 use super::{ParseError, ParseResult, Parser};
+use crate::error;
 use crate::error::Span;
 use crate::lexer::tokens::TokenKind;
 use crate::parse::ast::*;
@@ -202,10 +203,12 @@ impl Parser {
             let last_span = parser.expect_kind(TokenKind::While)?;
 
             if parser.in_while_depth == 0 {
-                return Err(ParseError {
-                    span: first_span.extend(last_span),
-                    message: "Cannot use break outside of while".to_string(),
-                });
+                return Err(ParseError::full(
+                    first_span.extend(last_span),
+                    "You can not break outside of a while statement.".to_string(),
+                    "This is because I need something to break out of.".to_string(),
+                    "remove this break. It is not needed.".to_string(),
+                ));
             }
 
             Ok(Break {
@@ -236,13 +239,16 @@ impl Parser {
             let (close_name, end_span) = parser.ident()?;
 
             if fn_name != close_name {
-                return Err(ParseError {
-                    span: end_span,
-                    message: format!(
+                return Err(ParseError::full(
+                    end_span,
+                    format!(
                         "End name '{}' does not match function name '{}'",
                         close_name, fn_name
                     ),
-                });
+                    "To ensure that you didn't mistype your function name, the name needs to be reapeated twice.".to_string(),
+                    format!("look whether you mistyped the name here or on the creation above, and use the correction version in both places.\
+                    If you don't know which name is the correct one, I can help. I think you meant to call it `{}`, but I can't be sure.", error::random_ident())
+                ));
             }
 
             parser.in_fn_depth -= 1;
@@ -277,17 +283,17 @@ impl Parser {
                     parser.multi_params(the_token.span)
                 } else {
                     let next = parser.peek();
-                    Err(ParseError {
-                        span: next.span,
-                        message: format!("Expected `parameter(s)`, found {}", next.kind),
-                    })
+                    Err(ParseError::simple(
+                        next.span,
+                        format!("Expected `parameter(s)`, found {}", next.kind),
+                    ))
                 }
             } else {
                 let next = parser.peek();
-                Err(ParseError {
-                    span: next.span,
-                    message: format!("Expected `the` or `no`, found {}", next.kind),
-                })
+                Err(ParseError::simple(
+                    next.span,
+                    format!("Expected `the` or `no`, found {}", next.kind),
+                ))
             }
         })
     }
@@ -338,10 +344,10 @@ impl Parser {
             let fn_keyword_span = parser.expect_kind(TokenKind::Function)?;
 
             if parser.in_fn_depth == 0 {
-                return Err(ParseError {
-                    span: ret_span.extend(fn_keyword_span),
-                    message: "Cannot return outside of function".to_string(),
-                });
+                return Err(ParseError::simple(
+                    ret_span.extend(fn_keyword_span),
+                    "Cannot return outside of function".to_string(),
+                ));
             }
 
             Ok(Return {
@@ -400,23 +406,23 @@ impl Parser {
                     parser.multi_args(the_token.span)
                 } else {
                     let next = parser.peek();
-                    Err(ParseError {
-                        span: next.span,
-                        message: format!(
+                    Err(ParseError::simple(
+                        next.span,
+                        format!(
                             "Expected `argument(s)` after `the` in function call, got {}",
                             next.kind
                         ),
-                    })
+                    ))
                 }
             } else {
                 let next = parser.peek();
-                Err(ParseError {
-                    span: next.span,
-                    message: format!(
+                Err(ParseError::simple(
+                    next.span,
+                    format!(
                         "Expected `no` or `the` after `with` in function call, got {}",
                         next.kind
                     ),
-                })
+                ))
             }
         })
     }
@@ -476,10 +482,10 @@ impl Parser {
                     _ => TyKind::Name(value),
                 },
                 _ => {
-                    return Err(ParseError {
-                        span: token.span,
-                        message: format!("Expected type, found {}", &token.kind),
-                    })
+                    return Err(ParseError::simple(
+                        token.span,
+                        format!("Expected type, found {}", &token.kind),
+                    ))
                 }
             };
 
@@ -531,10 +537,10 @@ impl Parser {
                             ComparisonKind::Less
                         }
                     } else {
-                        return Err(ParseError {
-                            span: is_span,
-                            message: "expected `greater` or `less` after `is`".to_string(),
-                        });
+                        return Err(ParseError::simple(
+                            is_span,
+                            "expected `greater` or `less` after `is`".to_string(),
+                        ));
                     };
 
                     parser.expect_kind(TokenKind::Than)?;
@@ -669,10 +675,10 @@ impl Parser {
                 TokenKind::Float(value) => LiteralKind::Float(value),
                 TokenKind::Ident(name) => LiteralKind::Ident(name),
                 _ => {
-                    return Err(ParseError {
-                        span: token.span,
-                        message: format!("Expected literal, found {}", &token.kind),
-                    })
+                    return Err(ParseError::simple(
+                        token.span,
+                        format!("Expected literal, found {}", &token.kind),
+                    ))
                 }
             };
 
@@ -690,10 +696,10 @@ impl Parser {
             if let TokenKind::Ident(name) = next.kind {
                 Ok((name, next.span))
             } else {
-                Err(ParseError {
-                    span: next.span,
-                    message: format!("Expected identifier, found {}", next.kind),
-                })
+                Err(ParseError::simple(
+                    next.span,
+                    format!("Expected identifier, found {}", next.kind),
+                ))
             }
         })
     }

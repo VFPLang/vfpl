@@ -5,14 +5,15 @@ use std::vec;
 
 use peekmore::{PeekMore, PeekMoreIterator};
 
-use crate::error::{CompilerError, Span};
 use crate::lexer::tokens::Token;
 use crate::parse::ast::Program;
+use crate::parse::error::ParseError;
 
 pub mod ast;
 mod helper;
 mod parser;
 
+mod error;
 #[cfg(test)]
 mod test;
 
@@ -44,24 +45,4 @@ impl Parser {
 pub fn parse(tokens: vec::IntoIter<Token>) -> ParseResult<Program> {
     let mut parser = Parser::new(tokens);
     parser.program()
-}
-
-#[derive(Debug)]
-pub struct ParseError {
-    span: Span,
-    message: String,
-}
-
-impl CompilerError for ParseError {
-    fn span(&self) -> Span {
-        self.span
-    }
-
-    fn message(&self) -> String {
-        self.message.clone()
-    }
-
-    fn note(&self) -> Option<String> {
-        None
-    }
 }

@@ -10,5 +10,7 @@ Err(
             end: 0,
         },
         message: "Cannot return outside of function",
+        note: None,
+        suggestion: None,
     },
 )

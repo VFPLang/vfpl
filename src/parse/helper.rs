@@ -60,10 +60,10 @@ impl Parser {
         if next.kind == expected_kind {
             Ok(next.span)
         } else {
-            Err(ParseError {
-                span: next.span,
-                message: format!("expected {}, found {}", expected_kind, next.kind),
-            })
+            Err(ParseError::simple(
+                next.span,
+                format!("expected {}, found {}", expected_kind, next.kind),
+            ))
         }
     }
 
@@ -80,13 +80,12 @@ impl Parser {
     fn enter_parse_rule(&mut self) -> ParseResult<()> {
         self.depth += 1;
         if self.depth > Self::MAX_DEPTH {
-            Err(ParseError {
-                span: self
-                    .tokens
+            Err(ParseError::simple(
+                self.tokens
                     .peek()
                     .map_or_else(Span::dummy, |token| token.span),
-                message: "Nesting too deep".to_string(),
-            })
+                "Nesting too deep".to_string(),
+            ))
         } else {
             Ok(())
         }
