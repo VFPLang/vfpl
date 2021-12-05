@@ -233,16 +233,34 @@ impl CompilerError for LexerError {
 
     fn message(&self) -> String {
         match self {
-            LexerError::UnexpectedEOF => "Unexpected EOF".to_string(),
-            LexerError::IntParseError(_) => "Error parsing integer literal".to_string(),
-            LexerError::FloatParseError(_) => "Error parsing float literal".to_string(),
-            LexerError::InvalidCharacter(_) => "Invalid character".to_string(),
-            LexerError::InvalidEscapeCharacter(_) => "Invalid escape character".to_string(),
-            LexerError::LetterInNumber(_) => "Invalid letter in number".to_string(),
+            LexerError::UnexpectedEOF => "Unexpected EOF.".to_string(),
+            LexerError::IntParseError(_) => "Error parsing integer literal.".to_string(),
+            LexerError::FloatParseError(_) => "Error parsing float literal.".to_string(),
+            LexerError::InvalidCharacter(_) => "Invalid character.".to_string(),
+            LexerError::InvalidEscapeCharacter(_) => "Invalid escape character.".to_string(),
+            LexerError::LetterInNumber(_) => "Invalid letter in number.".to_string(),
         }
     }
 
     fn note(&self) -> Option<String> {
-        None
+        Some(match self {
+            LexerError::UnexpectedEOF => "I still need something, but I just can't find it".to_string(),
+            LexerError::IntParseError(_) => "Maybe the number was too big or small? I can only handle a limited amount of your number power.".to_string(),
+            LexerError::FloatParseError(_) => "Maybe the number was too big or small? I can only handle a limited amount of your number power.".to_string(),
+            LexerError::InvalidCharacter(_) => "I tried really hard to understand what you mean, but I am not capable of understanding it. Thank you for your understanding.".to_string(),
+            LexerError::InvalidEscapeCharacter(_) => r#"I am only able to process the following escape sequences: (\", \n, \r, \t, \0, \\)."#.to_string(),
+            LexerError::LetterInNumber(_) => "You have a very nice number, I like it. But sadly there is a letter in there, and I don't want to just assume that it was not there. I am a firm believer of only doing what I'm explicitly told to.".to_string(),
+        })
+    }
+
+    fn suggestion(&self) -> Option<String> {
+        Some(match self {
+            LexerError::UnexpectedEOF => r#"need to add a " somewhere."#.to_string(),
+            LexerError::IntParseError(_) => "try a smaller number".to_string(),
+            LexerError::FloatParseError(_) => "try a smaller number".to_string(),
+            LexerError::InvalidCharacter(_) => "delete that character. I won't miss it for sure.".to_string(),
+            LexerError::InvalidEscapeCharacter(_) => "open a pull request to https://github.com/VFPLang/vfpl to add the escape character.".to_string(),
+            LexerError::LetterInNumber(_) => "remove the letter from the number. Numbers are quite introverted and like being alone, it's ok. If you really want to, you could add some special character like , or ) next to it as a friend.".to_string()
+        })
     }
 }
