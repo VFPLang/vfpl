@@ -1,0 +1,19 @@
+---
+source: tests/std.rs
+expression: stderr
+
+---
+true
+false
+532
+-5532
+-3245.435
+0.435
+test
+absent
+null
+undefined
+novalue
+[native function]
+[function]
+
