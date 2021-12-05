@@ -1,5 +1,5 @@
-use crate::lexer::tokens::Token;
 use crate::lexer::{Lexer, LexerResult};
+use crate::lexer::tokens::Token;
 
 fn lex(code: &str) -> LexerResult<Vec<Token>> {
     Lexer::new(&code.to_lowercase()).compute_tokens()
@@ -137,7 +137,7 @@ fn all_keywords() {
         "Return",
         "While",
     ]
-    .map(lex);
+        .map(lex);
     insta::assert_debug_snapshot!(tokens);
 }
 

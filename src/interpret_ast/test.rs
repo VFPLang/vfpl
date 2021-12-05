@@ -1,8 +1,9 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::error::Span;
 use crate::interpret_ast::Vm;
 use crate::parse::ast::*;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 /// Runs the code and returns stdout
 fn run_code(ast: &Program) -> String {

@@ -1,5 +1,6 @@
-use crate::error::Span;
 use std::fmt::{Display, Formatter, Write};
+
+use crate::error::Span;
 
 type Ident = String;
 

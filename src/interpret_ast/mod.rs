@@ -1,12 +1,13 @@
 #![allow(dead_code)]
 
-use crate::error::{CompilerError, Span};
-use crate::parse::ast::{Body, Program, TyKind};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::io::Write;
 use std::rc::Rc;
+
+use crate::error::{CompilerError, Span};
+use crate::parse::ast::{Body, Program, TyKind};
 
 mod exec;
 mod native;

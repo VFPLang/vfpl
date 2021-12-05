@@ -1,9 +1,10 @@
-mod span;
-
-pub use span::Span;
 use std::fmt::Debug;
 use std::io;
 use std::io::Write;
+
+pub use span::Span;
+
+mod span;
 
 pub trait CompilerError {
     fn span(&self) -> Span;
@@ -25,9 +26,9 @@ impl ColorWrapper {
 }
 
 pub fn display_error<E, W>(source: &str, error: E, mut w: W, with_color: bool) -> io::Result<()>
-where
-    E: CompilerError + Debug,
-    W: Write,
+    where
+        E: CompilerError + Debug,
+        W: Write,
 {
     let span = if error.span() == Span::eof() {
         // todo this should be handled better

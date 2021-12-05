@@ -1,7 +1,8 @@
-use super::{ParseError, ParseResult, Parser};
 use crate::error::Span;
 use crate::lexer::tokens::TokenKind;
 use crate::parse::ast::*;
+
+use super::{ParseError, Parser, ParseResult};
 
 impl Parser {
     pub fn program(&mut self) -> ParseResult<Program> {
@@ -479,7 +480,7 @@ impl Parser {
                     return Err(ParseError {
                         span: token.span,
                         message: format!("Expected type, found {}", &token.kind),
-                    })
+                    });
                 }
             };
 
@@ -672,7 +673,7 @@ impl Parser {
                     return Err(ParseError {
                         span: token.span,
                         message: format!("Expected literal, found {}", &token.kind),
-                    })
+                    });
                 }
             };
 

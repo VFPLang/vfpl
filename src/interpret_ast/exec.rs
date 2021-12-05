@@ -1,14 +1,15 @@
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::rc::Rc;
+
 use crate::error::Span;
 use crate::interpret_ast::{
-    Env, FnImpl, IResult, Ident, InterpreterError, Interrupt, RuntimeFn, Value, ValueResult, Vm,
+    Env, FnImpl, Ident, InterpreterError, Interrupt, IResult, RuntimeFn, Value, ValueResult, Vm,
 };
 use crate::parse::ast::{
     ArithmeticOp, ArithmeticOpKind, Call, Comparison, ComparisonKind, Else, ElseKind, Expr, FnDecl,
     IfPart, Literal, LiteralKind, Program, Return, Stmt, TyKind, VarInit, VarSet, While,
 };
-use std::cell::RefCell;
-use std::collections::HashMap;
-use std::rc::Rc;
 
 impl Vm {
     pub(super) fn start(&mut self, ast: &Program) -> IResult {
@@ -90,7 +91,7 @@ impl Vm {
                 span: call.span,
                 message: format!("Variable is not a function: {}", call.fn_name),
             }
-            .into());
+                .into());
         };
 
         let function = function.borrow();
@@ -107,7 +108,7 @@ impl Vm {
                     params.len()
                 ),
             }
-            .into());
+                .into());
         }
 
         // this is only needed here as a convenience struct
@@ -188,7 +189,7 @@ impl Vm {
                 span: function.body.span(),
                 message: "Function did not return any value".to_string(),
             }
-            .into()),
+                .into()),
         }
     }
 
@@ -217,7 +218,7 @@ impl Vm {
                         comp_kind
                     ),
                 }
-                .into())
+                    .into());
             }
         };
 
@@ -249,7 +250,7 @@ impl Vm {
                             new.display_type()
                         ),
                     }
-                    .into())
+                        .into());
                 }
             },
             ArithmeticOpKind::Sub => match (lhs, rhs) {
@@ -265,7 +266,7 @@ impl Vm {
                             new.display_type()
                         ),
                     }
-                    .into())
+                        .into());
                 }
             },
             ArithmeticOpKind::Mul => match (lhs, rhs) {
@@ -281,7 +282,7 @@ impl Vm {
                             new.display_type()
                         ),
                     }
-                    .into())
+                        .into());
                 }
             },
             ArithmeticOpKind::Div => match (lhs, rhs) {
@@ -297,7 +298,7 @@ impl Vm {
                             new.display_type()
                         ),
                     }
-                    .into())
+                        .into());
                 }
             },
             ArithmeticOpKind::Mod => match (lhs, rhs) {
@@ -313,7 +314,7 @@ impl Vm {
                             new.display_type()
                         ),
                     }
-                    .into())
+                        .into());
                 }
             },
         })
@@ -380,13 +381,13 @@ impl Vm {
         } else {
             match &if_part.else_part {
                 Some(Else {
-                    kind: ElseKind::Else(body),
-                    ..
-                }) => self.dispatch_stmts_in_env(&body.stmts)?,
+                         kind: ElseKind::Else(body),
+                         ..
+                     }) => self.dispatch_stmts_in_env(&body.stmts)?,
                 Some(Else {
-                    kind: ElseKind::ElseIf(else_if),
-                    ..
-                }) => self.dispatch_if(else_if)?,
+                         kind: ElseKind::ElseIf(else_if),
+                         ..
+                     }) => self.dispatch_if(else_if)?,
                 None => {}
             }
         }
@@ -474,7 +475,7 @@ impl Vm {
                     ty_kind
                 ),
             }
-            .into()),
+                .into()),
         }
     }
 }
@@ -484,5 +485,5 @@ fn var_not_found(span: Span, name: &str) -> Interrupt {
         span,
         message: format!("Variable not found: {}", name),
     }
-    .into()
+        .into()
 }
