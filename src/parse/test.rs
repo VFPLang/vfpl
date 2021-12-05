@@ -14,12 +14,14 @@ fn token(kind: TokenKind) -> Token {
     }
 }
 
+/// parses the tokens and appends an EOF token
 fn parse<T, F, R>(tokens: T, parse_rule_fn: F) -> R
 where
     T: Into<Vec<Token>>,
     F: FnOnce(&mut Parser) -> R,
 {
-    let vec = tokens.into();
+    let mut vec = tokens.into();
+    vec.push(Token::eof());
     let mut parser = Parser::new(vec.into_iter());
     parse_rule_fn(&mut parser)
 }

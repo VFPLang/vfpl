@@ -29,11 +29,18 @@ where
     E: CompilerError + Debug,
     W: Write,
 {
+    let span = if error.span() == Span::eof() {
+        // todo this should be handled better
+        Span::single(source.len() - 1)
+    } else {
+        error.span()
+    };
+
     let mut chars = 0;
     let lines = source.split_inclusive('\n').enumerate();
     for (idx, line) in lines {
-        if chars + line.len() + 1 > error.span().start {
-            let offset_on_line = error.span().start - chars;
+        if chars + line.len() + 1 > span.start {
+            let offset_on_line = span.start - chars;
 
             writeln!(
                 w,
@@ -67,7 +74,7 @@ where
                 "{}{}{}{}",
                 " ".repeat(offset_on_line),
                 RED.display(with_color),
-                "^".repeat(error.span().len()),
+                "^".repeat(span.len()),
                 RESET.display(with_color),
             )?;
             if let Some(note) = error.note() {

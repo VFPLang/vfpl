@@ -1,5 +1,11 @@
 #![allow(dead_code)]
 
+///
+/// A Span points to a location in the source code
+///
+/// The start is inclusive, the end is exclusive
+///
+/// The special state, where both start and end are [usize::MAX] stands for the EOF span
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Default)]
 pub struct Span {
     pub start: usize,
@@ -31,6 +37,13 @@ impl Span {
     /// Create an empty span
     pub fn dummy() -> Self {
         Self { start: 0, end: 0 }
+    }
+
+    pub fn eof() -> Self {
+        Self {
+            start: usize::MAX,
+            end: usize::MAX,
+        }
     }
 
     /// Checks whether the Span is the dummy span

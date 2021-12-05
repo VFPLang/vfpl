@@ -143,7 +143,6 @@ fn all_keywords() {
 
 #[test]
 fn normal_line_of_code() {
-    // todo this test still fails :(
     insta::assert_debug_snapshot!(lex(
         "please initialize variable x as Integer with the value of 15.\n"
     ));

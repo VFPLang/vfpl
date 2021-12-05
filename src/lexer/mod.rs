@@ -84,6 +84,8 @@ impl Lexer<'_> {
                 _ => return Err(LexerError::InvalidCharacter(Span::single(idx))),
             }
         }
+
+        tokens.push(Token::eof());
         Ok(tokens)
     }
 
