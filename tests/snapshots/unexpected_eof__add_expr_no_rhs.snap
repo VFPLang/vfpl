@@ -7,4 +7,6 @@ error: Expected literal, found end of file
       |
     1 | please add 5 t
       |               ^
+      |
+      |   note: A literal is either absent, null, novalue, undefined, True, False, a number, a string or an identifier. Yours is neither of them.
 
