@@ -298,7 +298,7 @@ impl Parser {
 
             let mut params = vec![first];
 
-            while let Some(_) = parser.try_consume_kind(TokenKind::Comma) {
+            while parser.try_consume_kind(TokenKind::Comma).is_some() {
                 let next = parser.typed_ident()?;
                 params.push(next);
             }
