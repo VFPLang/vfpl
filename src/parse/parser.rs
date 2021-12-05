@@ -696,9 +696,11 @@ impl Parser {
             if let TokenKind::Ident(name) = next.kind {
                 Ok((name, next.span))
             } else {
-                Err(ParseError::simple(
+                Err(ParseError::full(
                     next.span,
                     format!("Expected identifier, found {}", next.kind),
+                    "It's not a valid identifier, identifiers consist of letters, _, $ and maybe some numbers in between. For more info, search for `unicode xid` on the internet.".to_string(),
+                    format!("use the identifier `{}`", error::random_ident()),
                 ))
             }
         })
