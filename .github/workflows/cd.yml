@@ -3,7 +3,7 @@ name: "New release"
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   new-release:
