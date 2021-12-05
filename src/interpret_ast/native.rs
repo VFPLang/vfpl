@@ -16,6 +16,7 @@ impl Vm {
         let vars = &mut env.vars;
 
         vars.insert(ident("println"), println());
+        vars.insert(ident("time"), time());
     }
 }
 
@@ -52,4 +53,29 @@ fn println_impl(vm: &mut Vm) -> IResult {
     })?;
 
     Err(Interrupt::Return(Value::Absent))
+}
+
+///
+/// returns the current time as unix millis
+fn time() -> Value {
+    Value::Fn(Rc::new(RefCell::new(RuntimeFn {
+        params: vec![],
+        ret_ty: TyKind::Integer,
+        body: FnImpl::Native(time_impl),
+        captured_env: Rc::new(RefCell::new(Env::default())),
+    })))
+}
+
+fn time_impl(_: &mut Vm) -> IResult {
+    use std::time;
+
+    let now = time::SystemTime::now();
+    let duration = now.duration_since(time::UNIX_EPOCH).map_err(|_| {
+        Interrupt::Error(InterpreterError {
+            span: Span::dummy(),
+            message: "Time is behind unix epoch".to_string(),
+        })
+    })?;
+
+    Err(Interrupt::Return(Value::Int(duration.as_millis() as i64)))
 }
