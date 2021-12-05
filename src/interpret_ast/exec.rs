@@ -1,3 +1,4 @@
+use crate::error;
 use crate::error::Span;
 use crate::interpret_ast::{
     Env, FnImpl, IResult, Ident, InterpreterError, Interrupt, RuntimeFn, Value, ValueResult, Vm,
@@ -182,11 +183,20 @@ impl Vm {
             .expect("Call stack empty after fn call");
 
         match result {
-            Err(Interrupt::Return(ret)) => Ok(ret),
+            Err(Interrupt::Return(ret)) => {
+                self.type_check(&ret, &function.ret_ty, function.body.span())?;
+                Ok(ret)
+            }
             Err(err) => Err(err),
-            Ok(_) => Err(InterpreterError::simple(
+            Ok(_) => Err(InterpreterError::full(
                 function.body.span(),
                 "Function did not return any value".to_string(),
+                "Every function in VFPL must return a value, even if that value is `null`"
+                    .to_string(),
+                format!(
+                    "return {} from the function.",
+                    error::random_number(self.session.rng())
+                ),
             )
             .into()),
         }

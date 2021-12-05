@@ -8,5 +8,7 @@ error: Expected identifier, found `5`
     1 | please initialize variable 5 as Integer with the value of 15
       |                            ^
       |
-      |   note: It's not a valid identifier, identifiers consist of letters, _, $ and maybe some numbers in between. For more info, search for `unicode xid` on the internet.
+
+It's not a valid identifier, identifiers consist of letters, _, $ and maybe some numbers in between. For more info, search for `unicode xid` on the internet.
+You could use the identifier `memcpy`.
 

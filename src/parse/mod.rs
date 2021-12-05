@@ -1,8 +1,10 @@
 //!
 //! Parses the source tokens using recursive descent
 
+use std::rc::Rc;
 use std::vec;
 
+use crate::global::Session;
 use peekmore::{PeekMore, PeekMoreIterator};
 
 use crate::lexer::tokens::Token;
@@ -27,22 +29,24 @@ struct Parser {
     in_while_depth: usize,
     /// For restricting uses of the "return" statement
     in_fn_depth: usize,
+    session: Rc<Session>,
 }
 
 impl Parser {
-    fn new(tokens: vec::IntoIter<Token>) -> Self {
+    fn new(tokens: vec::IntoIter<Token>, session: Rc<Session>) -> Self {
         Parser {
             tokens: tokens.peekmore(),
             depth: 0,
             in_while_depth: 0,
             in_fn_depth: 0,
+            session,
         }
     }
 }
 
 ///
 /// Parses the tokens into an AST
-pub fn parse(tokens: vec::IntoIter<Token>) -> ParseResult<Program> {
-    let mut parser = Parser::new(tokens);
+pub fn parse(tokens: vec::IntoIter<Token>, session: Rc<Session>) -> ParseResult<Program> {
+    let mut parser = Parser::new(tokens, session);
     parser.program()
 }

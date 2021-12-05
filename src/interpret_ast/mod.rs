@@ -1,6 +1,5 @@
-#![allow(dead_code)]
-
 use crate::error::{CompilerError, Span};
+use crate::global::Session;
 use crate::parse::ast::{Body, Program, TyKind};
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -14,8 +13,8 @@ mod native;
 mod test;
 
 /// Runs the parsed program
-pub fn run(program: &Program) -> Result<(), InterpreterError> {
-    let mut vm = Vm::default();
+pub fn run(program: &Program, session: Rc<Session>) -> Result<(), InterpreterError> {
+    let mut vm = Vm::with_stdout(Rc::new(RefCell::new(std::io::stdout())), session);
 
     vm.run(program)
 }
@@ -34,6 +33,7 @@ pub struct Vm {
     call_stack: Vec<RcEnv>,
     recur_depth: usize,
     stdout: Rc<RefCell<dyn Write>>,
+    session: Rc<Session>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -79,17 +79,6 @@ struct Env {
 }
 
 impl Env {
-    fn replace(&mut self, ident: Ident, value: Value) -> Option<()> {
-        match self.vars.get_mut(&ident) {
-            Some(var) => *var = value,
-            None => match &self.outer {
-                Some(outer) => outer.borrow_mut().replace(ident, value)?,
-                None => return None,
-            },
-        }
-        Some(())
-    }
-
     fn get_value(&self, ident: &str) -> Option<Value> {
         self.vars.get(ident).cloned().or_else(|| {
             self.outer
@@ -118,10 +107,13 @@ impl Env {
 }
 
 impl Vm {
-    pub fn with_stdout(stdout: Rc<RefCell<dyn Write>>) -> Self {
+    pub fn with_stdout(stdout: Rc<RefCell<dyn Write>>, session: Rc<Session>) -> Self {
         Self {
+            current_env: Rc::new(RefCell::new(Default::default())),
+            call_stack: vec![],
+            recur_depth: 0,
             stdout,
-            ..Default::default()
+            session,
         }
     }
 
@@ -148,17 +140,6 @@ impl Debug for Vm {
             .field("call_stack", &self.call_stack)
             .field("recur_depth", &self.recur_depth)
             .finish()
-    }
-}
-
-impl Default for Vm {
-    fn default() -> Self {
-        Self {
-            current_env: Rc::default(),
-            call_stack: Vec::default(),
-            recur_depth: 0,
-            stdout: Rc::new(RefCell::new(std::io::stdout())),
-        }
     }
 }
 

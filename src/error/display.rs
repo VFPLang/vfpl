@@ -1,7 +1,10 @@
 use crate::error::{CompilerError, Span};
+use crate::Session;
+use fastrand::Rng;
 use std::fmt::Debug;
 use std::io;
 use std::io::Write;
+use std::rc::Rc;
 
 /// A wrapper around a color that is not Display
 struct ColorWrapper(&'static str);
@@ -16,11 +19,19 @@ impl ColorWrapper {
     }
 }
 
-pub fn display_error<E, W>(source: &str, error: E, mut w: W, with_color: bool) -> io::Result<()>
+pub fn display_error<E, W>(
+    source: &str,
+    error: E,
+    mut w: W,
+    with_color: bool,
+    session: Rc<Session>,
+) -> io::Result<()>
 where
     E: CompilerError + Debug,
     W: Write,
 {
+    let rng = session.rng();
+
     let span = if error.span() == Span::eof() {
         // todo this should be handled better
         Span::single(source.len() - 1)
@@ -78,13 +89,14 @@ where
                 )?;
                 writeln!(
                     w,
-                    "      {}|{}   {}note: {}{}",
-                    CYAN.display(with_color),
-                    RESET.display(with_color),
+                    "\n{}{}{}",
                     GREEN.display(with_color),
                     note,
                     RESET.display(with_color)
                 )?;
+            }
+            if let Some(suggestion) = error.suggestion() {
+                write_suggestion(w, suggestion, rng)?;
             }
             break;
         }
@@ -92,6 +104,24 @@ where
     }
 
     Ok(())
+}
+
+fn write_suggestion<W: Write>(mut w: W, suggestion: String, rng: &Rng) -> io::Result<()> {
+    const SUGGEST_LEN: usize = 6;
+    // bias it
+    const SUGGEST_START: [&str; SUGGEST_LEN] = [
+        "You could",
+        "You could",
+        "You could",
+        "I have thought about it and came to the conclusion that you should be able to",
+        "I think you should",
+        "I think you should",
+    ];
+
+    let index = rng.usize(0..SUGGEST_LEN);
+    let start = SUGGEST_START[index];
+
+    writeln!(w, "{} {}", start, suggestion)
 }
 
 macro_rules! color {

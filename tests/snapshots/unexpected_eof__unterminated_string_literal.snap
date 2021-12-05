@@ -8,5 +8,7 @@ error: Unexpected EOF.
     1 | "hell
       | 
       |
-      |   note: I still need something, but I just can't find it
+
+I still need something, but I just can't find it.
+You could need to add a " somewhere.
 
