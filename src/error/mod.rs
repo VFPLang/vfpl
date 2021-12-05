@@ -45,3 +45,29 @@ pub trait CompilerError {
         None
     }
 }
+
+#[derive(Debug)]
+pub struct VfplError {
+    pub span: Span,
+    pub message: String,
+    pub note: Option<String>,
+    pub suggestion: Option<String>,
+}
+
+impl CompilerError for VfplError {
+    fn span(&self) -> Span {
+        self.span
+    }
+
+    fn message(&self) -> String {
+        self.message.clone()
+    }
+
+    fn note(&self) -> Option<String> {
+        self.note.clone()
+    }
+
+    fn suggestion(&self) -> Option<String> {
+        self.suggestion.clone()
+    }
+}

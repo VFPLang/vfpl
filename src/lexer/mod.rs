@@ -6,7 +6,7 @@ use std::str::CharIndices;
 use peekmore::{PeekMore, PeekMoreIterator};
 use unicode_xid::UnicodeXID;
 
-use crate::error;
+use crate::{error, VfplError};
 use tokens::Token;
 
 use crate::error::{CompilerError, Span};
@@ -19,7 +19,14 @@ mod helper;
 mod test;
 pub mod tokens;
 
-pub type LexerResult<T> = Result<T, LexerError>;
+type LexerResult<T> = Result<T, LexerError>;
+
+/// Lexes an input stream into Tokens
+pub fn lex(code: &str, session: Rc<Session>) -> Result<Vec<Token>, VfplError> {
+    let mut lexer = Lexer::new(code, session);
+
+    lexer.compute_tokens().map_err(|err| err.into())
+}
 
 #[derive(Debug)]
 pub struct Lexer<'a> {
@@ -54,7 +61,7 @@ impl Lexer<'_> {
         }
     }
 
-    pub fn compute_tokens(&mut self) -> LexerResult<Vec<Token>> {
+    fn compute_tokens(&mut self) -> LexerResult<Vec<Token>> {
         let mut tokens = Vec::new();
         while let Some((idx, char)) = self.next() {
             match char {
@@ -216,7 +223,7 @@ impl Lexer<'_> {
 }
 
 #[derive(Debug)]
-pub enum LexerError {
+enum LexerError {
     UnexpectedEOF,
     IntParseError(Span, Rng),
     FloatParseError(Span, Rng),
@@ -268,5 +275,16 @@ impl CompilerError for LexerError {
             LexerError::InvalidEscapeCharacter(_) => "open a pull request to https://github.com/VFPLang/vfpl to add the escape character.".to_string(),
             LexerError::LetterInNumber(_) => "remove the letter from the number. Numbers are quite introverted and like being alone, it's ok. If you really want to, you could add some special character like , or ) next to it as a friend.".to_string()
         })
+    }
+}
+
+impl From<LexerError> for VfplError {
+    fn from(error: LexerError) -> Self {
+        Self {
+            span: error.span(),
+            message: error.message(),
+            note: error.note(),
+            suggestion: error.suggestion(),
+        }
     }
 }

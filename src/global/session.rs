@@ -13,12 +13,6 @@ impl Session {
         Self { rng: Rng::new() }
     }
 
-    pub fn with_rng_seed(seed: u64) -> Self {
-        Self {
-            rng: Rng::with_seed(seed),
-        }
-    }
-
     pub fn rng(&self) -> &Rng {
         &self.rng
     }

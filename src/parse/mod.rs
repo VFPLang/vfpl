@@ -10,6 +10,7 @@ use peekmore::{PeekMore, PeekMoreIterator};
 use crate::lexer::tokens::Token;
 use crate::parse::ast::Program;
 use crate::parse::error::ParseError;
+use crate::VfplError;
 
 pub mod ast;
 mod helper;
@@ -46,7 +47,7 @@ impl Parser {
 
 ///
 /// Parses the tokens into an AST
-pub fn parse(tokens: vec::IntoIter<Token>, session: Rc<Session>) -> ParseResult<Program> {
+pub fn parse(tokens: vec::IntoIter<Token>, session: Rc<Session>) -> Result<Program, VfplError> {
     let mut parser = Parser::new(tokens, session);
-    parser.program()
+    parser.program().map_err(|err| err.into())
 }

@@ -1,7 +1,8 @@
 use crate::error::{CompilerError, Span};
+use crate::VfplError;
 
 #[derive(Debug)]
-pub struct ParseError {
+pub(super) struct ParseError {
     span: Span,
     message: String,
     note: Option<String>,
@@ -43,5 +44,16 @@ impl CompilerError for ParseError {
 
     fn suggestion(&self) -> Option<String> {
         self.suggestion.clone()
+    }
+}
+
+impl From<ParseError> for VfplError {
+    fn from(error: ParseError) -> Self {
+        Self {
+            span: error.span(),
+            message: error.message(),
+            note: error.note(),
+            suggestion: error.suggestion(),
+        }
     }
 }

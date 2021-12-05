@@ -1,6 +1,7 @@
 use crate::error::{CompilerError, Span};
 use crate::global::Session;
 use crate::parse::ast::{Body, Program, TyKind};
+use crate::VfplError;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
@@ -13,10 +14,10 @@ mod native;
 mod test;
 
 /// Runs the parsed program
-pub fn run(program: &Program, session: Rc<Session>) -> Result<(), InterpreterError> {
+pub fn run(program: &Program, session: Rc<Session>) -> Result<(), VfplError> {
     let mut vm = Vm::with_stdout(Rc::new(RefCell::new(std::io::stdout())), session);
 
-    vm.run(program)
+    vm.run(program).map_err(|err| err.into())
 }
 
 type Ident = Rc<str>;
@@ -117,15 +118,15 @@ impl Vm {
         }
     }
 
-    pub fn run(&mut self, program: &Program) -> Result<(), InterpreterError> {
+    pub fn run(&mut self, program: &Program) -> Result<(), VfplError> {
         match self.start(program) {
             Ok(()) => Err(InterpreterError::full(
                 Span::dummy(),
                 "Program did not terminate properly.".to_string(),
                 "You did not tell me to go to sleep. I am still here.".to_string(),
                 "add the `please go to sleep.` statement to the end of the program. I'm really tired.".to_string()
-            )),
-            Err(Interrupt::Error(err)) => Err(err),
+            ).into()),
+            Err(Interrupt::Error(err)) => Err(err.into()),
             Err(Interrupt::Break) => unreachable!("break on top level, this should not parse"),
             Err(Interrupt::Return(_)) => unreachable!("return on top level, this should not parse"),
             Err(Interrupt::Terminate) => Ok(()),
@@ -203,7 +204,7 @@ impl PartialEq for RuntimeFn {
 }
 
 #[derive(Debug)]
-pub struct InterpreterError {
+struct InterpreterError {
     span: Span,
     message: String,
     note: Option<String>,
@@ -259,5 +260,16 @@ impl CompilerError for InterpreterError {
 
     fn suggestion(&self) -> Option<String> {
         self.suggestion.clone()
+    }
+}
+
+impl From<InterpreterError> for VfplError {
+    fn from(error: InterpreterError) -> Self {
+        Self {
+            span: error.span(),
+            message: error.message(),
+            note: error.note(),
+            suggestion: error.suggestion(),
+        }
     }
 }
