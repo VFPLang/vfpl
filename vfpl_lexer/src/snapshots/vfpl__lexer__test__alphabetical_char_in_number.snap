@@ -1,0 +1,13 @@
+---
+source: src/lexer/test.rs
+expression: "lex(\"12a\")"
+
+---
+Err(
+    InvalidCharacter(
+        Span {
+            start: 2,
+            end: 3,
+        },
+    ),
+)

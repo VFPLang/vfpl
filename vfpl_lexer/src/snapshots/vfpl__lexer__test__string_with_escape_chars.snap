@@ -1,0 +1,25 @@
+---
+source: src/lexer/test.rs
+expression: "lex(r#\"\"What is a \\\"unit test\\\"?\"\"#)"
+
+---
+Ok(
+    [
+        Token {
+            span: Span {
+                start: 0,
+                end: 25,
+            },
+            kind: String(
+                "what is a \"unit test\"?",
+            ),
+        },
+        Token {
+            span: Span {
+                start: 18446744073709551615,
+                end: 18446744073709551615,
+            },
+            kind: Eof,
+        },
+    ],
+)

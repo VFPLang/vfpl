@@ -1,0 +1,25 @@
+---
+source: src/lexer/test.rs
+expression: "lex(\"\\\"Hello all\\\"\")"
+
+---
+Ok(
+    [
+        Token {
+            span: Span {
+                start: 0,
+                end: 10,
+            },
+            kind: String(
+                "hello all",
+            ),
+        },
+        Token {
+            span: Span {
+                start: 18446744073709551615,
+                end: 18446744073709551615,
+            },
+            kind: Eof,
+        },
+    ],
+)

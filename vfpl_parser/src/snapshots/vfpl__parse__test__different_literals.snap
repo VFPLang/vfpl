@@ -1,0 +1,94 @@
+---
+source: src/parse/test.rs
+expression: parsed
+
+---
+[
+    Ok(
+        Literal {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            kind: String(
+                "test",
+            ),
+        },
+    ),
+    Ok(
+        Literal {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            kind: Int(
+                425,
+            ),
+        },
+    ),
+    Ok(
+        Literal {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            kind: Float(
+                2465.67,
+            ),
+        },
+    ),
+    Ok(
+        Literal {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            kind: Absent,
+        },
+    ),
+    Ok(
+        Literal {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            kind: NoValue,
+        },
+    ),
+    Ok(
+        Literal {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            kind: Null,
+        },
+    ),
+    Ok(
+        Literal {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            kind: Undefined,
+        },
+    ),
+    Ok(
+        Literal {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            kind: True,
+        },
+    ),
+    Ok(
+        Literal {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            kind: False,
+        },
+    ),
+]

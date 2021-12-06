@@ -1,0 +1,32 @@
+---
+source: src/lexer/test.rs
+expression: "lex(\"please hugo\")"
+
+---
+Ok(
+    [
+        Token {
+            span: Span {
+                start: 0,
+                end: 6,
+            },
+            kind: Please,
+        },
+        Token {
+            span: Span {
+                start: 7,
+                end: 11,
+            },
+            kind: Ident(
+                "hugo",
+            ),
+        },
+        Token {
+            span: Span {
+                start: 18446744073709551615,
+                end: 18446744073709551615,
+            },
+            kind: Eof,
+        },
+    ],
+)
