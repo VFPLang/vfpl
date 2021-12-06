@@ -14,7 +14,7 @@ jobs:
       - name: "Add Windows Target"
         run: rustup target add x86_64-pc-windows-gnu
       - name: "Add windows toolchain"
-        run: rustup toolchain install stable-x86_64-pc-windows-msvc
+        run: rustup toolchain install stable-x86_64-pc-windows-gnu
       - name: "Build VFPL for Windows"
         run: "cargo build --release --target x86_64-pc-windows-gnu"
       - name: "Build VFPL for Linux"
