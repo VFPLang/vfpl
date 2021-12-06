@@ -16,7 +16,7 @@ jobs:
         with:
             toolchain: stable
             override: true
-            profile: release
+            profile: minimal
       - name: "Add Windows Toolchain"
         run: rustup target add stable-x86_64-pc-windows-msvc
       - name: "Build VFPL for Windows"
