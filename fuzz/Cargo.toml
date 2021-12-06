@@ -10,6 +10,7 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
+vfpl_global = { path = "../vfpl_global" }
 
 [dependencies.vfpl]
 path = ".."
