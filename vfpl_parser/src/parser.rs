@@ -716,10 +716,10 @@ impl Parser {
         self.parse_rule(|parser| {
             let next = parser.next();
 
-            if let TokenKind::Ident(name) = next.kind {
-                Ok((name, next.span))
-            } else {
-                Err(ParseError::full(
+            match next.kind {
+                TokenKind::Ident(name) => Ok((name, next.span)),
+                TokenKind::CondKw(kw) => Ok((kw.as_ref().to_string(), next.span)),
+                _ => Err(ParseError::full(
                     next.span,
                     format!("Expected identifier, found {}", next.kind),
                     "It's not a valid identifier, identifiers consist of letters, _, $ and maybe some numbers in between. For more info, search for `unicode xid` on the internet.".to_string(),
