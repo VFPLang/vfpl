@@ -25,5 +25,5 @@ jobs:
           draft: true
           files: |
             LICENSE
-            target/release/vfpl
-            target/release/vfpl.exe
+            target/x86_64-unknown-linux-gnu/release/vfpl
+            target/x86_64-pc-windows-gnu/release/vfpl.exe
