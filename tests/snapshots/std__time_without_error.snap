@@ -1,6 +1,0 @@
----
-source: tests/std.rs
-expression: stderr
-
----
-
