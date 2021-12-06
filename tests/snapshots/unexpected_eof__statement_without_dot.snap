@@ -1,0 +1,14 @@
+---
+source: tests/unexpected_eof.rs
+expression: stderr
+
+---
+error: expected `.`, found end of file
+      |
+    1 | please initialize variable x as Integer with the value of 1
+      |                                                            ^
+      |
+
+Although I do know what the next token must be, I cannot just make the assumption and treat the next token like it was the token I want.
+You could replace the token with the one I expected.
+

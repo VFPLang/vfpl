@@ -1,0 +1,58 @@
+---
+source: vfpl_parser/src/test.rs
+expression: parsed
+
+---
+Ok(
+    Call {
+        span: Span {
+            start: 0,
+            end: 0,
+        },
+        fn_name: "add",
+        args: CallArgs {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            args: [
+                CallArg {
+                    span: Span {
+                        start: 0,
+                        end: 0,
+                    },
+                    expr: Literal(
+                        Literal {
+                            span: Span {
+                                start: 0,
+                                end: 0,
+                            },
+                            kind: Int(
+                                2,
+                            ),
+                        },
+                    ),
+                    name: "a",
+                },
+                CallArg {
+                    span: Span {
+                        start: 0,
+                        end: 0,
+                    },
+                    expr: Literal(
+                        Literal {
+                            span: Span {
+                                start: 0,
+                                end: 0,
+                            },
+                            kind: Int(
+                                3,
+                            ),
+                        },
+                    ),
+                    name: "b",
+                },
+            ],
+        },
+    },
+)

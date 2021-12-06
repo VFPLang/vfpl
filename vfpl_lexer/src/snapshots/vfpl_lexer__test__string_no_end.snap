@@ -1,0 +1,8 @@
+---
+source: vfpl_lexer/src/test.rs
+expression: "lex(\"\\\"Hahaha this is going to destroy it\")"
+
+---
+Err(
+    UnexpectedEOF,
+)

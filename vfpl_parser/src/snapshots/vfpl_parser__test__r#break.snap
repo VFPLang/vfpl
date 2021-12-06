@@ -1,0 +1,20 @@
+---
+source: vfpl_parser/src/test.rs
+expression: parsed
+
+---
+Err(
+    ParseError {
+        span: Span {
+            start: 0,
+            end: 0,
+        },
+        message: "You can not break outside of a while statement.",
+        note: Some(
+            "This is because I need something to break out of.",
+        ),
+        suggestion: Some(
+            "remove this break. It is not needed.",
+        ),
+    },
+)

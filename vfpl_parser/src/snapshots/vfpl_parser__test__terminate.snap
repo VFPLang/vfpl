@@ -1,0 +1,13 @@
+---
+source: vfpl_parser/src/test.rs
+expression: parsed
+
+---
+Ok(
+    Terminate {
+        span: Span {
+            start: 0,
+            end: 0,
+        },
+    },
+)

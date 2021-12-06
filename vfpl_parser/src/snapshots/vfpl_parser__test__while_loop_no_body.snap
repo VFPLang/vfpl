@@ -1,0 +1,29 @@
+---
+source: vfpl_parser/src/test.rs
+expression: parsed
+
+---
+Ok(
+    While {
+        span: Span {
+            start: 0,
+            end: 0,
+        },
+        cond: Literal(
+            Literal {
+                span: Span {
+                    start: 0,
+                    end: 0,
+                },
+                kind: True,
+            },
+        ),
+        body: Body {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            stmts: [],
+        },
+    },
+)

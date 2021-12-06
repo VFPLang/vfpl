@@ -1,0 +1,54 @@
+---
+source: vfpl_parser/src/test.rs
+expression: parsed
+
+---
+Ok(
+    If {
+        span: Span {
+            start: 0,
+            end: 0,
+        },
+        if_part: IfPart {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            cond: Comparison(
+                Comparison {
+                    span: Span {
+                        start: 0,
+                        end: 0,
+                    },
+                    lhs: Literal(
+                        Literal {
+                            span: Span {
+                                start: 0,
+                                end: 0,
+                            },
+                            kind: True,
+                        },
+                    ),
+                    rhs: Literal(
+                        Literal {
+                            span: Span {
+                                start: 0,
+                                end: 0,
+                            },
+                            kind: Absent,
+                        },
+                    ),
+                    kind: Eq,
+                },
+            ),
+            body: Body {
+                span: Span {
+                    start: 0,
+                    end: 0,
+                },
+                stmts: [],
+            },
+            else_part: None,
+        },
+    },
+)
