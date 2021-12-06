@@ -29,7 +29,7 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Add,
                 ),
             },
@@ -49,7 +49,7 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Sub,
                 ),
             },
@@ -69,7 +69,7 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Mul,
                 ),
             },
@@ -89,7 +89,7 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Div,
                 ),
             },
@@ -109,7 +109,7 @@ expression: tokens
                     start: 0,
                     end: 6,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Mod,
                 ),
             },
@@ -165,7 +165,7 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     With,
                 ),
             },
@@ -185,7 +185,7 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     The,
                 ),
             },
@@ -205,7 +205,7 @@ expression: tokens
                     start: 0,
                     end: 5,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Value,
                 ),
             },
@@ -225,7 +225,7 @@ expression: tokens
                     start: 0,
                     end: 2,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Of,
                 ),
             },
@@ -245,7 +245,7 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Set,
                 ),
             },
@@ -265,7 +265,7 @@ expression: tokens
                     start: 0,
                     end: 2,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     To,
                 ),
             },
@@ -285,7 +285,7 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     From,
                 ),
             },
@@ -305,7 +305,7 @@ expression: tokens
                     start: 0,
                     end: 2,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     By,
                 ),
             },
@@ -325,7 +325,7 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Take,
                 ),
             },
@@ -471,7 +471,7 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Out,
                 ),
             },
@@ -545,7 +545,7 @@ expression: tokens
                     start: 0,
                     end: 9,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Parameter,
                 ),
             },
@@ -565,7 +565,7 @@ expression: tokens
                     start: 0,
                     end: 10,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Parameters,
                 ),
             },
@@ -585,7 +585,7 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     That,
                 ),
             },
@@ -605,7 +605,7 @@ expression: tokens
                     start: 0,
                     end: 7,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Returns,
                 ),
             },
@@ -643,7 +643,7 @@ expression: tokens
                     start: 0,
                     end: 2,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     No,
                 ),
             },
@@ -663,7 +663,7 @@ expression: tokens
                     start: 0,
                     end: 8,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Argument,
                 ),
             },
@@ -683,7 +683,7 @@ expression: tokens
                     start: 0,
                     end: 9,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Arguments,
                 ),
             },
@@ -721,7 +721,7 @@ expression: tokens
                     start: 0,
                     end: 2,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Go,
                 ),
             },
@@ -741,7 +741,7 @@ expression: tokens
                     start: 0,
                     end: 5,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Sleep,
                 ),
             },
@@ -869,7 +869,7 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Does,
                 ),
             },
@@ -889,7 +889,7 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Has,
                 ),
             },
@@ -909,7 +909,7 @@ expression: tokens
                     start: 0,
                     end: 2,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Is,
                 ),
             },
@@ -947,7 +947,7 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Have,
                 ),
             },
@@ -967,7 +967,7 @@ expression: tokens
                     start: 0,
                     end: 7,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Greater,
                 ),
             },
@@ -987,7 +987,7 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Less,
                 ),
             },
@@ -1007,7 +1007,7 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Than,
                 ),
             },
@@ -1027,7 +1027,7 @@ expression: tokens
                     start: 0,
                     end: 5,
                 },
-                kind: CondKeyword(
+                kind: CondKw(
                     Equal,
                 ),
             },

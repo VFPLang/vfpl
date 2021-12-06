@@ -9,7 +9,7 @@ pub struct Token {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenKind {
-    CondKeyword(CondKeyword),
+    CondKw(CondKeyword),
     Ident(String),
     // Keywords
     Please,
@@ -174,7 +174,7 @@ impl Display for TokenKind {
             TokenKind::And => f.write_str("keyword `and`"),
             TokenKind::While => f.write_str("keyword `while`"),
             TokenKind::Eof => f.write_str("end of file"),
-            TokenKind::CondKeyword(cond) => f.write_str(&format!("keyword `{}`", cond.as_str())),
+            TokenKind::CondKw(cond) => f.write_str(&format!("keyword `{}`", cond.as_str())),
         }
     }
 }

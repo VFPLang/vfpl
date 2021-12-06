@@ -56,7 +56,7 @@ Ok(
                 start: 40,
                 end: 44,
             },
-            kind: CondKeyword(
+            kind: CondKw(
                 With,
             ),
         },
@@ -65,7 +65,7 @@ Ok(
                 start: 45,
                 end: 48,
             },
-            kind: CondKeyword(
+            kind: CondKw(
                 The,
             ),
         },
@@ -74,7 +74,7 @@ Ok(
                 start: 49,
                 end: 54,
             },
-            kind: CondKeyword(
+            kind: CondKw(
                 Value,
             ),
         },
@@ -83,7 +83,7 @@ Ok(
                 start: 55,
                 end: 57,
             },
-            kind: CondKeyword(
+            kind: CondKw(
                 Of,
             ),
         },
