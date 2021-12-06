@@ -12,3 +12,6 @@ vfpl_global = { path = "../vfpl_global" }
 vfpl_lexer = { path = "../vfpl_lexer" }
 fastrand = "1.5.0"
 peekmore = { version = "1.0.0", features = ["smallvec"] }
+
+[dev-dependencies]
+insta = "1.8.0"

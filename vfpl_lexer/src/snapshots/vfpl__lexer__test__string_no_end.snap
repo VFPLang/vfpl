@@ -1,8 +1,0 @@
----
-source: src/lexer/test.rs
-expression: "lex(\"\\\"Hahaha this is going to destroy it\")"
-
----
-Err(
-    UnexpectedEOF,
-)

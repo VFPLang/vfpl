@@ -1,0 +1,6 @@
+---
+source: vfpl_parser/src/test.rs
+expression: snap
+
+---
+"test"

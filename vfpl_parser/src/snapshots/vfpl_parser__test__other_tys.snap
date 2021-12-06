@@ -1,0 +1,51 @@
+---
+source: vfpl_parser/src/test.rs
+expression: parsed
+
+---
+[
+    Ok(
+        Ty {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            kind: Name(
+                "Boolean",
+            ),
+        },
+    ),
+    Ok(
+        Ty {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            kind: Name(
+                "Integer",
+            ),
+        },
+    ),
+    Ok(
+        Ty {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            kind: Name(
+                "String",
+            ),
+        },
+    ),
+    Ok(
+        Ty {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            kind: Name(
+                "Float",
+            ),
+        },
+    ),
+]

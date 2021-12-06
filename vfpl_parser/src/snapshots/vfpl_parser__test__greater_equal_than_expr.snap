@@ -1,0 +1,34 @@
+---
+source: vfpl_parser/src/test.rs
+expression: parsed
+
+---
+Ok(
+    Comparison(
+        Comparison {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            lhs: Literal(
+                Literal {
+                    span: Span {
+                        start: 0,
+                        end: 0,
+                    },
+                    kind: Absent,
+                },
+            ),
+            rhs: Literal(
+                Literal {
+                    span: Span {
+                        start: 0,
+                        end: 0,
+                    },
+                    kind: Undefined,
+                },
+            ),
+            kind: GreaterEq,
+        },
+    ),
+)

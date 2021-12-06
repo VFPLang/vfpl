@@ -1,6 +1,6 @@
-use crate::lexer::tokens::Token;
-use crate::lexer::{Lexer, LexerResult};
-use crate::Session;
+use crate::tokens::Token;
+use crate::{Lexer, LexerResult};
+use vfpl_global::Session;
 
 fn lex(code: &str) -> LexerResult<Vec<Token>> {
     Lexer::new(&code.to_lowercase(), Session::test_session()).compute_tokens()

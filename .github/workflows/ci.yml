@@ -24,4 +24,4 @@ jobs:
     - name: Run clippy -D clippy::all
       run: cargo clippy --verbose -- -D clippy::all
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --verbose --all
