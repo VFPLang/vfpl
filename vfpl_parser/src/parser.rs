@@ -5,7 +5,7 @@ use vfpl_ast::{
     LiteralKind, Program, Return, Stmt, Terminate, Ty, TyKind, TypedIdent, VarInit, VarSet, While,
 };
 use vfpl_error::Span;
-use vfpl_lexer::tokens::TokenKind;
+use vfpl_lexer::tokens::{CondKeyword as Ck, TokenKind};
 
 impl Parser {
     pub fn program(&mut self) -> ParseResult<Program> {
@@ -59,13 +59,13 @@ impl Parser {
 
             let stmt = match parser.peek_kind() {
                 TokenKind::Initialize => Stmt::VarInit(parser.var_init()?),
-                TokenKind::Set => Stmt::VarSet(parser.var_set()?),
+                TokenKind::CondKw(Ck::Set) => Stmt::VarSet(parser.var_set()?),
                 TokenKind::Check => Stmt::If(parser.if_stmt()?),
                 TokenKind::Repeat => Stmt::While(parser.while_stmt()?),
                 TokenKind::Create => Stmt::FnDecl(parser.fn_decl()?),
                 TokenKind::Break => Stmt::Break(parser.break_stmt()?),
                 TokenKind::Return => Stmt::Return(parser.return_stmt()?),
-                TokenKind::Go => Stmt::Terminate(parser.terminate()?),
+                TokenKind::CondKw(Ck::Go) => Stmt::Terminate(parser.terminate()?),
                 _ => Stmt::Expr(parser.expr()?),
             };
 
@@ -81,10 +81,10 @@ impl Parser {
             parser.expect_kind(TokenKind::Variable)?;
             let name = parser.typed_ident()?;
             parser.expect_kinds([
-                TokenKind::With,
-                TokenKind::The,
-                TokenKind::Value,
-                TokenKind::Of,
+                TokenKind::CondKw(Ck::With),
+                TokenKind::CondKw(Ck::The),
+                TokenKind::CondKw(Ck::Value),
+                TokenKind::CondKw(Ck::Of),
             ])?;
             let init = parser.expr()?;
 
@@ -98,15 +98,15 @@ impl Parser {
 
     pub fn var_set(&mut self) -> ParseResult<VarSet> {
         self.parse_rule(|parser| {
-            let set_span = parser.expect_kind(TokenKind::Set)?;
-            parser.expect_kinds([TokenKind::The, TokenKind::Variable])?;
+            let set_span = parser.expect_kind(TokenKind::CondKw(Ck::Set))?;
+            parser.expect_kinds([TokenKind::CondKw(Ck::The), TokenKind::Variable])?;
             let (name, _) = parser.ident()?;
 
             parser.expect_kinds([
-                TokenKind::To,
-                TokenKind::The,
-                TokenKind::Value,
-                TokenKind::Of,
+                TokenKind::CondKw(Ck::To),
+                TokenKind::CondKw(Ck::The),
+                TokenKind::CondKw(Ck::Value),
+                TokenKind::CondKw(Ck::Of),
             ])?;
 
             let expr = parser.expr()?;
@@ -202,7 +202,11 @@ impl Parser {
     pub fn break_stmt(&mut self) -> ParseResult<Break> {
         self.parse_rule(|parser| {
             let first_span = parser.expect_kind(TokenKind::Break)?;
-            parser.expect_kinds([TokenKind::Out, TokenKind::Of, TokenKind::This])?;
+            parser.expect_kinds([
+                TokenKind::CondKw(Ck::Out),
+                TokenKind::CondKw(Ck::Of),
+                TokenKind::This,
+            ])?;
             let last_span = parser.expect_kind(TokenKind::While)?;
 
             if parser.in_while_depth == 0 {
@@ -230,7 +234,7 @@ impl Parser {
 
             let (fn_name, _) = parser.ident()?;
 
-            parser.expect_kind(TokenKind::With)?;
+            parser.expect_kind(TokenKind::CondKw(Ck::With))?;
 
             let params = parser.params()?;
             let fn_return = parser.fn_return()?;
@@ -268,21 +272,21 @@ impl Parser {
 
     pub fn params(&mut self) -> ParseResult<FnParams> {
         self.parse_rule(|parser| {
-            if let Some(no_token) = parser.try_consume_kind(TokenKind::No) {
-                let param_span = parser.expect_kind(TokenKind::Parameters)?;
+            if let Some(no_token) = parser.try_consume_kind(TokenKind::CondKw(Ck::No)) {
+                let param_span = parser.expect_kind(TokenKind::CondKw(Ck::Parameters))?;
                 Ok(FnParams {
                     span: no_token.span.extend(param_span),
                     params: vec![],
                 })
-            } else if let Some(the_token) = parser.try_consume_kind(TokenKind::The) {
-                if parser.try_consume_kind(TokenKind::Parameter).is_some() {
+            } else if let Some(the_token) = parser.try_consume_kind(TokenKind::CondKw(Ck::The)) {
+                if parser.try_consume_kind(TokenKind::CondKw(Ck::Parameter)).is_some() {
                     let param = parser.typed_ident()?;
 
                     Ok(FnParams {
                         span: the_token.span.extend(param.span),
                         params: vec![param],
                     })
-                } else if parser.try_consume_kind(TokenKind::Parameters).is_some() {
+                } else if parser.try_consume_kind(TokenKind::CondKw(Ck::Parameters)).is_some() {
                     parser.multi_params(the_token.span)
                 } else {
                     let next = parser.peek();
@@ -330,8 +334,8 @@ impl Parser {
 
     pub fn fn_return(&mut self) -> ParseResult<FnReturn> {
         self.parse_rule(|parser| {
-            let that_span = parser.expect_kind(TokenKind::That)?;
-            parser.expect_kind(TokenKind::Returns)?;
+            let that_span = parser.expect_kind(TokenKind::CondKw(Ck::That))?;
+            parser.expect_kind(TokenKind::CondKw(Ck::Returns))?;
 
             let ty = parser.ty()?;
 
@@ -347,7 +351,7 @@ impl Parser {
             let ret_span = parser.expect_kind(TokenKind::Return)?;
             let expr = parser.expr()?;
 
-            parser.expect_kinds([TokenKind::From, TokenKind::The])?;
+            parser.expect_kinds([TokenKind::CondKw(Ck::From), TokenKind::CondKw(Ck::The)])?;
             let fn_keyword_span = parser.expect_kind(TokenKind::Function)?;
 
             if parser.in_fn_depth == 0 {
@@ -368,9 +372,9 @@ impl Parser {
 
     pub fn terminate(&mut self) -> ParseResult<Terminate> {
         self.parse_rule(|parser| {
-            let go_span = parser.expect_kind(TokenKind::Go)?;
-            parser.expect_kind(TokenKind::To)?;
-            let sleep_span = parser.expect_kind(TokenKind::Sleep)?;
+            let go_span = parser.expect_kind(TokenKind::CondKw(Ck::Go))?;
+            parser.expect_kind(TokenKind::CondKw(Ck::To))?;
+            let sleep_span = parser.expect_kind(TokenKind::CondKw(Ck::Sleep))?;
 
             Ok(Terminate {
                 span: go_span.extend(sleep_span),
@@ -383,7 +387,7 @@ impl Parser {
             let call_span = parser.expect_kind(TokenKind::Call)?;
             let (fn_name, _) = parser.ident()?;
 
-            parser.expect_kind(TokenKind::With)?;
+            parser.expect_kind(TokenKind::CondKw(Ck::With))?;
 
             let args = parser.call_args()?;
 
@@ -397,21 +401,21 @@ impl Parser {
 
     pub fn call_args(&mut self) -> ParseResult<CallArgs> {
         self.parse_rule(|parser| {
-            if let Some(token) = parser.try_consume_kind(TokenKind::No) {
-                let arguments_span = parser.expect_kind(TokenKind::Arguments)?;
+            if let Some(token) = parser.try_consume_kind(TokenKind::CondKw(Ck::No)) {
+                let arguments_span = parser.expect_kind(TokenKind::CondKw(Ck::Arguments))?;
                 Ok(CallArgs {
                     span: token.span.extend(arguments_span),
                     args: vec![],
                 })
-            } else if let Some(the_token) = parser.try_consume_kind(TokenKind::The) {
-                if parser.try_consume_kind(TokenKind::Argument).is_some() {
+            } else if let Some(the_token) = parser.try_consume_kind(TokenKind::CondKw(Ck::The)) {
+                if parser.try_consume_kind(TokenKind::CondKw(Ck::Argument)).is_some() {
                     let arg = parser.call_arg()?;
 
                     Ok(CallArgs {
                         span: the_token.span.extend(arg.span),
                         args: vec![arg],
                     })
-                } else if parser.try_consume_kind(TokenKind::Arguments).is_some() {
+                } else if parser.try_consume_kind(TokenKind::CondKw(Ck::Arguments)).is_some() {
                     parser.multi_args(the_token.span)
                 } else {
                     let next = parser.peek();
@@ -520,33 +524,33 @@ impl Parser {
             let lhs = parser.term()?;
 
             let (rhs, kind) = match parser.peek_kind() {
-                TokenKind::Does => {
+                TokenKind::CondKw(Ck::Does) => {
                     parser.expect_kinds([
-                        TokenKind::Does,
+                        TokenKind::CondKw(Ck::Does),
                         TokenKind::Not,
-                        TokenKind::Have,
-                        TokenKind::The,
-                        TokenKind::Value,
+                        TokenKind::CondKw(Ck::Have),
+                        TokenKind::CondKw(Ck::The),
+                        TokenKind::CondKw(Ck::Value),
                     ])?;
                     (parser.comparison()?, ComparisonKind::NotEq)
                 }
-                TokenKind::Has => {
-                    parser.expect_kinds([TokenKind::Has, TokenKind::The, TokenKind::Value])?;
+                TokenKind::CondKw(Ck::Has) => {
+                    parser.expect_kinds([TokenKind::CondKw(Ck::Has), TokenKind::CondKw(Ck::The), TokenKind::CondKw(Ck::Value)])?;
                     (parser.comparison()?, ComparisonKind::Eq)
                 }
-                TokenKind::Is => {
-                    let is_span = parser.expect_kind(TokenKind::Is)?;
+                TokenKind::CondKw(Ck::Is) => {
+                    let is_span = parser.expect_kind(TokenKind::CondKw(Ck::Is))?;
 
-                    let comp_kind = if parser.try_consume_kind(TokenKind::Greater).is_some() {
+                    let comp_kind = if parser.try_consume_kind(TokenKind::CondKw(Ck::Greater)).is_some() {
                         if parser.try_consume_kind(TokenKind::Or).is_some() {
-                            parser.expect_kind(TokenKind::Equal)?;
+                            parser.expect_kind(TokenKind::CondKw(Ck::Equal))?;
                             ComparisonKind::GreaterEq
                         } else {
                             ComparisonKind::Greater
                         }
-                    } else if parser.try_consume_kind(TokenKind::Less).is_some() {
+                    } else if parser.try_consume_kind(TokenKind::CondKw(Ck::Less)).is_some() {
                         if parser.try_consume_kind(TokenKind::Or).is_some() {
-                            parser.expect_kind(TokenKind::Equal)?;
+                            parser.expect_kind(TokenKind::CondKw(Ck::Equal))?;
                             ComparisonKind::LessEq
                         } else {
                             ComparisonKind::Less
@@ -560,7 +564,7 @@ impl Parser {
                         ));
                     };
 
-                    parser.expect_kind(TokenKind::Than)?;
+                    parser.expect_kind(TokenKind::CondKw(Ck::Than))?;
 
                     (parser.comparison()?, comp_kind)
                 }
@@ -578,10 +582,10 @@ impl Parser {
 
     pub fn term(&mut self) -> ParseResult<Expr> {
         self.parse_rule(|parser| match parser.peek_kind() {
-            TokenKind::Add => {
-                let op_span = parser.expect_kind(TokenKind::Add)?;
+            TokenKind::CondKw(Ck::Add) => {
+                let op_span = parser.expect_kind(TokenKind::CondKw(Ck::Add))?;
                 let lhs = parser.factor()?;
-                parser.expect_kind(TokenKind::To)?;
+                parser.expect_kind(TokenKind::CondKw(Ck::To))?;
                 let rhs = parser.term()?;
 
                 Ok(Expr::ArithmeticOp(ArithmeticOp {
@@ -591,10 +595,10 @@ impl Parser {
                     kind: ArithmeticOpKind::Add,
                 }))
             }
-            TokenKind::Sub => {
-                let op_span = parser.expect_kind(TokenKind::Sub)?;
+            TokenKind::CondKw(Ck::Sub) => {
+                let op_span = parser.expect_kind(TokenKind::CondKw(Ck::Sub))?;
                 let lhs = parser.factor()?;
-                parser.expect_kind(TokenKind::From)?;
+                parser.expect_kind(TokenKind::CondKw(Ck::From))?;
                 let rhs = parser.term()?;
 
                 Ok(Expr::ArithmeticOp(ArithmeticOp {
@@ -610,10 +614,10 @@ impl Parser {
 
     pub fn factor(&mut self) -> ParseResult<Expr> {
         self.parse_rule(|parser| match parser.peek_kind() {
-            TokenKind::Mul => {
-                let op_span = parser.expect_kind(TokenKind::Mul)?;
+            TokenKind::CondKw(Ck::Mul) => {
+                let op_span = parser.expect_kind(TokenKind::CondKw(Ck::Mul))?;
                 let lhs = parser.call_expr()?;
-                parser.expect_kind(TokenKind::With)?;
+                parser.expect_kind(TokenKind::CondKw(Ck::With))?;
                 let rhs = parser.factor()?;
 
                 Ok(Expr::ArithmeticOp(ArithmeticOp {
@@ -623,10 +627,10 @@ impl Parser {
                     kind: ArithmeticOpKind::Mul,
                 }))
             }
-            TokenKind::Div => {
-                let op_span = parser.expect_kind(TokenKind::Div)?;
+            TokenKind::CondKw(Ck::Div) => {
+                let op_span = parser.expect_kind(TokenKind::CondKw(Ck::Div))?;
                 let lhs = parser.call_expr()?;
-                parser.expect_kind(TokenKind::By)?;
+                parser.expect_kind(TokenKind::CondKw(Ck::By))?;
                 let rhs = parser.factor()?;
 
                 Ok(Expr::ArithmeticOp(ArithmeticOp {
@@ -636,10 +640,10 @@ impl Parser {
                     kind: ArithmeticOpKind::Div,
                 }))
             }
-            TokenKind::Take => {
-                let op_span = parser.expect_kind(TokenKind::Take)?;
+            TokenKind::CondKw(Ck::Take) => {
+                let op_span = parser.expect_kind(TokenKind::CondKw(Ck::Take))?;
                 let lhs = parser.call_expr()?;
-                parser.expect_kind(TokenKind::Mod)?;
+                parser.expect_kind(TokenKind::CondKw(Ck::Mod))?;
                 let rhs = parser.factor()?;
 
                 Ok(Expr::ArithmeticOp(ArithmeticOp {
