@@ -29,7 +29,9 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: Add,
+                kind: CondKw(
+                    Add,
+                ),
             },
             Token {
                 span: Span {
@@ -47,7 +49,9 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: Sub,
+                kind: CondKw(
+                    Sub,
+                ),
             },
             Token {
                 span: Span {
@@ -65,7 +69,9 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: Mul,
+                kind: CondKw(
+                    Mul,
+                ),
             },
             Token {
                 span: Span {
@@ -83,7 +89,9 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: Div,
+                kind: CondKw(
+                    Div,
+                ),
             },
             Token {
                 span: Span {
@@ -101,7 +109,9 @@ expression: tokens
                     start: 0,
                     end: 6,
                 },
-                kind: Mod,
+                kind: CondKw(
+                    Mod,
+                ),
             },
             Token {
                 span: Span {
@@ -155,7 +165,9 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: With,
+                kind: CondKw(
+                    With,
+                ),
             },
             Token {
                 span: Span {
@@ -173,7 +185,9 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: The,
+                kind: CondKw(
+                    The,
+                ),
             },
             Token {
                 span: Span {
@@ -191,7 +205,9 @@ expression: tokens
                     start: 0,
                     end: 5,
                 },
-                kind: Value,
+                kind: CondKw(
+                    Value,
+                ),
             },
             Token {
                 span: Span {
@@ -209,7 +225,9 @@ expression: tokens
                     start: 0,
                     end: 2,
                 },
-                kind: Of,
+                kind: CondKw(
+                    Of,
+                ),
             },
             Token {
                 span: Span {
@@ -227,7 +245,9 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: Set,
+                kind: CondKw(
+                    Set,
+                ),
             },
             Token {
                 span: Span {
@@ -245,7 +265,9 @@ expression: tokens
                     start: 0,
                     end: 2,
                 },
-                kind: To,
+                kind: CondKw(
+                    To,
+                ),
             },
             Token {
                 span: Span {
@@ -263,7 +285,9 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: From,
+                kind: CondKw(
+                    From,
+                ),
             },
             Token {
                 span: Span {
@@ -281,7 +305,9 @@ expression: tokens
                     start: 0,
                     end: 2,
                 },
-                kind: By,
+                kind: CondKw(
+                    By,
+                ),
             },
             Token {
                 span: Span {
@@ -299,7 +325,9 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: Take,
+                kind: CondKw(
+                    Take,
+                ),
             },
             Token {
                 span: Span {
@@ -443,7 +471,9 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: Out,
+                kind: CondKw(
+                    Out,
+                ),
             },
             Token {
                 span: Span {
@@ -515,7 +545,9 @@ expression: tokens
                     start: 0,
                     end: 9,
                 },
-                kind: Parameter,
+                kind: CondKw(
+                    Parameter,
+                ),
             },
             Token {
                 span: Span {
@@ -533,7 +565,9 @@ expression: tokens
                     start: 0,
                     end: 10,
                 },
-                kind: Parameters,
+                kind: CondKw(
+                    Parameters,
+                ),
             },
             Token {
                 span: Span {
@@ -551,7 +585,9 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: That,
+                kind: CondKw(
+                    That,
+                ),
             },
             Token {
                 span: Span {
@@ -569,7 +605,9 @@ expression: tokens
                     start: 0,
                     end: 7,
                 },
-                kind: Returns,
+                kind: CondKw(
+                    Returns,
+                ),
             },
             Token {
                 span: Span {
@@ -605,7 +643,9 @@ expression: tokens
                     start: 0,
                     end: 2,
                 },
-                kind: No,
+                kind: CondKw(
+                    No,
+                ),
             },
             Token {
                 span: Span {
@@ -623,7 +663,9 @@ expression: tokens
                     start: 0,
                     end: 8,
                 },
-                kind: Argument,
+                kind: CondKw(
+                    Argument,
+                ),
             },
             Token {
                 span: Span {
@@ -641,7 +683,9 @@ expression: tokens
                     start: 0,
                     end: 9,
                 },
-                kind: Arguments,
+                kind: CondKw(
+                    Arguments,
+                ),
             },
             Token {
                 span: Span {
@@ -677,7 +721,9 @@ expression: tokens
                     start: 0,
                     end: 2,
                 },
-                kind: Go,
+                kind: CondKw(
+                    Go,
+                ),
             },
             Token {
                 span: Span {
@@ -695,7 +741,9 @@ expression: tokens
                     start: 0,
                     end: 5,
                 },
-                kind: Sleep,
+                kind: CondKw(
+                    Sleep,
+                ),
             },
             Token {
                 span: Span {
@@ -821,7 +869,9 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: Does,
+                kind: CondKw(
+                    Does,
+                ),
             },
             Token {
                 span: Span {
@@ -839,7 +889,9 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: Has,
+                kind: CondKw(
+                    Has,
+                ),
             },
             Token {
                 span: Span {
@@ -857,7 +909,9 @@ expression: tokens
                     start: 0,
                     end: 2,
                 },
-                kind: Is,
+                kind: CondKw(
+                    Is,
+                ),
             },
             Token {
                 span: Span {
@@ -893,7 +947,9 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: Have,
+                kind: CondKw(
+                    Have,
+                ),
             },
             Token {
                 span: Span {
@@ -911,7 +967,9 @@ expression: tokens
                     start: 0,
                     end: 7,
                 },
-                kind: Greater,
+                kind: CondKw(
+                    Greater,
+                ),
             },
             Token {
                 span: Span {
@@ -929,7 +987,9 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: Less,
+                kind: CondKw(
+                    Less,
+                ),
             },
             Token {
                 span: Span {
@@ -947,7 +1007,9 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: Than,
+                kind: CondKw(
+                    Than,
+                ),
             },
             Token {
                 span: Span {
@@ -965,7 +1027,9 @@ expression: tokens
                     start: 0,
                     end: 5,
                 },
-                kind: Equal,
+                kind: CondKw(
+                    Equal,
+                ),
             },
             Token {
                 span: Span {

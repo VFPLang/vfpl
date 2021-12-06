@@ -1,0 +1,38 @@
+---
+source: vfpl_parser/src/test.rs
+expression: parsed
+
+---
+Ok(
+    VarInit {
+        span: Span {
+            start: 0,
+            end: 0,
+        },
+        name: TypedIdent {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            name: "add",
+            ty: Ty {
+                span: Span {
+                    start: 0,
+                    end: 0,
+                },
+                kind: String,
+            },
+        },
+        init: Literal(
+            Literal {
+                span: Span {
+                    start: 0,
+                    end: 0,
+                },
+                kind: String(
+                    "Ferris",
+                ),
+            },
+        ),
+    },
+)
