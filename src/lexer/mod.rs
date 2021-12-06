@@ -128,7 +128,7 @@ impl Lexer<'_> {
                         number.push(char);
                     }
                     other if other.is_xid_start() => {
-                        return Err(LexerError::InvalidCharacter(Span::single(i)))
+                        return Err(LexerError::InvalidCharacter(Span::single(i)));
                     }
                     _ => {
                         // This works because the character before it will be 1 byte long (0..9 || -)
