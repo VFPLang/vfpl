@@ -244,6 +244,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "vfpl_ast_interpreter"
+version = "0.0.0"
+
+[[package]]
+name = "vfpl_driver"
+version = "0.0.0"
+
+[[package]]
+name = "vfpl_error"
+version = "0.0.0"
+
+[[package]]
+name = "vfpl_lexer"
+version = "0.0.0"
+
+[[package]]
+name = "vfpl_parser"
+version = "0.0.0"
+
+[[package]]
 name = "winapi"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
