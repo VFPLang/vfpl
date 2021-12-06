@@ -1,0 +1,14 @@
+---
+source: tests/statements.rs
+expression: stderr
+
+---
+error: Expected identifier, found keyword `check`
+      |
+    1 | please initialize variable check as Integer with the value of 10
+      |                            ^^^^^
+      |
+
+It's not a valid identifier, identifiers consist of letters, _, $ and maybe some numbers in between. For more info, search for `unicode xid` on the internet.
+You could use the identifier `memcpy`.
+

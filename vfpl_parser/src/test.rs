@@ -752,3 +752,23 @@ fn multiple_body_statements() {
 
     insta::assert_debug_snapshot!(parsed);
 }
+
+#[test]
+fn cond_keyword_var_name() {
+    let tokens = [
+        Initialize,
+        Variable,
+        CondKw(Add),
+        As,
+        Ident("string".to_string()),
+        CondKw(With),
+        CondKw(The),
+        CondKw(Value),
+        CondKw(Of),
+        String("Ferris".to_string()),
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::var_init);
+
+    insta::assert_debug_snapshot!(parsed);
+}

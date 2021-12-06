@@ -96,8 +96,8 @@ pub enum CondKeyword {
     Equal,
 }
 
-impl CondKeyword {
-    fn as_str(&self) -> &'static str {
+impl AsRef<str> for CondKeyword {
+    fn as_ref(&self) -> &'static str {
         match self {
             CondKeyword::Add => "add",
             CondKeyword::Sub => "sub",
@@ -174,7 +174,7 @@ impl Display for TokenKind {
             TokenKind::And => f.write_str("keyword `and`"),
             TokenKind::While => f.write_str("keyword `while`"),
             TokenKind::Eof => f.write_str("end of file"),
-            TokenKind::CondKw(cond) => f.write_str(&format!("keyword `{}`", cond.as_str())),
+            TokenKind::CondKw(cond) => f.write_str(&format!("keyword `{}`", cond.as_ref())),
         }
     }
 }
