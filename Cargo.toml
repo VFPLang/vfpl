@@ -11,7 +11,7 @@ members = [
 
 [package]
 name = "vfpl"
-version = "0.1.0"
+version = "0.2.0" # hope that this is aligned
 edition = "2021"
 authors = ["Nilstrieb", "C0RR1T_"]
 repository = "https://github.com/Nilstrieb/vfpl"
@@ -20,13 +20,11 @@ repository = "https://github.com/Nilstrieb/vfpl"
 
 [dependencies]
 vfpl_ast_interpreter = { path = "./vfpl_ast_interpreter" }
+vfpl_driver = { path = "./vfpl_driver" }
 vfpl_error = { path = "./vfpl_error" }
 vfpl_global = { path = "./vfpl_global" }
 vfpl_lexer = { path = "./vfpl_lexer" }
 vfpl_parser = { path = "./vfpl_parser" }
-unicode-xid = "0.2.2"
-peekmore = { version = "1.0.0", features = ["smallvec"] }
-fastrand = "1.5.0"
 
 [dev-dependencies]
 insta = "1.8.0"
