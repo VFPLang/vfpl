@@ -13,3 +13,6 @@ peekmore = { version = "1.0.0", features = ["smallvec"] }
 
 [dev-dependencies]
 insta = "1.8.0"
+
+[profile.release]
+lto = "fat"
