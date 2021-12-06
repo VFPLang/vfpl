@@ -9,12 +9,11 @@ jobs:
   new-release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions-rs/toolchain@v1
       - uses: actions/checkout@v2
-        with:
-          ref: master
       - name: "Build VFPL for Linux"
         run: "cargo build --release --target x86_64-unknown-linux-gnu"
+      - name: "Add Windows Toolchain"
+        run: rustup target add stable-x86_64-pc-windows-msvc
       - name: "Build VFPL for Windows"
         run: "cargo build --release --target x86_64-pc-windows-gnu"
       - uses: marvinpinto/action-automatic-releases@latest
