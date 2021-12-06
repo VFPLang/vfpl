@@ -1,8 +1,9 @@
-use crate::lexer::{Lexer, LexerResult};
 use crate::lexer::tokens::Token;
+use crate::lexer::{Lexer, LexerResult};
+use crate::Session;
 
 fn lex(code: &str) -> LexerResult<Vec<Token>> {
-    Lexer::new(&code.to_lowercase()).compute_tokens()
+    Lexer::new(&code.to_lowercase(), Session::test_session()).compute_tokens()
 }
 
 #[test]
@@ -137,7 +138,7 @@ fn all_keywords() {
         "Return",
         "While",
     ]
-        .map(lex);
+    .map(lex);
     insta::assert_debug_snapshot!(tokens);
 }
 

@@ -45,10 +45,12 @@ fn println_impl(vm: &mut Vm) -> IResult {
     let mut stdout_lock = vm.stdout.borrow_mut();
 
     writeln!(stdout_lock, "{}", value).map_err(|err| {
-        Interrupt::Error(InterpreterError {
-            span: Span::dummy(),
-            message: format!("Failed to write to stdout: {}", err),
-        })
+        Interrupt::Error(InterpreterError::full(
+            Span::dummy(),
+            format!("Failed to write to stdout: {}", err),
+            "I have no idea what went wrong here, but something appears to be broken with your setup.".to_string(),
+            "fixing it? I honestly don't know what you could do here, I'm really sorry for that.".to_string()
+        ))
     })?;
 
     Err(Interrupt::Return(Value::Absent))
@@ -70,10 +72,13 @@ fn time_impl(_: &mut Vm) -> IResult {
 
     let now = time::SystemTime::now();
     let duration = now.duration_since(time::UNIX_EPOCH).map_err(|_| {
-        Interrupt::Error(InterpreterError {
-            span: Span::dummy(),
-            message: "Time is behind unix epoch".to_string(),
-        })
+        // note: i don't think this can even happen? but would be funny if it did
+        Interrupt::Error(InterpreterError::full(
+            Span::dummy(),
+            "Time is behind unix epoch".to_string(),
+            "You played with your computer time too much and should feel bad. I'm normally very polite, but this is too much. I try to be nice and all but you bring this to me.".to_string(),
+            "fix your time.".to_string()
+        ))
     })?;
 
     Err(Interrupt::Return(Value::Int(duration.as_millis() as i64)))

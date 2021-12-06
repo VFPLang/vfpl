@@ -1,8 +1,8 @@
+use super::{ParseError, ParseResult, Parser};
+use crate::error;
 use crate::error::Span;
 use crate::lexer::tokens::TokenKind;
 use crate::parse::ast::*;
-
-use super::{ParseError, Parser, ParseResult};
 
 impl Parser {
     pub fn program(&mut self) -> ParseResult<Program> {
@@ -203,10 +203,12 @@ impl Parser {
             let last_span = parser.expect_kind(TokenKind::While)?;
 
             if parser.in_while_depth == 0 {
-                return Err(ParseError {
-                    span: first_span.extend(last_span),
-                    message: "Cannot use break outside of while".to_string(),
-                });
+                return Err(ParseError::full(
+                    first_span.extend(last_span),
+                    "You can not break outside of a while statement.".to_string(),
+                    "This is because I need something to break out of.".to_string(),
+                    "remove this break. It is not needed.".to_string(),
+                ));
             }
 
             Ok(Break {
@@ -237,13 +239,16 @@ impl Parser {
             let (close_name, end_span) = parser.ident()?;
 
             if fn_name != close_name {
-                return Err(ParseError {
-                    span: end_span,
-                    message: format!(
+                return Err(ParseError::full(
+                    end_span,
+                    format!(
                         "End name '{}' does not match function name '{}'",
                         close_name, fn_name
                     ),
-                });
+                    "To ensure that you didn't mistype your function name, the name needs to be reapeated twice.".to_string(),
+                    format!("look whether you mistyped the name here or on the creation above, and use the correction version in both places.\
+                    If you don't know which name is the correct one, I can help. I think you meant to call it `{}`, but I can't be sure.", error::random_ident(parser.session.rng()))
+                ));
             }
 
             parser.in_fn_depth -= 1;
@@ -278,17 +283,21 @@ impl Parser {
                     parser.multi_params(the_token.span)
                 } else {
                     let next = parser.peek();
-                    Err(ParseError {
-                        span: next.span,
-                        message: format!("Expected `parameter(s)`, found {}", next.kind),
-                    })
+                    Err(ParseError::full(
+                        next.span,
+                        format!("Expected `parameter(s)`, found {}", next.kind),
+                        "When creating a function, you need to specify the parameters a function takes. This is done using the `parameter` or `parameters` keyword.".to_string(),
+                        "add the `parameter` keyword before this here. If you want to take multiple parameters (which is cool too!), you need to use `parameters` instead.".to_string()
+                    ))
                 }
             } else {
                 let next = parser.peek();
-                Err(ParseError {
-                    span: next.span,
-                    message: format!("Expected `the` or `no`, found {}", next.kind),
-                })
+                Err(ParseError::full(
+                    next.span,
+                    format!("Expected `the` or `no`, found {}", next.kind),
+                    "If you don't want to take any parameters, then you need to say that you don't, and if you do you need to say that you do.".to_string(),
+                    "add `no parameters` here, since I think that you don't want to take any paramters here.".to_string()
+                ))
             }
         })
     }
@@ -339,10 +348,12 @@ impl Parser {
             let fn_keyword_span = parser.expect_kind(TokenKind::Function)?;
 
             if parser.in_fn_depth == 0 {
-                return Err(ParseError {
-                    span: ret_span.extend(fn_keyword_span),
-                    message: "Cannot return outside of function".to_string(),
-                });
+                return Err(ParseError::full(
+                    ret_span.extend(fn_keyword_span),
+                    "Cannot return outside of function".to_string(),
+                    "Returning is a process that can only be done within functions. Returning from a program doesn't make sense, where would you want to return to?".to_string(),
+                    "terminate the program using `please go to sleep.` instead. This allows me to get a little break.".to_string()
+                ));
             }
 
             Ok(Return {
@@ -401,23 +412,27 @@ impl Parser {
                     parser.multi_args(the_token.span)
                 } else {
                     let next = parser.peek();
-                    Err(ParseError {
-                        span: next.span,
-                        message: format!(
+                    Err(ParseError::full(
+                        next.span,
+                        format!(
                             "Expected `argument(s)` after `the` in function call, got {}",
                             next.kind
                         ),
-                    })
+                        "You want to call a function here. But to call a function, you need to specify the arguments you want to pass. I know a keyword just for that, called `argument`, or if you want multiple, `arguments`. It's pretty cool, check it out!".to_string(),
+                        "add the cool keyword in there!".to_string()
+                    ))
                 }
             } else {
                 let next = parser.peek();
-                Err(ParseError {
-                    span: next.span,
-                    message: format!(
+                Err(ParseError::full(
+                    next.span,
+                    format!(
                         "Expected `no` or `the` after `with` in function call, got {}",
                         next.kind
                     ),
-                })
+                    "You need to tell me the arguments you want to give to that function.".to_string(),
+                    "either use `no arguments` if you don't want to give the poor function any, or `the argument`, `the arguments` if you are nice and want to the function to have some happy little arguments.".to_string()
+                ))
             }
         })
     }
@@ -477,10 +492,12 @@ impl Parser {
                     _ => TyKind::Name(value),
                 },
                 _ => {
-                    return Err(ParseError {
-                        span: token.span,
-                        message: format!("Expected type, found {}", &token.kind),
-                    });
+                    return Err(ParseError::full(
+                        token.span,
+                        format!("Expected type, found {}", &token.kind),
+                        "If you come from a dynamic language like python or Javascript, this might be new to you, but in VFPL you have to annotate your functions and variables with types, that tell me what types the values have. Using this, I can give you better errors earlier.".to_string(),
+                        "add the type `String` here to try it out!".to_string()
+                    ))
                 }
             };
 
@@ -532,10 +549,12 @@ impl Parser {
                             ComparisonKind::Less
                         }
                     } else {
-                        return Err(ParseError {
-                            span: is_span,
-                            message: "expected `greater` or `less` after `is`".to_string(),
-                        });
+                        return Err(ParseError::full(
+                            is_span,
+                            "expected `greater` or `less` after `is`".to_string(),
+                            "Looks like you are trying to make a comparison. After the is, we use `less` or `greater` to make clear which one is meant.".to_string(),
+                            "use `greater than` after the `is`.".to_string()
+                        ));
                     };
 
                     parser.expect_kind(TokenKind::Than)?;
@@ -670,10 +689,12 @@ impl Parser {
                 TokenKind::Float(value) => LiteralKind::Float(value),
                 TokenKind::Ident(name) => LiteralKind::Ident(name),
                 _ => {
-                    return Err(ParseError {
-                        span: token.span,
-                        message: format!("Expected literal, found {}", &token.kind),
-                    });
+                    return Err(ParseError::full(
+                        token.span,
+                        format!("Expected literal, found {}", &token.kind),
+                        "A literal is either absent, null, novalue, undefined, True, False, a number, a string or an identifier. Yours is neither of them.".to_string(),
+                            format!("use a number literal with the value {}.", error::random_number(parser.session.rng())),
+                    ))
                 }
             };
 
@@ -691,10 +712,12 @@ impl Parser {
             if let TokenKind::Ident(name) = next.kind {
                 Ok((name, next.span))
             } else {
-                Err(ParseError {
-                    span: next.span,
-                    message: format!("Expected identifier, found {}", next.kind),
-                })
+                Err(ParseError::full(
+                    next.span,
+                    format!("Expected identifier, found {}", next.kind),
+                    "It's not a valid identifier, identifiers consist of letters, _, $ and maybe some numbers in between. For more info, search for `unicode xid` on the internet.".to_string(),
+                    format!("use the identifier `{}`.", error::random_ident(parser.session.rng())),
+                ))
             }
         })
     }

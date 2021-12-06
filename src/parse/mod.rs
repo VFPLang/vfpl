@@ -1,18 +1,22 @@
 //!
 //! Parses the source tokens using recursive descent
 
+use std::rc::Rc;
 use std::vec;
 
+use crate::global::Session;
 use peekmore::{PeekMore, PeekMoreIterator};
 
-use crate::error::{CompilerError, Span};
 use crate::lexer::tokens::Token;
 use crate::parse::ast::Program;
+use crate::parse::error::ParseError;
+use crate::VfplError;
 
 pub mod ast;
 mod helper;
 mod parser;
 
+mod error;
 #[cfg(test)]
 mod test;
 
@@ -26,42 +30,24 @@ struct Parser {
     in_while_depth: usize,
     /// For restricting uses of the "return" statement
     in_fn_depth: usize,
+    session: Rc<Session>,
 }
 
 impl Parser {
-    fn new(tokens: vec::IntoIter<Token>) -> Self {
+    fn new(tokens: vec::IntoIter<Token>, session: Rc<Session>) -> Self {
         Parser {
             tokens: tokens.peekmore(),
             depth: 0,
             in_while_depth: 0,
             in_fn_depth: 0,
+            session,
         }
     }
 }
 
 ///
 /// Parses the tokens into an AST
-pub fn parse(tokens: vec::IntoIter<Token>) -> ParseResult<Program> {
-    let mut parser = Parser::new(tokens);
-    parser.program()
-}
-
-#[derive(Debug)]
-pub struct ParseError {
-    span: Span,
-    message: String,
-}
-
-impl CompilerError for ParseError {
-    fn span(&self) -> Span {
-        self.span
-    }
-
-    fn message(&self) -> String {
-        self.message.clone()
-    }
-
-    fn note(&self) -> Option<String> {
-        None
-    }
+pub fn parse(tokens: vec::IntoIter<Token>, session: Rc<Session>) -> Result<Program, VfplError> {
+    let mut parser = Parser::new(tokens, session);
+    parser.program().map_err(|err| err.into())
 }

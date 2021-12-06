@@ -6,6 +6,7 @@ use crate::lexer::tokens::{
     TokenKind::{self, *},
 };
 use crate::parse::Parser;
+use crate::Session;
 
 fn token(kind: TokenKind) -> Token {
     Token {
@@ -22,7 +23,7 @@ where
 {
     let mut vec = tokens.into();
     vec.push(Token::eof());
-    let mut parser = Parser::new(vec.into_iter());
+    let mut parser = Parser::new(vec.into_iter(), Session::test_session());
     parse_rule_fn(&mut parser)
 }
 

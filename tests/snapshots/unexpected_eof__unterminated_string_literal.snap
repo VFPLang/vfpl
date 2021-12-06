@@ -3,8 +3,12 @@ source: tests/unexpected_eof.rs
 expression: stderr
 
 ---
-error: Unexpected EOF
+error: Unexpected EOF.
       |
     1 | "hell
       | 
+      |
+
+I still need something, but I just can't find it.
+You could need to add a " somewhere.
 

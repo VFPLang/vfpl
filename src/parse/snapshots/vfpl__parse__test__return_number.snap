@@ -10,5 +10,11 @@ Err(
             end: 0,
         },
         message: "Cannot return outside of function",
+        note: Some(
+            "Returning is a process that can only be done within functions. Returning from a program doesn't make sense, where would you want to return to?",
+        ),
+        suggestion: Some(
+            "terminate the program using `please go to sleep.` instead. This allows me to get a little break.",
+        ),
     },
 )

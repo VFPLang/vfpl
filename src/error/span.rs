@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 ///
 /// A Span points to a location in the source code
 ///

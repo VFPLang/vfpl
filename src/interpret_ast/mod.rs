@@ -1,13 +1,12 @@
-#![allow(dead_code)]
-
+use crate::error::{CompilerError, Span};
+use crate::global::Session;
+use crate::parse::ast::{Body, Program, TyKind};
+use crate::VfplError;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::io::Write;
 use std::rc::Rc;
-
-use crate::error::{CompilerError, Span};
-use crate::parse::ast::{Body, Program, TyKind};
 
 mod exec;
 mod native;
@@ -15,8 +14,8 @@ mod native;
 mod test;
 
 /// Runs the parsed program
-pub fn run(program: &Program) -> Result<(), InterpreterError> {
-    let mut vm = Vm::default();
+pub fn run(program: &Program, session: Rc<Session>) -> Result<(), VfplError> {
+    let mut vm = Vm::with_stdout(Rc::new(RefCell::new(std::io::stdout())), session);
 
     vm.run(program)
 }
@@ -35,6 +34,7 @@ pub struct Vm {
     call_stack: Vec<RcEnv>,
     recur_depth: usize,
     stdout: Rc<RefCell<dyn Write>>,
+    session: Rc<Session>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -80,17 +80,6 @@ struct Env {
 }
 
 impl Env {
-    fn replace(&mut self, ident: Ident, value: Value) -> Option<()> {
-        match self.vars.get_mut(&ident) {
-            Some(var) => *var = value,
-            None => match &self.outer {
-                Some(outer) => outer.borrow_mut().replace(ident, value)?,
-                None => return None,
-            },
-        }
-        Some(())
-    }
-
     fn get_value(&self, ident: &str) -> Option<Value> {
         self.vars.get(ident).cloned().or_else(|| {
             self.outer
@@ -119,20 +108,25 @@ impl Env {
 }
 
 impl Vm {
-    pub fn with_stdout(stdout: Rc<RefCell<dyn Write>>) -> Self {
+    pub fn with_stdout(stdout: Rc<RefCell<dyn Write>>, session: Rc<Session>) -> Self {
         Self {
+            current_env: Rc::new(RefCell::new(Default::default())),
+            call_stack: vec![],
+            recur_depth: 0,
             stdout,
-            ..Default::default()
+            session,
         }
     }
 
-    pub fn run(&mut self, program: &Program) -> Result<(), InterpreterError> {
+    pub fn run(&mut self, program: &Program) -> Result<(), VfplError> {
         match self.start(program) {
-            Ok(()) => Err(InterpreterError {
-                span: Span::dummy(),
-                message: "Program did not terminate properly.".to_string(),
-            }),
-            Err(Interrupt::Error(err)) => Err(err),
+            Ok(()) => Err(InterpreterError::full(
+                Span::dummy(),
+                "Program did not terminate properly.".to_string(),
+                "You did not tell me to go to sleep. I am still here.".to_string(),
+                "add the `please go to sleep.` statement to the end of the program. I'm really tired.".to_string()
+            ).into()),
+            Err(Interrupt::Error(err)) => Err(err.into()),
             Err(Interrupt::Break) => unreachable!("break on top level, this should not parse"),
             Err(Interrupt::Return(_)) => unreachable!("return on top level, this should not parse"),
             Err(Interrupt::Terminate) => Ok(()),
@@ -147,17 +141,6 @@ impl Debug for Vm {
             .field("call_stack", &self.call_stack)
             .field("recur_depth", &self.recur_depth)
             .finish()
-    }
-}
-
-impl Default for Vm {
-    fn default() -> Self {
-        Self {
-            current_env: Rc::default(),
-            call_stack: Vec::default(),
-            recur_depth: 0,
-            stdout: Rc::new(RefCell::new(std::io::stdout())),
-        }
     }
 }
 
@@ -221,9 +204,11 @@ impl PartialEq for RuntimeFn {
 }
 
 #[derive(Debug)]
-pub struct InterpreterError {
+struct InterpreterError {
     span: Span,
     message: String,
+    note: Option<String>,
+    suggestion: Option<String>,
 }
 
 impl Display for InterpreterError {
@@ -233,6 +218,17 @@ impl Display for InterpreterError {
 }
 
 impl std::error::Error for InterpreterError {}
+
+impl InterpreterError {
+    pub(super) fn full(span: Span, message: String, note: String, suggestion: String) -> Self {
+        Self {
+            span,
+            message,
+            note: Some(note),
+            suggestion: Some(suggestion),
+        }
+    }
+}
 
 impl From<InterpreterError> for Interrupt {
     fn from(error: InterpreterError) -> Self {
@@ -250,6 +246,21 @@ impl CompilerError for InterpreterError {
     }
 
     fn note(&self) -> Option<String> {
-        None
+        self.note.clone()
+    }
+
+    fn suggestion(&self) -> Option<String> {
+        self.suggestion.clone()
+    }
+}
+
+impl From<InterpreterError> for VfplError {
+    fn from(error: InterpreterError) -> Self {
+        Self {
+            span: error.span(),
+            message: error.message(),
+            note: error.note(),
+            suggestion: error.suggestion(),
+        }
     }
 }

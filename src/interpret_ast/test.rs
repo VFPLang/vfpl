@@ -1,9 +1,9 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-
 use crate::error::Span;
 use crate::interpret_ast::Vm;
 use crate::parse::ast::*;
+use crate::Session;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 /// Runs the code and returns stdout
 fn run_code(ast: &Program) -> String {
@@ -11,7 +11,7 @@ fn run_code(ast: &Program) -> String {
 
     let stdout = Rc::clone(&vec);
 
-    let mut vm = Vm::with_stdout(stdout);
+    let mut vm = Vm::with_stdout(stdout, Session::test_session());
     vm.start(ast).unwrap();
 
     let cloned_vec = RefCell::borrow(&vec);
