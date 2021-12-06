@@ -1,6 +1,0 @@
----
-source: src/parse/test.rs
-expression: snap
-
----
-"test"

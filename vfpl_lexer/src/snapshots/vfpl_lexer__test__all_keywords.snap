@@ -1,0 +1,1051 @@
+---
+source: vfpl_lexer/src/test.rs
+expression: tokens
+
+---
+[
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 2,
+                },
+                kind: As,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: Add,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: Sub,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: Mul,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: Div,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 6,
+                },
+                kind: Mod,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 10,
+                },
+                kind: Initialize,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 8,
+                },
+                kind: Variable,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: With,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: The,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 5,
+                },
+                kind: Value,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 2,
+                },
+                kind: Of,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: Set,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 2,
+                },
+                kind: To,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: From,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 2,
+                },
+                kind: By,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: Take,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: End,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 5,
+                },
+                kind: Check,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 7,
+                },
+                kind: Whether,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: Then,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 2,
+                },
+                kind: Do,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 9,
+                },
+                kind: Otherwise,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 5,
+                },
+                kind: Break,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: Out,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: This,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 6,
+                },
+                kind: Create,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 8,
+                },
+                kind: Function,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 9,
+                },
+                kind: Parameter,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 10,
+                },
+                kind: Parameters,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: That,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 7,
+                },
+                kind: Returns,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: Call,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 2,
+                },
+                kind: No,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 8,
+                },
+                kind: Argument,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 9,
+                },
+                kind: Arguments,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: And,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 2,
+                },
+                kind: Go,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 5,
+                },
+                kind: Sleep,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 6,
+                },
+                kind: Absent,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: Null,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 7,
+                },
+                kind: NoValue,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 9,
+                },
+                kind: Undefined,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: True,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 5,
+                },
+                kind: False,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: Does,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: Has,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 2,
+                },
+                kind: Is,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 3,
+                },
+                kind: Not,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: Have,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 7,
+                },
+                kind: Greater,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: Less,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 4,
+                },
+                kind: Than,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 5,
+                },
+                kind: Equal,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 2,
+                },
+                kind: Or,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 6,
+                },
+                kind: Repeat,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 6,
+                },
+                kind: Return,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 5,
+                },
+                kind: While,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+]

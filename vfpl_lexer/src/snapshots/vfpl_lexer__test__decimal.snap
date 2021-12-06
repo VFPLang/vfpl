@@ -1,0 +1,25 @@
+---
+source: vfpl_lexer/src/test.rs
+expression: "lex(\"13.35253\")"
+
+---
+Ok(
+    [
+        Token {
+            span: Span {
+                start: 0,
+                end: 8,
+            },
+            kind: Float(
+                13.35253,
+            ),
+        },
+        Token {
+            span: Span {
+                start: 18446744073709551615,
+                end: 18446744073709551615,
+            },
+            kind: Eof,
+        },
+    ],
+)

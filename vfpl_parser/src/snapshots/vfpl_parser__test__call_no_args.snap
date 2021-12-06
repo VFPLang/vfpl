@@ -1,0 +1,21 @@
+---
+source: vfpl_parser/src/test.rs
+expression: parsed
+
+---
+Ok(
+    Call {
+        span: Span {
+            start: 0,
+            end: 0,
+        },
+        fn_name: "run",
+        args: CallArgs {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            args: [],
+        },
+    },
+)

@@ -258,6 +258,7 @@ name = "vfpl_ast_interpreter"
 version = "0.0.0"
 dependencies = [
  "fastrand",
+ "insta",
  "vfpl_ast",
  "vfpl_error",
  "vfpl_global",
@@ -294,6 +295,7 @@ name = "vfpl_lexer"
 version = "0.0.0"
 dependencies = [
  "fastrand",
+ "insta",
  "peekmore",
  "unicode-xid",
  "vfpl_error",
@@ -305,6 +307,7 @@ name = "vfpl_parser"
 version = "0.0.0"
 dependencies = [
  "fastrand",
+ "insta",
  "peekmore",
  "vfpl_ast",
  "vfpl_error",

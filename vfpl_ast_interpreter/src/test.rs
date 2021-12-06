@@ -6,6 +6,7 @@ use vfpl_ast::{
     TypedIdent, VarInit,
 };
 use vfpl_error::Span;
+use vfpl_global::Session;
 
 /// Runs the code and returns stdout
 fn run_code(ast: &Program) -> String {

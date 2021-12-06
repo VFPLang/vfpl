@@ -1,0 +1,25 @@
+---
+source: vfpl_lexer/src/test.rs
+expression: "lex(\"1\")"
+
+---
+Ok(
+    [
+        Token {
+            span: Span {
+                start: 0,
+                end: 1,
+            },
+            kind: Int(
+                1,
+            ),
+        },
+        Token {
+            span: Span {
+                start: 18446744073709551615,
+                end: 18446744073709551615,
+            },
+            kind: Eof,
+        },
+    ],
+)

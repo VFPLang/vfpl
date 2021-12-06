@@ -1,0 +1,6 @@
+---
+source: vfpl_ast_interpreter/src/test.rs
+expression: state
+
+---
+"absent\n"

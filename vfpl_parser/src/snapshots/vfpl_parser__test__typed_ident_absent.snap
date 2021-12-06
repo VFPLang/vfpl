@@ -1,0 +1,21 @@
+---
+source: vfpl_parser/src/test.rs
+expression: parsed
+
+---
+Ok(
+    TypedIdent {
+        span: Span {
+            start: 0,
+            end: 0,
+        },
+        name: "name",
+        ty: Ty {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            kind: Absent,
+        },
+    },
+)

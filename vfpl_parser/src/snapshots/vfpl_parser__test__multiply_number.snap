@@ -1,0 +1,38 @@
+---
+source: vfpl_parser/src/test.rs
+expression: parsed
+
+---
+Ok(
+    ArithmeticOp(
+        ArithmeticOp {
+            span: Span {
+                start: 0,
+                end: 0,
+            },
+            lhs: Literal(
+                Literal {
+                    span: Span {
+                        start: 0,
+                        end: 0,
+                    },
+                    kind: Ident(
+                        "counter",
+                    ),
+                },
+            ),
+            rhs: Literal(
+                Literal {
+                    span: Span {
+                        start: 0,
+                        end: 0,
+                    },
+                    kind: Int(
+                        3,
+                    ),
+                },
+            ),
+            kind: Mul,
+        },
+    ),
+)

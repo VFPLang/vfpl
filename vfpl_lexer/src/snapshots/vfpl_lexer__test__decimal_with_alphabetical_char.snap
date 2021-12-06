@@ -1,0 +1,13 @@
+---
+source: vfpl_lexer/src/test.rs
+expression: "lex(\"00001.as244\")"
+
+---
+Err(
+    InvalidCharacter(
+        Span {
+            start: 6,
+            end: 7,
+        },
+    ),
+)
