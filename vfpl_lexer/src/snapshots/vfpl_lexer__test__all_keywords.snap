@@ -29,7 +29,9 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: Add,
+                kind: CondKeyword(
+                    Add,
+                ),
             },
             Token {
                 span: Span {
@@ -47,7 +49,9 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: Sub,
+                kind: CondKeyword(
+                    Sub,
+                ),
             },
             Token {
                 span: Span {
@@ -65,7 +69,9 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: Mul,
+                kind: CondKeyword(
+                    Mul,
+                ),
             },
             Token {
                 span: Span {
@@ -83,7 +89,9 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: Div,
+                kind: CondKeyword(
+                    Div,
+                ),
             },
             Token {
                 span: Span {
@@ -101,7 +109,9 @@ expression: tokens
                     start: 0,
                     end: 6,
                 },
-                kind: Mod,
+                kind: CondKeyword(
+                    Mod,
+                ),
             },
             Token {
                 span: Span {
@@ -155,7 +165,9 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: With,
+                kind: CondKeyword(
+                    With,
+                ),
             },
             Token {
                 span: Span {
@@ -173,7 +185,9 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: The,
+                kind: CondKeyword(
+                    The,
+                ),
             },
             Token {
                 span: Span {
@@ -191,7 +205,9 @@ expression: tokens
                     start: 0,
                     end: 5,
                 },
-                kind: Value,
+                kind: CondKeyword(
+                    Value,
+                ),
             },
             Token {
                 span: Span {
@@ -209,7 +225,9 @@ expression: tokens
                     start: 0,
                     end: 2,
                 },
-                kind: Of,
+                kind: CondKeyword(
+                    Of,
+                ),
             },
             Token {
                 span: Span {
@@ -227,7 +245,9 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: Set,
+                kind: CondKeyword(
+                    Set,
+                ),
             },
             Token {
                 span: Span {
@@ -245,7 +265,9 @@ expression: tokens
                     start: 0,
                     end: 2,
                 },
-                kind: To,
+                kind: CondKeyword(
+                    To,
+                ),
             },
             Token {
                 span: Span {
@@ -263,7 +285,9 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: From,
+                kind: CondKeyword(
+                    From,
+                ),
             },
             Token {
                 span: Span {
@@ -281,7 +305,9 @@ expression: tokens
                     start: 0,
                     end: 2,
                 },
-                kind: By,
+                kind: CondKeyword(
+                    By,
+                ),
             },
             Token {
                 span: Span {
@@ -299,7 +325,9 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: Take,
+                kind: CondKeyword(
+                    Take,
+                ),
             },
             Token {
                 span: Span {
@@ -443,7 +471,9 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: Out,
+                kind: CondKeyword(
+                    Out,
+                ),
             },
             Token {
                 span: Span {
@@ -515,7 +545,9 @@ expression: tokens
                     start: 0,
                     end: 9,
                 },
-                kind: Parameter,
+                kind: CondKeyword(
+                    Parameter,
+                ),
             },
             Token {
                 span: Span {
@@ -533,7 +565,9 @@ expression: tokens
                     start: 0,
                     end: 10,
                 },
-                kind: Parameters,
+                kind: CondKeyword(
+                    Parameters,
+                ),
             },
             Token {
                 span: Span {
@@ -551,7 +585,9 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: That,
+                kind: CondKeyword(
+                    That,
+                ),
             },
             Token {
                 span: Span {
@@ -569,7 +605,9 @@ expression: tokens
                     start: 0,
                     end: 7,
                 },
-                kind: Returns,
+                kind: CondKeyword(
+                    Returns,
+                ),
             },
             Token {
                 span: Span {
@@ -605,7 +643,9 @@ expression: tokens
                     start: 0,
                     end: 2,
                 },
-                kind: No,
+                kind: CondKeyword(
+                    No,
+                ),
             },
             Token {
                 span: Span {
@@ -623,7 +663,9 @@ expression: tokens
                     start: 0,
                     end: 8,
                 },
-                kind: Argument,
+                kind: CondKeyword(
+                    Argument,
+                ),
             },
             Token {
                 span: Span {
@@ -641,7 +683,9 @@ expression: tokens
                     start: 0,
                     end: 9,
                 },
-                kind: Arguments,
+                kind: CondKeyword(
+                    Arguments,
+                ),
             },
             Token {
                 span: Span {
@@ -677,7 +721,9 @@ expression: tokens
                     start: 0,
                     end: 2,
                 },
-                kind: Go,
+                kind: CondKeyword(
+                    Go,
+                ),
             },
             Token {
                 span: Span {
@@ -695,7 +741,9 @@ expression: tokens
                     start: 0,
                     end: 5,
                 },
-                kind: Sleep,
+                kind: CondKeyword(
+                    Sleep,
+                ),
             },
             Token {
                 span: Span {
@@ -821,7 +869,9 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: Does,
+                kind: CondKeyword(
+                    Does,
+                ),
             },
             Token {
                 span: Span {
@@ -839,7 +889,9 @@ expression: tokens
                     start: 0,
                     end: 3,
                 },
-                kind: Has,
+                kind: CondKeyword(
+                    Has,
+                ),
             },
             Token {
                 span: Span {
@@ -857,7 +909,9 @@ expression: tokens
                     start: 0,
                     end: 2,
                 },
-                kind: Is,
+                kind: CondKeyword(
+                    Is,
+                ),
             },
             Token {
                 span: Span {
@@ -893,7 +947,9 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: Have,
+                kind: CondKeyword(
+                    Have,
+                ),
             },
             Token {
                 span: Span {
@@ -911,7 +967,9 @@ expression: tokens
                     start: 0,
                     end: 7,
                 },
-                kind: Greater,
+                kind: CondKeyword(
+                    Greater,
+                ),
             },
             Token {
                 span: Span {
@@ -929,7 +987,9 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: Less,
+                kind: CondKeyword(
+                    Less,
+                ),
             },
             Token {
                 span: Span {
@@ -947,7 +1007,9 @@ expression: tokens
                     start: 0,
                     end: 4,
                 },
-                kind: Than,
+                kind: CondKeyword(
+                    Than,
+                ),
             },
             Token {
                 span: Span {
@@ -965,7 +1027,9 @@ expression: tokens
                     start: 0,
                     end: 5,
                 },
-                kind: Equal,
+                kind: CondKeyword(
+                    Equal,
+                ),
             },
             Token {
                 span: Span {

@@ -56,28 +56,36 @@ Ok(
                 start: 40,
                 end: 44,
             },
-            kind: With,
+            kind: CondKeyword(
+                With,
+            ),
         },
         Token {
             span: Span {
                 start: 45,
                 end: 48,
             },
-            kind: The,
+            kind: CondKeyword(
+                The,
+            ),
         },
         Token {
             span: Span {
                 start: 49,
                 end: 54,
             },
-            kind: Value,
+            kind: CondKeyword(
+                Value,
+            ),
         },
         Token {
             span: Span {
                 start: 55,
                 end: 57,
             },
-            kind: Of,
+            kind: CondKeyword(
+                Of,
+            ),
         },
         Token {
             span: Span {
