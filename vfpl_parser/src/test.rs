@@ -3,6 +3,7 @@
 use super::Parser;
 use vfpl_error::Span;
 use vfpl_global::Session;
+use vfpl_lexer::tokens::CondKeyword::*;
 use vfpl_lexer::tokens::TokenKind::*;
 use vfpl_lexer::tokens::{Token, TokenKind};
 
@@ -13,7 +14,7 @@ fn token(kind: TokenKind) -> Token {
     }
 }
 
-/// parses the tokens and appends an EOF token
+/// parses CondKw(The) tokens and appends an EOF token
 fn parse<T, F, R>(tokens: T, parse_rule_fn: F) -> R
 where
     T: Into<Vec<Token>>,
@@ -119,7 +120,16 @@ fn ident_literal() {
 
 #[test]
 fn not_equal_expr() {
-    let tokens = [Absent, Does, Not, Have, The, Value, Null].map(token);
+    let tokens = [
+        Absent,
+        CondKw(Does),
+        Not,
+        CondKw(Have),
+        CondKw(The),
+        CondKw(Value),
+        Null,
+    ]
+    .map(token);
     let parsed = parse(tokens, Parser::expr);
 
     insta::assert_debug_snapshot!(parsed);
@@ -127,7 +137,7 @@ fn not_equal_expr() {
 
 #[test]
 fn equal_expr() {
-    let tokens = [Absent, Has, The, Value, Absent].map(token);
+    let tokens = [Absent, CondKw(Has), CondKw(The), CondKw(Value), Absent].map(token);
     let parsed = parse(tokens, Parser::expr);
 
     insta::assert_debug_snapshot!(parsed);
@@ -135,7 +145,7 @@ fn equal_expr() {
 
 #[test]
 fn greater_than_expr() {
-    let tokens = [Absent, Is, Greater, Than, Undefined].map(token);
+    let tokens = [Absent, CondKw(Is), CondKw(Greater), CondKw(Than), Undefined].map(token);
     let parsed = parse(tokens, Parser::expr);
 
     insta::assert_debug_snapshot!(parsed);
@@ -143,7 +153,7 @@ fn greater_than_expr() {
 
 #[test]
 fn less_than_expr() {
-    let tokens = [Absent, Is, Less, Than, Undefined].map(token);
+    let tokens = [Absent, CondKw(Is), CondKw(Less), CondKw(Than), Undefined].map(token);
     let parsed = parse(tokens, Parser::expr);
 
     insta::assert_debug_snapshot!(parsed);
@@ -151,7 +161,16 @@ fn less_than_expr() {
 
 #[test]
 fn greater_equal_than_expr() {
-    let tokens = [Absent, Is, Greater, Or, Equal, Than, Undefined].map(token);
+    let tokens = [
+        Absent,
+        CondKw(Is),
+        CondKw(Greater),
+        Or,
+        CondKw(Equal),
+        CondKw(Than),
+        Undefined,
+    ]
+    .map(token);
     let parsed = parse(tokens, Parser::expr);
 
     insta::assert_debug_snapshot!(parsed);
@@ -159,7 +178,16 @@ fn greater_equal_than_expr() {
 
 #[test]
 fn less_equal_than_expr() {
-    let tokens = [Absent, Is, Less, Or, Equal, Than, Undefined].map(token);
+    let tokens = [
+        Absent,
+        CondKw(Is),
+        CondKw(Less),
+        Or,
+        CondKw(Equal),
+        CondKw(Than),
+        Undefined,
+    ]
+    .map(token);
     let parsed = parse(tokens, Parser::expr);
 
     insta::assert_debug_snapshot!(parsed);
@@ -181,10 +209,10 @@ fn init_variable_string() {
         Ident("name".to_string()),
         As,
         Ident("string".to_string()),
-        With,
-        The,
-        Value,
-        Of,
+        CondKw(With),
+        CondKw(The),
+        CondKw(Value),
+        CondKw(Of),
         String("Ferris".to_string()),
     ]
     .map(token);
@@ -196,14 +224,14 @@ fn init_variable_string() {
 #[test]
 fn set_variable_string() {
     let tokens = [
-        Set,
-        The,
+        CondKw(Set),
+        CondKw(The),
         Variable,
         Ident("name".to_string()),
-        To,
-        The,
-        Value,
-        Of,
+        CondKw(To),
+        CondKw(The),
+        CondKw(Value),
+        CondKw(Of),
         String("Ferris".to_string()),
     ]
     .map(token);
@@ -214,7 +242,13 @@ fn set_variable_string() {
 
 #[test]
 fn add_number() {
-    let tokens = [Add, Int(0), To, Ident("counter".to_string())].map(token);
+    let tokens = [
+        CondKw(Add),
+        Int(0),
+        CondKw(To),
+        Ident("counter".to_string()),
+    ]
+    .map(token);
     let parsed = parse(tokens, Parser::term);
 
     insta::assert_debug_snapshot!(parsed);
@@ -222,7 +256,13 @@ fn add_number() {
 
 #[test]
 fn subtract_number() {
-    let tokens = [Sub, Int(1), From, Ident("counter".to_string())].map(token);
+    let tokens = [
+        CondKw(Sub),
+        Int(1),
+        CondKw(From),
+        Ident("counter".to_string()),
+    ]
+    .map(token);
     let parsed = parse(tokens, Parser::term);
 
     insta::assert_debug_snapshot!(parsed);
@@ -230,7 +270,13 @@ fn subtract_number() {
 
 #[test]
 fn divide_number() {
-    let tokens = [Div, Ident("counter".to_string()), By, Int(2)].map(token);
+    let tokens = [
+        CondKw(Div),
+        Ident("counter".to_string()),
+        CondKw(By),
+        Int(2),
+    ]
+    .map(token);
     let parsed = parse(tokens, Parser::factor);
 
     insta::assert_debug_snapshot!(parsed);
@@ -238,7 +284,13 @@ fn divide_number() {
 
 #[test]
 fn multiply_number() {
-    let tokens = [Mul, Ident("counter".to_string()), With, Int(3)].map(token);
+    let tokens = [
+        CondKw(Mul),
+        Ident("counter".to_string()),
+        CondKw(With),
+        Int(3),
+    ]
+    .map(token);
     let parsed = parse(tokens, Parser::factor);
 
     insta::assert_debug_snapshot!(parsed);
@@ -246,7 +298,13 @@ fn multiply_number() {
 
 #[test]
 fn mod_number() {
-    let tokens = [Take, Ident("counter".to_string()), Mod, Int(4)].map(token);
+    let tokens = [
+        CondKw(Take),
+        Ident("counter".to_string()),
+        CondKw(Mod),
+        Int(4),
+    ]
+    .map(token);
     let parsed = parse(tokens, Parser::factor);
 
     insta::assert_debug_snapshot!(parsed);
@@ -255,13 +313,13 @@ fn mod_number() {
 #[test]
 fn nested_add_number() {
     let tokens = [
-        Add,
+        CondKw(Add),
         Int(5),
-        To,
+        CondKw(To),
         ParenOpen,
-        Add,
+        CondKw(Add),
         Int(6),
-        To,
+        CondKw(To),
         Int(7),
         ParenClose,
     ]
@@ -273,7 +331,7 @@ fn nested_add_number() {
 
 #[test]
 fn terminate() {
-    let tokens = [Go, To, Sleep].map(token);
+    let tokens = [CondKw(Go), CondKw(To), CondKw(Sleep)].map(token);
     let parsed = parse(tokens, Parser::terminate);
 
     insta::assert_debug_snapshot!(parsed);
@@ -281,7 +339,14 @@ fn terminate() {
 
 #[test]
 fn call_no_args() {
-    let tokens = [Call, Ident("run".to_string()), With, No, Arguments].map(token);
+    let tokens = [
+        Call,
+        Ident("run".to_string()),
+        CondKw(With),
+        CondKw(No),
+        CondKw(Arguments),
+    ]
+    .map(token);
     let parsed = parse(tokens, Parser::call);
 
     insta::assert_debug_snapshot!(parsed);
@@ -292,9 +357,9 @@ fn call_single_arg() {
     let tokens = [
         Call,
         Ident("print".to_string()),
-        With,
-        The,
-        Argument,
+        CondKw(With),
+        CondKw(The),
+        CondKw(Argument),
         Int(0),
         As,
         Ident("printable".to_string()),
@@ -310,9 +375,9 @@ fn call_two_args() {
     let tokens = [
         Call,
         Ident("add".to_string()),
-        With,
-        The,
-        Arguments,
+        CondKw(With),
+        CondKw(The),
+        CondKw(Arguments),
         Int(2),
         As,
         Ident("a".to_string()),
@@ -332,9 +397,9 @@ fn call_three_args() {
     let tokens = [
         Call,
         Ident("ternary".to_string()),
-        With,
-        The,
-        Arguments,
+        CondKw(With),
+        CondKw(The),
+        CondKw(Arguments),
         True,
         As,
         Ident("cond".to_string()),
@@ -355,7 +420,15 @@ fn call_three_args() {
 
 #[test]
 fn add_stmt() {
-    let tokens = [Please, Add, Int(0), To, Ident("A".to_string()), Dot].map(token);
+    let tokens = [
+        Please,
+        CondKw(Add),
+        Int(0),
+        CondKw(To),
+        Ident("A".to_string()),
+        Dot,
+    ]
+    .map(token);
     let parsed = parse(tokens, Parser::stmt);
 
     insta::assert_debug_snapshot!(parsed);
@@ -372,7 +445,19 @@ fn if_empty_body_true_cond() {
 #[test]
 fn if_empty_body_complex_cond() {
     let tokens = [
-        Check, Whether, True, Has, The, Value, Absent, Comma, Then, Do, Please, End, Check,
+        Check,
+        Whether,
+        True,
+        CondKw(Has),
+        CondKw(The),
+        CondKw(Value),
+        Absent,
+        Comma,
+        Then,
+        Do,
+        Please,
+        End,
+        Check,
     ]
     .map(token);
     let parsed = parse(tokens, Parser::if_stmt);
@@ -383,8 +468,24 @@ fn if_empty_body_complex_cond() {
 #[test]
 fn if_single_stmt_body() {
     let tokens = [
-        Check, Whether, True, Has, The, Value, Absent, Comma, Then, Do, Please, Go, To, Sleep, Dot,
-        Please, End, Check,
+        Check,
+        Whether,
+        True,
+        CondKw(Has),
+        CondKw(The),
+        CondKw(Value),
+        Absent,
+        Comma,
+        Then,
+        Do,
+        Please,
+        CondKw(Go),
+        CondKw(To),
+        CondKw(Sleep),
+        Dot,
+        Please,
+        End,
+        Check,
     ]
     .map(token);
     let parsed = parse(tokens, Parser::if_stmt);
@@ -398,22 +499,22 @@ fn if_multi_stmt_body() {
         Check,
         Whether,
         True,
-        Has,
-        The,
-        Value,
+        CondKw(Has),
+        CondKw(The),
+        CondKw(Value),
         Absent,
         Comma,
         Then,
         Do,
         Please,
-        Go,
-        To,
-        Sleep,
+        CondKw(Go),
+        CondKw(To),
+        CondKw(Sleep),
         Dot,
         Please,
-        Add,
+        CondKw(Add),
         Int(5),
-        To,
+        CondKw(To),
         Ident("A".to_string()),
         Dot,
         Please,
@@ -428,7 +529,7 @@ fn if_multi_stmt_body() {
 
 #[test]
 fn return_number() {
-    let tokens = [Return, Int(9), From, The, Function].map(token);
+    let tokens = [Return, Int(9), CondKw(From), CondKw(The), Function].map(token);
     let parsed = parse(tokens, Parser::return_stmt);
 
     insta::assert_debug_snapshot!(parsed);
@@ -436,7 +537,16 @@ fn return_number() {
 
 #[test]
 fn return_stmt() {
-    let tokens = [Please, Return, Int(9), From, The, Function, Dot].map(token);
+    let tokens = [
+        Please,
+        Return,
+        Int(9),
+        CondKw(From),
+        CondKw(The),
+        Function,
+        Dot,
+    ]
+    .map(token);
     let parsed = parse(tokens, Parser::stmt);
 
     insta::assert_debug_snapshot!(parsed);
@@ -444,7 +554,7 @@ fn return_stmt() {
 
 #[test]
 fn r#break() {
-    let tokens = [Break, Out, Of, This, While].map(token);
+    let tokens = [Break, CondKw(Out), CondKw(Of), This, While].map(token);
     let parsed = parse(tokens, Parser::break_stmt);
 
     insta::assert_debug_snapshot!(parsed);
@@ -452,7 +562,7 @@ fn r#break() {
 
 #[test]
 fn break_stmt() {
-    let tokens = [Please, Break, Out, Of, This, While, Dot].map(token);
+    let tokens = [Please, Break, CondKw(Out), CondKw(Of), This, While, Dot].map(token);
     let parsed = parse(tokens, Parser::stmt);
 
     insta::assert_debug_snapshot!(parsed);
@@ -473,15 +583,15 @@ fn while_stmt_with_body() {
         Repeat,
         While,
         Absent,
-        Has,
-        The,
-        Value,
+        CondKw(Has),
+        CondKw(The),
+        CondKw(Value),
         False,
         Do,
         Please,
-        Add,
+        CondKw(Add),
         Int(9),
-        To,
+        CondKw(To),
         Ident("A".to_string()),
         Dot,
         Please,
@@ -497,7 +607,7 @@ fn while_stmt_with_body() {
 
 #[test]
 fn return_ty_absent() {
-    let tokens = [That, Returns, Absent].map(token);
+    let tokens = [CondKw(That), CondKw(Returns), Absent].map(token);
     let parsed = parse(tokens, Parser::fn_return);
 
     insta::assert_debug_snapshot!(parsed);
@@ -509,11 +619,11 @@ fn fn_decl_no_params_empty_body() {
         Create,
         Function,
         Ident("void".to_string()),
-        With,
-        No,
-        Parameters,
-        That,
-        Returns,
+        CondKw(With),
+        CondKw(No),
+        CondKw(Parameters),
+        CondKw(That),
+        CondKw(Returns),
         Absent,
         Please,
         End,
@@ -532,14 +642,14 @@ fn fn_decl_single_param_emtpy_body() {
         Create,
         Function,
         Ident("print".to_string()),
-        With,
-        The,
-        Parameter,
+        CondKw(With),
+        CondKw(The),
+        CondKw(Parameter),
         Ident("_".to_string()),
         As,
         Absent,
-        That,
-        Returns,
+        CondKw(That),
+        CondKw(Returns),
         Absent,
         Please,
         End,
@@ -558,9 +668,9 @@ fn fn_decl_two_param_emtpy_body() {
         Create,
         Function,
         Ident("add".to_string()),
-        With,
-        The,
-        Parameters,
+        CondKw(With),
+        CondKw(The),
+        CondKw(Parameters),
         Ident("_".to_string()),
         As,
         Absent,
@@ -568,8 +678,8 @@ fn fn_decl_two_param_emtpy_body() {
         Ident("_hi".to_string()),
         As,
         Null,
-        That,
-        Returns,
+        CondKw(That),
+        CondKw(Returns),
         Absent,
         Please,
         End,
@@ -588,9 +698,9 @@ fn fn_decl_three_param_with_body() {
         Create,
         Function,
         Ident("add".to_string()),
-        With,
-        The,
-        Parameters,
+        CondKw(With),
+        CondKw(The),
+        CondKw(Parameters),
         Ident("_".to_string()),
         As,
         Absent,
@@ -602,13 +712,13 @@ fn fn_decl_three_param_with_body() {
         Ident("_hi".to_string()),
         As,
         Null,
-        That,
-        Returns,
+        CondKw(That),
+        CondKw(Returns),
         Absent,
         Please,
-        Add,
+        CondKw(Add),
         Int(5),
-        To,
+        CondKw(To),
         Ident("a".to_string()),
         Dot,
         Please,
@@ -626,19 +736,39 @@ fn fn_decl_three_param_with_body() {
 fn multiple_body_statements() {
     let tokens = [
         Please,
-        Add,
+        CondKw(Add),
         Int(5),
-        To,
+        CondKw(To),
         Int(6),
         Dot,
         Please,
-        Go,
-        To,
-        Sleep,
+        CondKw(Go),
+        CondKw(To),
+        CondKw(Sleep),
         Dot,
     ]
     .map(token);
     let parsed = parse(tokens, Parser::body);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn cond_keyword_var_name() {
+    let tokens = [
+        Initialize,
+        Variable,
+        CondKw(Add),
+        As,
+        Ident("string".to_string()),
+        CondKw(With),
+        CondKw(The),
+        CondKw(Value),
+        CondKw(Of),
+        String("Ferris".to_string()),
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::var_init);
 
     insta::assert_debug_snapshot!(parsed);
 }
