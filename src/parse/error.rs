@@ -10,15 +10,6 @@ pub(super) struct ParseError {
 }
 
 impl ParseError {
-    pub(super) fn simple(span: Span, message: String) -> Self {
-        Self {
-            span,
-            message,
-            note: None,
-            suggestion: None,
-        }
-    }
-
     pub(super) fn full(span: Span, message: String, note: String, suggestion: String) -> Self {
         Self {
             span,

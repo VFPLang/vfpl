@@ -1,5 +1,5 @@
 use crate::error;
-use crate::error::Span;
+use crate::error::{random_number, Span};
 use crate::interpret_ast::{
     Env, FnImpl, IResult, Ident, InterpreterError, Interrupt, RuntimeFn, Value, ValueResult, Vm,
 };
@@ -87,9 +87,11 @@ impl Vm {
         let function = if let Value::Fn(function) = function {
             function
         } else {
-            return Err(InterpreterError::simple(
+            return Err(InterpreterError::full(
                 call.span,
                 format!("Variable is not a function: {}", call.fn_name),
+                "I'd love to call this variable like it was a function, but it's not.".to_string(),
+                "make the variable have the type function or not call it at all.".to_string(),
             )
             .into());
         };
@@ -100,13 +102,30 @@ impl Vm {
         let args = &call.args.args;
 
         if params.len() != args.len() {
-            return Err(InterpreterError::simple(
+            return Err(InterpreterError::full(
                 call.args.span,
                 format!(
                     "Called function with {} instead of {} arguments",
                     args.len(),
                     params.len()
                 ),
+                "This function expects a different amount of arguments.".to_string(),
+                if args.len() > params.len() {
+                    format!(
+                        "delete the last {} arguments, they are not needed.",
+                        args.len() - params.len()
+                    )
+                } else {
+                    let diff = params.len() - args.len();
+                    format!(
+                        "add {} more arguments, for example: `{}`",
+                        diff,
+                        std::iter::from_fn(|| Some(random_number(self.session.rng()).to_string()))
+                            .take(diff)
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    )
+                },
             )
             .into());
         }
@@ -139,12 +158,14 @@ impl Vm {
             .try_for_each(|((param_name, param_ty), arg)| {
                 self.type_check(&arg.value, param_ty, arg.span)?;
                 if *param_name != arg.name {
-                    return Err(Interrupt::Error(InterpreterError::simple(
+                    return Err(Interrupt::Error(InterpreterError::full(
                         arg.span,
                         format!(
                             "Mismatched names: expected {}, got {}",
                             param_name, arg.name
                         ),
+                        "You need to say the correct names for each argument, to make sure you didn't accidentally mix them up.".to_string(),
+                        "specify the correct name instead, or check whether you mixed some arguments up. No problem if you did, it happens to all of us.".to_string()
                     )));
                 }
                 Ok(())
@@ -218,7 +239,7 @@ impl Vm {
             (ComparisonKind::LessEq, Value::Int(lhs), Value::Int(rhs)) => lhs <= rhs,
             (ComparisonKind::LessEq, Value::Float(lhs), Value::Float(rhs)) => lhs <= rhs,
             (comp_kind, lhs, rhs) => {
-                return Err(InterpreterError::simple(
+                return Err(InterpreterError::full(
                     comp.span,
                     format!(
                         "Cannot compare {} and {} using `{}`",
@@ -226,6 +247,8 @@ impl Vm {
                         rhs.display_type(),
                         comp_kind
                     ),
+                    "I tried really hard trying to compare these two values, but I found no idea how to do it. They seem to be so different.".to_string(),
+                    "use another comparison operation, or maybe use different values.".to_string()
                 )
                 .into())
             }
@@ -241,8 +264,9 @@ impl Vm {
         Ok(match op.kind {
             ArithmeticOpKind::Add => match (lhs, rhs) {
                 (Value::Int(var1), Value::Int(var2)) => Value::Int(var1 + var2),
-                (Value::Float(var1), Value::Float(var2)) => Value::Float(var1 + var2),
+                (Value::Int(var1), Value::Float(var2)) => Value::Float(var1 as f64 + var2),
                 (Value::Float(var1), Value::Int(var2)) => Value::Float(var1 + var2 as f64),
+                (Value::Float(var1), Value::Float(var2)) => Value::Float(var1 + var2),
                 (Value::String(ref str), Value::String(new)) => {
                     let mut new_string = String::with_capacity(str.len() + new.len());
                     new_string.push_str(str);
@@ -251,61 +275,72 @@ impl Vm {
                     Value::String(new_string.into())
                 }
                 (var, new) => {
-                    return Err(InterpreterError::simple(
+                    return Err(InterpreterError::full(
                         op.span,
                         format!(
                             "Invalid arguments to addition. Cannot add {} to {}",
                             var.display_type(),
                             new.display_type()
                         ),
+                        "Addition is more complex than it seems. In VFPL, you can add numbers and strings, but only with each other.".to_string(),
+                        "use something else, I don't think addition is what you want here.".to_string(),
                     )
                     .into())
                 }
             },
             ArithmeticOpKind::Sub => match (lhs, rhs) {
                 (Value::Int(var1), Value::Int(var2)) => Value::Int(var1 - var2),
-                (Value::Float(var1), Value::Float(var2)) => Value::Float(var1 - var2),
+                (Value::Int(var1), Value::Float(var2)) => Value::Float(var1 as f64 - var2),
                 (Value::Float(var1), Value::Int(var2)) => Value::Float(var1 - var2 as f64),
+                (Value::Float(var1), Value::Float(var2)) => Value::Float(var1 - var2),
                 (var, new) => {
-                    return Err(InterpreterError::simple(
+                    return Err(InterpreterError::full(
                         op.span,
                         format!(
                             "Invalid arguments to subtraction. Cannot add {} to {}",
                             var.display_type(),
                             new.display_type()
                         ),
+                        "Subtraction is more complex than it seems. In VFPL, you can only subtract numbers from each other.".to_string(),
+                        "use something else, I don't think subtraction is what you want here.".to_string(),
                     )
                     .into())
                 }
             },
             ArithmeticOpKind::Mul => match (lhs, rhs) {
                 (Value::Int(var1), Value::Int(var2)) => Value::Int(var1 * var2),
-                (Value::Float(var1), Value::Float(var2)) => Value::Float(var1 * var2),
+                (Value::Int(var1), Value::Float(var2)) => Value::Float(var1 as f64 * var2),
                 (Value::Float(var1), Value::Int(var2)) => Value::Float(var1 * var2 as f64),
+                (Value::Float(var1), Value::Float(var2)) => Value::Float(var1 * var2),
                 (var, new) => {
-                    return Err(InterpreterError::simple(
+                    return Err(InterpreterError::full(
                          op.span,
                         format!(
                             "Invalid arguments to multiplication. Cannot add {} to {}",
                             var.display_type(),
                             new.display_type()
                         ),
+                         "Multiplication is more complex than it seems. In VFPL, you can only multiply numbers with each other.".to_string(),
+                         "use something else, I don't think multiplication is what you want here.".to_string(),
                     )
                     .into())
                 }
             },
             ArithmeticOpKind::Div => match (lhs, rhs) {
                 (Value::Int(var1), Value::Int(var2)) => Value::Int(var1 / var2),
+                (Value::Int(var1), Value::Float(var2)) => Value::Float(var1 as f64 / var2),
                 (Value::Float(var1), Value::Float(var2)) => Value::Float(var1 / var2),
                 (Value::Float(var1), Value::Int(var2)) => Value::Float(var1 / var2 as f64),
                 (var, new) => {
-                    return Err(InterpreterError::simple(
+                    return Err(InterpreterError::full(
                         op.span,
                         format!(
                             "Invalid arguments to division. Cannot add {} to {}",
                             var.display_type(),
                             new.display_type()
                         ),
+                        "Division is more complex than it seems. In VFPL, you can only divide numbers by each other.".to_string(),
+                        "use something else, I don't think division is what you want here.".to_string(),
                     )
                     .into())
                 }

@@ -17,7 +17,7 @@ mod test;
 pub fn run(program: &Program, session: Rc<Session>) -> Result<(), VfplError> {
     let mut vm = Vm::with_stdout(Rc::new(RefCell::new(std::io::stdout())), session);
 
-    vm.run(program).map_err(|err| err.into())
+    vm.run(program)
 }
 
 type Ident = Rc<str>;
@@ -220,15 +220,6 @@ impl Display for InterpreterError {
 impl std::error::Error for InterpreterError {}
 
 impl InterpreterError {
-    pub(super) fn simple(span: Span, message: String) -> Self {
-        Self {
-            span,
-            message,
-            note: None,
-            suggestion: None,
-        }
-    }
-
     pub(super) fn full(span: Span, message: String, note: String, suggestion: String) -> Self {
         Self {
             span,
