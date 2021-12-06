@@ -235,13 +235,11 @@ checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
 
 [[package]]
 name = "vfpl"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
- "fastrand",
  "insta",
- "peekmore",
- "unicode-xid",
  "vfpl_ast_interpreter",
+ "vfpl_driver",
  "vfpl_error",
  "vfpl_global",
  "vfpl_lexer",
@@ -269,7 +267,11 @@ dependencies = [
 name = "vfpl_driver"
 version = "0.0.0"
 dependencies = [
+ "vfpl_ast_interpreter",
  "vfpl_error",
+ "vfpl_global",
+ "vfpl_lexer",
+ "vfpl_parser",
 ]
 
 [[package]]

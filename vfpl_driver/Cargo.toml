@@ -6,4 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+vfpl_ast_interpreter = { path = "../vfpl_ast_interpreter" }
 vfpl_error = { path = "../vfpl_error" }
+vfpl_global = { path = "../vfpl_global" }
+vfpl_lexer = { path = "../vfpl_lexer" }
+vfpl_parser = { path = "../vfpl_parser" }
