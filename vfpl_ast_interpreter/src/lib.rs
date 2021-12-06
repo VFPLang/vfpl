@@ -3,12 +3,9 @@ use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::io::Write;
 use std::rc::Rc;
-use vfpl::error::VfplError;
-use vfpl::error::{CompilerError, Span};
-use vfpl::global::session::Session;
-use vfpl::parse::ast::{Body, Program, TyKind};
 use vfpl_ast::{Body, Program, TyKind};
 use vfpl_error::{CompilerError, Span, VfplError};
+use vfpl_global::Session;
 
 mod exec;
 mod native;

@@ -241,6 +241,11 @@ dependencies = [
  "insta",
  "peekmore",
  "unicode-xid",
+ "vfpl_ast_interpreter",
+ "vfpl_error",
+ "vfpl_global",
+ "vfpl_lexer",
+ "vfpl_parser",
 ]
 
 [[package]]
@@ -254,8 +259,10 @@ dependencies = [
 name = "vfpl_ast_interpreter"
 version = "0.0.0"
 dependencies = [
+ "fastrand",
  "vfpl_ast",
  "vfpl_error",
+ "vfpl_global",
 ]
 
 [[package]]
@@ -284,14 +291,23 @@ dependencies = [
 name = "vfpl_lexer"
 version = "0.0.0"
 dependencies = [
+ "fastrand",
+ "peekmore",
+ "unicode-xid",
  "vfpl_error",
+ "vfpl_global",
 ]
 
 [[package]]
 name = "vfpl_parser"
 version = "0.0.0"
 dependencies = [
+ "fastrand",
+ "peekmore",
+ "vfpl_ast",
  "vfpl_error",
+ "vfpl_global",
+ "vfpl_lexer",
 ]
 
 [[package]]

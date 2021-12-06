@@ -3,7 +3,6 @@ use crate::{
 };
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::error;
 use std::rc::Rc;
 use vfpl_ast::{
     ArithmeticOp, ArithmeticOpKind, Call, Comparison, ComparisonKind, Else, ElseKind, Expr, FnDecl,
@@ -12,7 +11,7 @@ use vfpl_ast::{
 use vfpl_error::{random_number, Span};
 
 impl Vm {
-    pub fn start(&mut self, ast: &Program) -> IResult {
+    pub(crate) fn start(&mut self, ast: &Program) -> IResult {
         self.add_global_functions();
 
         for stmt in &ast.stmts {
@@ -216,7 +215,7 @@ impl Vm {
                     .to_string(),
                 format!(
                     "return {} from the function.",
-                    error::random_number(self.session.rng())
+                    vfpl_error::random_number(self.session.rng())
                 ),
             )
             .into()),
