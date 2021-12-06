@@ -1,6 +1,6 @@
-use crate::error::Span;
-use crate::lexer::tokens::{Token, TokenKind};
-use crate::parse::{ParseError, ParseResult, Parser};
+use crate::{ParseError, ParseResult, Parser};
+use vfpl_error::Span;
+use vfpl_lexer::tokens::{Token, TokenKind};
 
 impl Parser {
     const MAX_DEPTH: usize = 200;

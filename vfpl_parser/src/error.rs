@@ -1,5 +1,4 @@
-use crate::error::{CompilerError, Span};
-use crate::VfplError;
+use vfpl_error::{CompilerError, Span, VfplError};
 
 #[derive(Debug)]
 pub(super) struct ParseError {

@@ -1,11 +1,8 @@
+use crate::{Env, FnImpl, IResult, InterpreterError, Interrupt, RuntimeFn, Value, Vm};
 use std::cell::RefCell;
 use std::rc::Rc;
-
-use crate::error::Span;
-use crate::interpret_ast::{
-    Env, FnImpl, InterpreterError, Interrupt, IResult, RuntimeFn, Value, Vm,
-};
-use crate::parse::ast::TyKind;
+use vfpl_ast::TyKind;
+use vfpl_error::Span;
 
 fn ident(str: &str) -> Rc<str> {
     str.to_string().into()

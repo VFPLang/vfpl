@@ -1,6 +1,5 @@
 use std::fmt::{Display, Formatter, Write};
-
-use crate::error::Span;
+use vfpl_error::Span;
 
 type Ident = String;
 

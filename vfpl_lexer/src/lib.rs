@@ -6,13 +6,11 @@ use std::str::CharIndices;
 use peekmore::{PeekMore, PeekMoreIterator};
 use unicode_xid::UnicodeXID;
 
-use crate::{error, VfplError};
+use crate::helper::compute_keyword;
+use crate::tokens::TokenKind;
 use tokens::Token;
-
-use crate::error::{CompilerError, Span};
-use crate::global::Session;
-use crate::lexer::helper::compute_keyword;
-use crate::lexer::tokens::TokenKind;
+use vfpl_error::{CompilerError, Span, VfplError};
+use vfpl_global::Session;
 
 mod helper;
 #[cfg(test)]
@@ -35,14 +33,14 @@ pub struct Lexer<'a> {
 }
 
 impl Lexer<'_> {
-    pub fn next(&mut self) -> Option<(usize, char)> {
+    pub fn next_char(&mut self) -> Option<(usize, char)> {
         self.char_indices.next()
     }
 
     /// Consume elements n times
     pub fn consume_elements(&mut self, n: usize) {
         for _ in 0..n {
-            self.next();
+            self.next_char();
         }
     }
 
@@ -63,7 +61,7 @@ impl Lexer<'_> {
 
     fn compute_tokens(&mut self) -> LexerResult<Vec<Token>> {
         let mut tokens = Vec::new();
-        while let Some((idx, char)) = self.next() {
+        while let Some((idx, char)) = self.next_char() {
             match char {
                 '.' => tokens.push(Token::new_from_single(TokenKind::Dot, idx)),
                 '(' => tokens.push(Token::new_from_single(TokenKind::ParenOpen, idx)),
@@ -75,7 +73,7 @@ impl Lexer<'_> {
                         && self.peek_nth(1).ok_or(LexerError::UnexpectedEOF)?.1 == '-'
                         && self.peek_nth(2).ok_or(LexerError::UnexpectedEOF)?.1 == '-'
                     {
-                        while let Some((_, char)) = self.next() {
+                        while let Some((_, char)) = self.next_char() {
                             if char == '-' {
                                 if self.peek_nth(0).ok_or(LexerError::UnexpectedEOF)?.1 == '-'
                                     && self.peek_nth(1).ok_or(LexerError::UnexpectedEOF)?.1 == '>'
@@ -106,7 +104,7 @@ impl Lexer<'_> {
         let mut identifier = String::from(char);
         while let Some((_, char)) = self.peek() {
             if char.is_xid_continue() {
-                self.next();
+                self.next_char();
                 identifier.push(char);
             } else {
                 break;
@@ -124,7 +122,7 @@ impl Lexer<'_> {
             if let Some((i, char)) = self.peek() {
                 match char {
                     '0'..='9' => {
-                        self.next();
+                        self.next_char();
                         number.push(char);
                     }
                     other if other.is_xid_start() => {
@@ -146,15 +144,15 @@ impl Lexer<'_> {
                     println!("{}", char);
                     if char.is_ascii_digit() {
                         number.push('.');
-                        self.next();
+                        self.next_char();
                         number.push(char);
-                        self.next();
+                        self.next_char();
 
                         end = loop {
                             if let Some((i, char)) = self.peek() {
                                 match char {
                                     '0'..='9' => {
-                                        self.next();
+                                        self.next_char();
                                         number.push(char)
                                     }
                                     other if other.is_xid_start() => {
@@ -193,10 +191,10 @@ impl Lexer<'_> {
 
     fn compute_string(&mut self, start: usize) -> LexerResult<Token> {
         let mut str = String::new();
-        while let Some((idx, char)) = self.next() {
+        while let Some((idx, char)) = self.next_char() {
             match char {
                 '\\' => {
-                    let (_, next_char) = self.next().ok_or(LexerError::UnexpectedEOF)?;
+                    let (_, next_char) = self.next_char().ok_or(LexerError::UnexpectedEOF)?;
                     match next_char {
                         '"' => str.push('\"'),
                         'n' => str.push('\n'),
@@ -269,8 +267,8 @@ impl CompilerError for LexerError {
     fn suggestion(&self) -> Option<String> {
         Some(match self {
             LexerError::UnexpectedEOF => r#"need to add a " somewhere."#.to_string(),
-            LexerError::IntParseError(_, rng) => format!("use {} instead.", error::random_number(rng)),
-            LexerError::FloatParseError(_, rng) => format!("try to use {} instead.", error::random_number(rng)),
+            LexerError::IntParseError(_, rng) => format!("use {} instead.", vfpl_error::random_number(rng)),
+            LexerError::FloatParseError(_, rng) => format!("try to use {} instead.", vfpl_error::random_number(rng)),
             LexerError::InvalidCharacter(_) => "delete that character. I won't miss it for sure.".to_string(),
             LexerError::InvalidEscapeCharacter(_) => "open a pull request to https://github.com/VFPLang/vfpl to add the escape character.".to_string(),
             LexerError::LetterInNumber(_) => "remove the letter from the number. Numbers are quite introverted and like being alone, it's ok. If you really want to, you could add some special character like , or ) next to it as a friend.".to_string()

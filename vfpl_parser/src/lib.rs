@@ -4,15 +4,13 @@
 use std::rc::Rc;
 use std::vec;
 
-use crate::global::Session;
+use crate::error::ParseError;
 use peekmore::{PeekMore, PeekMoreIterator};
+use vfpl_ast::Program;
+use vfpl_error::VfplError;
+use vfpl_global::Session;
+use vfpl_lexer::tokens::Token;
 
-use crate::lexer::tokens::Token;
-use crate::parse::ast::Program;
-use crate::parse::error::ParseError;
-use crate::VfplError;
-
-pub mod ast;
 mod helper;
 mod parser;
 

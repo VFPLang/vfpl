@@ -241,6 +241,73 @@ dependencies = [
  "insta",
  "peekmore",
  "unicode-xid",
+ "vfpl_ast_interpreter",
+ "vfpl_error",
+ "vfpl_global",
+ "vfpl_lexer",
+ "vfpl_parser",
+]
+
+[[package]]
+name = "vfpl_ast"
+version = "0.1.0"
+dependencies = [
+ "vfpl_error",
+]
+
+[[package]]
+name = "vfpl_ast_interpreter"
+version = "0.0.0"
+dependencies = [
+ "fastrand",
+ "vfpl_ast",
+ "vfpl_error",
+ "vfpl_global",
+]
+
+[[package]]
+name = "vfpl_driver"
+version = "0.0.0"
+dependencies = [
+ "vfpl_error",
+]
+
+[[package]]
+name = "vfpl_error"
+version = "0.0.0"
+dependencies = [
+ "fastrand",
+ "vfpl_global",
+]
+
+[[package]]
+name = "vfpl_global"
+version = "0.1.0"
+dependencies = [
+ "fastrand",
+]
+
+[[package]]
+name = "vfpl_lexer"
+version = "0.0.0"
+dependencies = [
+ "fastrand",
+ "peekmore",
+ "unicode-xid",
+ "vfpl_error",
+ "vfpl_global",
+]
+
+[[package]]
+name = "vfpl_parser"
+version = "0.0.0"
+dependencies = [
+ "fastrand",
+ "peekmore",
+ "vfpl_ast",
+ "vfpl_error",
+ "vfpl_global",
+ "vfpl_lexer",
 ]
 
 [[package]]

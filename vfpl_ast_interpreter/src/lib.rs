@@ -1,12 +1,11 @@
-use crate::error::{CompilerError, Span};
-use crate::global::Session;
-use crate::parse::ast::{Body, Program, TyKind};
-use crate::VfplError;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::io::Write;
 use std::rc::Rc;
+use vfpl_ast::{Body, Program, TyKind};
+use vfpl_error::{CompilerError, Span, VfplError};
+use vfpl_global::Session;
 
 mod exec;
 mod native;
@@ -220,7 +219,7 @@ impl Display for InterpreterError {
 impl std::error::Error for InterpreterError {}
 
 impl InterpreterError {
-    pub(super) fn full(span: Span, message: String, note: String, suggestion: String) -> Self {
+    pub fn full(span: Span, message: String, note: String, suggestion: String) -> Self {
         Self {
             span,
             message,

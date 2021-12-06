@@ -1,12 +1,15 @@
 //// helpers
 
-use crate::error::Span;
-use crate::lexer::tokens::{
-    Token,
-    TokenKind::{self, *},
+use super::{ParseError, ParseResult, Parser};
+use vfpl_ast::{
+    ArithmeticOp, ArithmeticOpKind, Body, Break, Call, CallArg, CallArgs, Comparison,
+    ComparisonKind, Else, ElseKind, Expr, FnDecl, FnParams, FnReturn, If, IfPart, Literal,
+    LiteralKind, Program, Return, Stmt, Terminate, Ty, TyKind, TypedIdent, VarInit, VarSet, While,
 };
-use crate::parse::Parser;
-use crate::Session;
+use vfpl_error::Span;
+use vfpl_global::Session;
+use vfpl_lexer::tokens::TokenKind::*;
+use vfpl_lexer::tokens::{Token, TokenKind};
 
 fn token(kind: TokenKind) -> Token {
     Token {

@@ -1,8 +1,11 @@
 use super::{ParseError, ParseResult, Parser};
-use crate::error;
-use crate::error::Span;
-use crate::lexer::tokens::TokenKind;
-use crate::parse::ast::*;
+use vfpl_ast::{
+    ArithmeticOp, ArithmeticOpKind, Body, Break, Call, CallArg, CallArgs, Comparison,
+    ComparisonKind, Else, ElseKind, Expr, FnDecl, FnParams, FnReturn, If, IfPart, Literal,
+    LiteralKind, Program, Return, Stmt, Terminate, Ty, TyKind, TypedIdent, VarInit, VarSet, While,
+};
+use vfpl_error::Span;
+use vfpl_lexer::tokens::TokenKind;
 
 impl Parser {
     pub fn program(&mut self) -> ParseResult<Program> {
@@ -247,7 +250,7 @@ impl Parser {
                     ),
                     "To ensure that you didn't mistype your function name, the name needs to be reapeated twice.".to_string(),
                     format!("look whether you mistyped the name here or on the creation above, and use the correction version in both places.\
-                    If you don't know which name is the correct one, I can help. I think you meant to call it `{}`, but I can't be sure.", error::random_ident(parser.session.rng()))
+                    If you don't know which name is the correct one, I can help. I think you meant to call it `{}`, but I can't be sure.", vfpl_error::random_ident(parser.session.rng()))
                 ));
             }
 
@@ -693,7 +696,7 @@ impl Parser {
                         token.span,
                         format!("Expected literal, found {}", &token.kind),
                         "A literal is either absent, null, novalue, undefined, True, False, a number, a string or an identifier. Yours is neither of them.".to_string(),
-                            format!("use a number literal with the value {}.", error::random_number(parser.session.rng())),
+                            format!("use a number literal with the value {}.", vfpl_error::random_number(parser.session.rng())),
                     ))
                 }
             };
@@ -716,7 +719,7 @@ impl Parser {
                     next.span,
                     format!("Expected identifier, found {}", next.kind),
                     "It's not a valid identifier, identifiers consist of letters, _, $ and maybe some numbers in between. For more info, search for `unicode xid` on the internet.".to_string(),
-                    format!("use the identifier `{}`.", error::random_ident(parser.session.rng())),
+                    format!("use the identifier `{}`.", vfpl_error::random_ident(parser.session.rng())),
                 ))
             }
         })

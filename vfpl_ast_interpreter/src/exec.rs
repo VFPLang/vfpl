@@ -1,18 +1,17 @@
-use crate::error;
-use crate::error::{random_number, Span};
-use crate::interpret_ast::{
+use crate::{
     Env, FnImpl, IResult, Ident, InterpreterError, Interrupt, RuntimeFn, Value, ValueResult, Vm,
-};
-use crate::parse::ast::{
-    ArithmeticOp, ArithmeticOpKind, Call, Comparison, ComparisonKind, Else, ElseKind, Expr, FnDecl,
-    IfPart, Literal, LiteralKind, Program, Return, Stmt, TyKind, VarInit, VarSet, While,
 };
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use vfpl_ast::{
+    ArithmeticOp, ArithmeticOpKind, Call, Comparison, ComparisonKind, Else, ElseKind, Expr, FnDecl,
+    IfPart, Literal, LiteralKind, Program, Return, Stmt, TyKind, VarInit, VarSet, While,
+};
+use vfpl_error::{random_number, Span};
 
 impl Vm {
-    pub(super) fn start(&mut self, ast: &Program) -> IResult {
+    pub(crate) fn start(&mut self, ast: &Program) -> IResult {
         self.add_global_functions();
 
         for stmt in &ast.stmts {
@@ -216,7 +215,7 @@ impl Vm {
                     .to_string(),
                 format!(
                     "return {} from the function.",
-                    error::random_number(self.session.rng())
+                    vfpl_error::random_number(self.session.rng())
                 ),
             )
             .into()),

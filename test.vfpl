@@ -1,1 +1,13 @@
-please 5.
+    please initialize variable Number as Integer with the value of 1.
+
+    please repeat while Number is less or equal than 1000000 do
+        please check whether (take number modulo 15) has the value 0, then do
+        otherwise, check whether (take number modulo 5) has the value 0, then do
+        otherwise, check whether (take number modulo 3) has the value 0, then do
+        otherwise,
+        please end check.
+
+        please set the variable Number to the value of (add 1 to Number).
+    please end while.
+
+    please go to sleep.

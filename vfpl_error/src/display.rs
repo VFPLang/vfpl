@@ -1,10 +1,10 @@
-use crate::error::{CompilerError, Span};
-use crate::Session;
+use crate::{CompilerError, Span};
 use fastrand::Rng;
 use std::fmt::Debug;
 use std::io;
 use std::io::Write;
 use std::rc::Rc;
+use vfpl_global::Session;
 
 /// A wrapper around a color that is not Display
 struct ColorWrapper(&'static str);

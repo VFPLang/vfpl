@@ -1,6 +1,5 @@
 use std::fmt::{Display, Formatter};
-
-use crate::error::Span;
+use vfpl_error::Span;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
