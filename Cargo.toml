@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "vfpl_ast",
     "vfpl_ast_interpreter",
     "vfpl_driver",
     "vfpl_error",

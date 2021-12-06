@@ -1,9 +1,11 @@
-use crate::error::Span;
-use crate::interpret_ast::Vm;
-use crate::parse::ast::*;
-use crate::Session;
+use crate::Vm;
 use std::cell::RefCell;
 use std::rc::Rc;
+use vfpl_ast::{
+    Body, Call, CallArg, CallArgs, Expr, Literal, LiteralKind, Program, Stmt, Ty, TyKind,
+    TypedIdent, VarInit,
+};
+use vfpl_error::Span;
 
 /// Runs the code and returns stdout
 fn run_code(ast: &Program) -> String {
