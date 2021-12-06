@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Run tests
+        run: cargo test --verbose --all
       - name: "Build VFPL for Linux"
         run: "cargo build --release --target x86_64-unknown-linux-gnu --verbose"
       - name: Install MinGW
