@@ -268,6 +268,17 @@ dependencies = [
 [[package]]
 name = "vfpl_error"
 version = "0.0.0"
+dependencies = [
+ "fastrand",
+ "vfpl_global",
+]
+
+[[package]]
+name = "vfpl_global"
+version = "0.1.0"
+dependencies = [
+ "fastrand",
+]
 
 [[package]]
 name = "vfpl_lexer"

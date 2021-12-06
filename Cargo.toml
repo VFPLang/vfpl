@@ -4,6 +4,7 @@ members = [
     "vfpl_ast_interpreter",
     "vfpl_driver",
     "vfpl_error",
+    "vfpl_global",
     "vfpl_lexer",
     "vfpl_parser",
 ]
