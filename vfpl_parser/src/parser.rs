@@ -2,7 +2,8 @@ use super::{ParseError, ParseResult, Parser};
 use vfpl_ast::{
     ArithmeticOp, ArithmeticOpKind, Body, Break, Call, CallArg, CallArgs, Comparison,
     ComparisonKind, Else, ElseKind, Expr, FnDecl, FnParams, FnReturn, If, IfPart, Literal,
-    LiteralKind, Program, Return, Stmt, Terminate, Ty, TyKind, TypedIdent, VarInit, VarSet, While,
+    LiteralKind, Program, Return, Stmt, Struct, Terminate, Ty, TyKind, TypedIdent, VarInit, VarSet,
+    While,
 };
 use vfpl_error::Span;
 use vfpl_lexer::tokens::{CondKeyword as Ck, TokenKind};
@@ -63,6 +64,7 @@ impl Parser {
                 TokenKind::Check => Stmt::If(parser.if_stmt()?),
                 TokenKind::Repeat => Stmt::While(parser.while_stmt()?),
                 TokenKind::Create => Stmt::FnDecl(parser.fn_decl()?),
+                TokenKind::Define => Stmt::Struct(parser.struct_decl()?),
                 TokenKind::Break => Stmt::Break(parser.break_stmt()?),
                 TokenKind::Return => Stmt::Return(parser.return_stmt()?),
                 TokenKind::CondKw(Ck::Go) => Stmt::Terminate(parser.terminate()?),
@@ -343,6 +345,36 @@ impl Parser {
                 span: that_span.extend(ty.span),
                 ty,
             })
+        })
+    }
+
+    pub fn struct_decl(&mut self) -> ParseResult<Struct> {
+        self.parse_rule(|parser| {
+            let structure_span = parser.expect_kind(TokenKind::Structure)?;
+            let (name, _) = parser.ident()?;
+
+            parser.expect_kind(TokenKind::CondKw(Ck::With))?;
+
+            let fields = parser.struct_fields()?;
+
+            parser.expect_kinds([TokenKind::Please, TokenKind::End])?;
+            let define_end_span = parser.expect_kind(TokenKind::Define)?;
+
+            Ok(Struct {
+                span: structure_span.extend(define_end_span),
+                name,
+                fields,
+            })
+        })
+    }
+
+    pub fn struct_fields(&mut self) -> ParseResult<Vec<TypedIdent>> {
+        self.parse_rule(|parser| {
+            let mut idents = Vec::new();
+
+            todo!();
+
+            Ok(idents)
         })
     }
 
