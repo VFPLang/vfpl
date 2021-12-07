@@ -31,7 +31,7 @@ jobs:
         id: create-release-step
         uses: marvinpinto/action-automatic-releases@latest
         with:
-          automatic_release_tag: v0.0.2 # todo remove
+          automatic_release_tag: v0.0.3 # todo remove
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           draft: true
           files: |
@@ -53,6 +53,7 @@ jobs:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: Cargo.toml
           asset_name: Cargo.toml
+          asset_content_type: application/octet-stream
 
   release-linux:
     runs-on: ubuntu-latest
@@ -70,3 +71,4 @@ jobs:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: target/release/vfpl
           asset_name: vfpl_linux
+          asset_content_type: application/octet-stream
