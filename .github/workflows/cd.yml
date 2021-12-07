@@ -1,31 +1,67 @@
 name: "Create release"
 
+#on:
+#  push:
+#    tags:
+#      - "v*"
+
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
 
 jobs:
-  release-windows-linux:
+  run-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Run tests
         run: cargo test --verbose --all
-      - name: "Build VFPL for Linux"
-        run: "cargo build --release --target x86_64-unknown-linux-gnu --verbose"
-      - name: Install MinGW
-        uses: egor-tensin/setup-mingw@v2
-      - name: "Add Windows Target"
-        run: rustup target add x86_64-pc-windows-gnu
-      - name: "Build VFPL for Windows"
-        run: "cargo build --release --target x86_64-pc-windows-gnu --verbose"
+
+  create-release:
+    runs-on: ubuntu-latest
+    needs: [run-tests]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
       - uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           draft: true
           files: |
             LICENSE
-            target/x86_64-unknown-linux-gnu/release/vfpl
-            target/x86_64-pc-windows-gnu/release/vfpl.exe
+
+  release-windows:
+    runs-on: windows-latest
+    needs: [create-release]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build VFPL for Windows
+        run: cargo build --release --verbose
+      - name: Upload windows artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: target/release/vfpl.exe
+          asset_name: vfpl_windows.exe
+
+  release-windows-linux:
+    runs-on: ubuntu-latest
+    needs: [create-release]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build VFPL for Linux
+        run: cargo build --release --verbose
+      - name: Upload linux artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: target/release/vfpl
+          asset_name: vfpl_linux
