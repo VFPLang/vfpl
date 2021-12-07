@@ -66,3 +66,21 @@ jobs:
           asset_path: target/release/vfpl
           asset_name: vfpl_linux
           asset_content_type: application/octet-stream
+
+  release-macos-x86:
+    runs-on: macos-latest
+    needs: [create-release]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build VFPL for MacOS x86
+        run: cargo build --release --verbose
+      - name: Upload macos_x86 artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: target/release/vfpl
+          asset_name: vfpl_macos_x86
+          asset_content_type: application/octet-stream
