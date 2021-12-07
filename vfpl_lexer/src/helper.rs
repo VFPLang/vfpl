@@ -30,6 +30,7 @@ pub fn compute_keyword(identifier: &str) -> Option<TokenKind> {
         "repeat" => TokenKind::Repeat,
         "return" => TokenKind::Return,
         "while" => TokenKind::While,
+        "structure" => TokenKind::Structure,
         "add" => TokenKind::CondKw(CondKeyword::Add),
         "sub" => TokenKind::CondKw(CondKeyword::Sub),
         "mul" => TokenKind::CondKw(CondKeyword::Mul),
@@ -62,6 +63,8 @@ pub fn compute_keyword(identifier: &str) -> Option<TokenKind> {
         "less" => TokenKind::CondKw(CondKeyword::Less),
         "than" => TokenKind::CondKw(CondKeyword::Than),
         "equal" => TokenKind::CondKw(CondKeyword::Equal),
+        "field" => TokenKind::CondKw(CondKeyword::Field),
+        "fields" => TokenKind::CondKw(CondKeyword::Fields),
         _ => return None,
     })
 }

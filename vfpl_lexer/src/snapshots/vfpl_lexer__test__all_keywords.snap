@@ -1112,4 +1112,62 @@ expression: tokens
             },
         ],
     ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 9,
+                },
+                kind: Structure,
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 5,
+                },
+                kind: CondKw(
+                    Field,
+                ),
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
+    Ok(
+        [
+            Token {
+                span: Span {
+                    start: 0,
+                    end: 6,
+                },
+                kind: CondKw(
+                    Fields,
+                ),
+            },
+            Token {
+                span: Span {
+                    start: 18446744073709551615,
+                    end: 18446744073709551615,
+                },
+                kind: Eof,
+            },
+        ],
+    ),
 ]
