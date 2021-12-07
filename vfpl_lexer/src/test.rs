@@ -140,6 +140,7 @@ fn all_keywords() {
         "structure",
         "field",
         "fields",
+        "define",
     ]
     .map(lex);
     insta::assert_debug_snapshot!(tokens);
