@@ -1,4 +1,5 @@
 use std::fmt::{Display, Formatter, Write};
+use std::thread::spawn;
 use vfpl_error::Span;
 
 type Ident = String;
@@ -20,29 +21,31 @@ pub struct TypedIdent {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Stmt {
-    VarInit(VarInit),
-    VarSet(VarSet),
-    If(If),
-    While(While),
     FnDecl(FnDecl),
+    Struct(Struct),
     Break(Break),
+    Expr(Expr),
+    If(If),
     Return(Return),
     Terminate(Terminate),
-    Expr(Expr),
+    VarInit(VarInit),
+    VarSet(VarSet),
+    While(While),
 }
 
 impl Stmt {
     pub fn span(&self) -> Span {
         match self {
-            Stmt::VarInit(inner) => inner.span,
-            Stmt::VarSet(inner) => inner.span,
-            Stmt::If(inner) => inner.span,
-            Stmt::While(inner) => inner.span,
             Stmt::FnDecl(inner) => inner.span,
+            Stmt::Struct(inner) => inner.span,
             Stmt::Break(inner) => inner.span,
+            Stmt::Expr(expr) => expr.span(),
+            Stmt::If(inner) => inner.span,
             Stmt::Return(inner) => inner.span,
             Stmt::Terminate(inner) => inner.span,
-            Stmt::Expr(expr) => expr.span(),
+            Stmt::VarInit(inner) => inner.span,
+            Stmt::VarSet(inner) => inner.span,
+            Stmt::While(inner) => inner.span,
         }
     }
 }
@@ -115,6 +118,13 @@ pub struct FnDecl {
     pub params: FnParams,
     pub fn_return: FnReturn,
     pub body: Body,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Struct {
+    pub span: Span,
+    pub name: Ident,
+    pub fields: Vec<TypedIdent>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -197,6 +207,7 @@ pub enum LiteralKind {
     True,
     False,
     Ident(Ident),
+    Struct(StructLiteral),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -252,6 +263,20 @@ pub struct CallArg {
     pub span: Span,
     pub expr: Expr,
     pub name: Ident,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct StructLiteral {
+    pub span: Span,
+    pub name: Ident,
+    pub fields: Vec<StructLiteralField>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct StructLiteralField {
+    pub span: Span,
+    pub name: Ident,
+    pub value: Box<Expr>,
 }
 
 impl Display for ComparisonKind {
