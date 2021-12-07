@@ -16,8 +16,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Run tests
-        run: cargo test --verbose --all
+#      - name: Run tests
+#        run: cargo test --verbose --all don't do that for now to save time because running tests takes a lot of it
 
   create-release:
     runs-on: ubuntu-latest
@@ -27,6 +27,7 @@ jobs:
         uses: actions/checkout@v2
       - uses: marvinpinto/action-automatic-releases@latest
         with:
+          automatic_release_tag: true # todo remove
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           draft: true
           files: |
