@@ -21,6 +21,6 @@ jobs:
     - name: Run clippy -D clippy::all
       run: cargo clippy --verbose -- -D clippy::all
     - name: Check format
-      run: cargo fmt --all -- --check
+      run: cargo fmt --verbose --all -- --check
     - name: Run tests
       run: cargo test --verbose --all
