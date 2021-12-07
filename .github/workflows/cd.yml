@@ -31,7 +31,7 @@ jobs:
         id: create-release-step
         uses: marvinpinto/action-automatic-releases@latest
         with:
-          automatic_release_tag: v0.0.1 # todo remove
+          automatic_release_tag: v0.0.2 # todo remove
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           draft: true
           files: |
@@ -50,7 +50,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
           asset_path: Cargo.toml
           asset_name: Cargo.toml
 
@@ -67,6 +67,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
           asset_path: target/release/vfpl
           asset_name: vfpl_linux
