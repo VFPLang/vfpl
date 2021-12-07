@@ -9,6 +9,8 @@ body ::= (statement)*
 
 typed-ident ::= ident "as" type
 
+value-ident ::= expr "as" ident
+
 ident ::="regexp:\w"+
 
 // type
@@ -19,23 +21,32 @@ nullable ::= "absent" | "null" | "novalue" | "undefined"
 
 
 // function
-fn-decl ::= "create function" ident "with" params fn-return
+fn-decl ::= "create function" ident "with" fn-params fn-return
                 body
             "please end function" ident
-params ::= no-params | single-params | multi-params
-no-params ::= "no parameters"
-single-params ::="the parameter" typed-ident
-multi-params ::="the parameters" typed-ident ("," typed-ident)* "and" typed-ident
+fn-params ::= fn-no-params | fn-single-params | fn-multi-params
+fn-no-params ::= "no parameters"
+fn-single-params ::="the parameter" typed-ident
+fn-multi-params ::="the parameters" typed-ident ("," typed-ident)* "and" typed-ident
 fn-return ::="that returns" type
+
+
+// structure
+struct-def ::= "define structure" ident "with" struct-fields "please end define"
+struct-fields ::= struct-one-field | struct-multi-fields
+struct-one-field ::= struct-field
+struct-multi-fields ::= struct-field ("," struct-field)* "and" struct-field
+struct-field ::= "the field" typed-ident
 
 ////// Statement rules
 
 statement ::= "please" (
+    fn-decl |
+    struct-def |
     variable-init |
     variable-set |
     if |
     while |
-    fn-decl |
     break |
     return |
     terminate |
@@ -89,14 +100,20 @@ primary-expr ::= "(" expr ")" | literal
 
 // function call
 call ::= "call" ident "with" call-args
-call-args ::= no-arg | single-arg | multi-arg
-no-arg ::="no arguments"
-single-arg ::="the argument" expr "as" ident
-multi-arg ::="the arguments" expr "as" ident ("," expr "as" ident)* "and" expr "as" ident
+call-args ::= call-no-arg | call-single-arg | call-multi-arg
+call-no-arg ::="no arguments"
+call-single-arg ::="the argument" value-ident
+call-multi-arg ::="the arguments" value-ident ("," value-ident)* "and" value-ident
 
 
 // literals
-literal ::= nullable | "regexp:\".*\"" | number | "true" | "false" | ident
+literal ::= struct-literal |nullable | "regexp:\".*\"" | number | "true" | "false" | ident
 number ::= int | float
 float ::= "-"? "regexp:\d"+ "."? "regexp:\d"+
 int ::= "-"? "regexp:\d"+
+
+// struct literal
+struct-literal ::= ident "with" struct-lit-fields
+struct-lit-fields ::= struct-lit-no-fields | struct-lit-fields-some
+struct-lit-no-fields ::= "no fields"
+struct-lit-fields-some::= value-ident (("," value-ident)* "and" value-ident)?
