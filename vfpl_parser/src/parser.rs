@@ -274,61 +274,28 @@ impl Parser {
 
     pub fn params(&mut self) -> ParseResult<FnParams> {
         self.parse_rule(|parser| {
-            if let Some(no_token) = parser.try_consume_kind(TokenKind::CondKw(Ck::No)) {
-                let param_span = parser.expect_kind(TokenKind::CondKw(Ck::Parameters))?;
-                Ok(FnParams {
-                    span: no_token.span.extend(param_span),
-                    params: vec![],
-                })
-            } else if let Some(the_token) = parser.try_consume_kind(TokenKind::CondKw(Ck::The)) {
-                if parser.try_consume_kind(TokenKind::CondKw(Ck::Parameter)).is_some() {
-                    let param = parser.typed_ident()?;
-
-                    Ok(FnParams {
-                        span: the_token.span.extend(param.span),
-                        params: vec![param],
-                    })
-                } else if parser.try_consume_kind(TokenKind::CondKw(Ck::Parameters)).is_some() {
-                    parser.multi_params(the_token.span)
-                } else {
-                    let next = parser.peek();
-                    Err(ParseError::full(
-                        next.span,
-                        format!("Expected `parameter(s)`, found {}", next.kind),
-                        "When creating a function, you need to specify the parameters a function takes. This is done using the `parameter` or `parameters` keyword.".to_string(),
-                        "add the `parameter` keyword before this here. If you want to take multiple parameters (which is cool too!), you need to use `parameters` instead.".to_string()
-                    ))
-                }
-            } else {
-                let next = parser.peek();
-                Err(ParseError::full(
+            let (params, span) = parser.list(
+                TokenKind::CondKw(Ck::Parameter),
+                TokenKind::CondKw(Ck::Parameters),
+                Self::typed_ident,
+                |typed_ident| typed_ident.span,
+                |next| ParseError::full(
+                    next.span,
+                    format!("Expected `parameter(s)`, found {}", next.kind),
+                    "When creating a function, you need to specify the parameters a function takes. This is done using the `parameter` or `parameters` keyword.".to_string(),
+                    "add the `parameter` keyword before this here. If you want to take multiple parameters (which is cool too!), you need to use `parameters` instead.".to_string()
+                ),
+                |next| ParseError::full(
                     next.span,
                     format!("Expected `the` or `no`, found {}", next.kind),
                     "If you don't want to take any parameters, then you need to say that you don't, and if you do you need to say that you do.".to_string(),
                     "add `no parameters` here, since I think that you don't want to take any paramters here.".to_string()
-                ))
-            }
-        })
-    }
+                )
+            )?;
 
-    pub fn multi_params(&mut self, the_span: Span) -> ParseResult<FnParams> {
-        self.parse_rule(|parser| {
-            let first = parser.typed_ident()?;
-
-            let mut params = vec![first];
-
-            while parser.try_consume_kind(TokenKind::Comma).is_some() {
-                let next = parser.typed_ident()?;
-                params.push(next);
-            }
-
-            parser.expect_kind(TokenKind::And)?;
-            let last = parser.typed_ident()?;
-            let last_span = last.span;
-            params.push(last);
 
             Ok(FnParams {
-                span: the_span.extend(last_span),
+                span,
                 params,
             })
         })
@@ -465,37 +432,22 @@ impl Parser {
 
     pub fn call_args(&mut self) -> ParseResult<CallArgs> {
         self.parse_rule(|parser| {
-            if let Some(token) = parser.try_consume_kind(TokenKind::CondKw(Ck::No)) {
-                let arguments_span = parser.expect_kind(TokenKind::CondKw(Ck::Arguments))?;
-                Ok(CallArgs {
-                    span: token.span.extend(arguments_span),
-                    args: vec![],
-                })
-            } else if let Some(the_token) = parser.try_consume_kind(TokenKind::CondKw(Ck::The)) {
-                if parser.try_consume_kind(TokenKind::CondKw(Ck::Argument)).is_some() {
-                    let arg = parser.value_ident()?;
 
-                    Ok(CallArgs {
-                        span: the_token.span.extend(arg.span),
-                        args: vec![arg],
-                    })
-                } else if parser.try_consume_kind(TokenKind::CondKw(Ck::Arguments)).is_some() {
-                    parser.multi_args(the_token.span)
-                } else {
-                    let next = parser.peek();
-                    Err(ParseError::full(
-                        next.span,
-                        format!(
-                            "Expected `argument(s)` after `the` in function call, got {}",
-                            next.kind
-                        ),
-                        "You want to call a function here. But to call a function, you need to specify the arguments you want to pass. I know a keyword just for that, called `argument`, or if you want multiple, `arguments`. It's pretty cool, check it out!".to_string(),
-                        "add the cool keyword in there!".to_string()
-                    ))
-                }
-            } else {
-                let next = parser.peek();
-                Err(ParseError::full(
+            let (args, span) = parser.list(
+                TokenKind::CondKw(Ck::Argument),
+                TokenKind::CondKw(Ck::Arguments),
+                Self::value_ident,
+                |value_ident| value_ident.span,
+                |next|ParseError::full(
+                    next.span,
+                    format!(
+                        "Expected `argument(s)` after `the` in function call, got {}",
+                        next.kind
+                    ),
+                    "You want to call a function here. But to call a function, you need to specify the arguments you want to pass. I know a keyword just for that, called `argument`, or if you want multiple, `arguments`. It's pretty cool, check it out!".to_string(),
+                    "add the cool keyword in there!".to_string()
+                ),
+                |next| ParseError::full(
                     next.span,
                     format!(
                         "Expected `no` or `the` after `with` in function call, got {}",
@@ -503,32 +455,10 @@ impl Parser {
                     ),
                     "You need to tell me the arguments you want to give to that function.".to_string(),
                     "either use `no arguments` if you don't want to give the poor function any, or `the argument`, `the arguments` if you are nice and want to the function to have some happy little arguments.".to_string()
-                ))
-            }
-        })
-    }
+                )
+            )?;
 
-    pub fn multi_args(&mut self, the_span: Span) -> ParseResult<CallArgs> {
-        self.parse_rule(|parser| {
-            let arg = parser.value_ident()?;
-
-            let mut call_args = vec![arg];
-
-            while parser.try_consume_kind(TokenKind::Comma).is_some() {
-                let arg = parser.value_ident()?;
-                call_args.push(arg);
-            }
-
-            parser.expect_kind(TokenKind::And)?;
-
-            let last_arg = parser.value_ident()?;
-            let last_arg_span = last_arg.span;
-            call_args.push(last_arg);
-
-            Ok(CallArgs {
-                span: the_span.extend(last_arg_span),
-                args: call_args,
-            })
+            Ok(CallArgs{ span, args })
         })
     }
 
@@ -821,53 +751,19 @@ impl Parser {
 
             parser.expect_kind(TokenKind::CondKw(Ck::With))?;
 
-            let fields = if parser.peek_kind() == &TokenKind::CondKw(Ck::No)
-                && parser.maybe_peek_nth_kind(1) == Some(&TokenKind::CondKw(Ck::Fields))
-            {
-                Vec::new()
-            } else {
-                parser.expect_kind(TokenKind::CondKw(Ck::The))?;
-
-                parser.struct_literal_fields()?
-            };
+            let (fields, _) = parser.list(
+                TokenKind::CondKw(Ck::Field),
+                TokenKind::CondKw(Ck::Fields),
+                Self::value_ident,
+                |value_ident| value_ident.span,
+                |_next| todo!(),
+                |_next| todo!(),
+            )?;
 
             Ok(Literal {
                 span: name_span,
                 kind: LiteralKind::Struct(StructLiteral { name, fields }),
             })
-        })
-    }
-
-    pub fn struct_literal_fields(&mut self) -> ParseResult<Vec<ValueIdent>> {
-        self.parse_rule(|parser| {
-            let fields = if parser
-                .try_consume_kind(TokenKind::CondKw(Ck::Field))
-                .is_some()
-            {
-                let first = parser.value_ident()?;
-                let fields = vec![first];
-                fields
-            } else if parser
-                .try_consume_kind(TokenKind::CondKw(Ck::Fields))
-                .is_some()
-            {
-                let first = parser.value_ident()?;
-                let mut fields = vec![first];
-
-                while parser.try_consume_kind(TokenKind::Comma).is_some() {
-                    let field = parser.value_ident()?;
-                    fields.push(field);
-                }
-
-                parser.expect_kind(TokenKind::And)?;
-                let last_field = parser.value_ident()?;
-                fields.push(last_field);
-                fields
-            } else {
-                return Err(todo!());
-            };
-
-            Ok(fields)
         })
     }
 

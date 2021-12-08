@@ -1,6 +1,6 @@
 use crate::{ParseError, ParseResult, Parser};
 use vfpl_error::Span;
-use vfpl_lexer::tokens::{Token, TokenKind};
+use vfpl_lexer::tokens::{CondKeyword, Token, TokenKind};
 
 impl Parser {
     const MAX_DEPTH: usize = 200;
@@ -13,6 +13,67 @@ impl Parser {
         let result = f(self);
         self.leave_parse_rule();
         result
+    }
+
+    /// Parses a list of things
+    /// The signature got out of hand
+    pub(super) fn list<F, R, S, E1, E2>(
+        &mut self,
+        single_indicator: TokenKind,
+        multi_indicator: TokenKind,
+        mut single_parser: F,
+        mut get_span: S,
+        inner_error: E2,
+        outer_error: E1,
+    ) -> ParseResult<(Vec<R>, Span)>
+    where
+        F: FnMut(&mut Parser) -> ParseResult<R>,
+        S: FnMut(&R) -> Span,
+        E1: FnOnce(&Token) -> ParseError,
+        E2: FnOnce(&Token) -> ParseError,
+    {
+        self.parse_rule(|parser| {
+            if let Some(token) = parser.try_consume_kind(TokenKind::CondKw(CondKeyword::No)) {
+                let multi_span = parser.expect_kind(multi_indicator.clone())?;
+                Ok((vec![], token.span.extend(multi_span)))
+            } else if let Some(the_token) =
+                parser.try_consume_kind(TokenKind::CondKw(CondKeyword::The))
+            {
+                if parser.try_consume_kind(single_indicator.clone()).is_some() {
+                    // only a single element
+
+                    let value = single_parser(parser)?;
+                    let value_span = get_span(&value);
+
+                    Ok((vec![value], the_token.span.extend(value_span)))
+                } else if parser.try_consume_kind(multi_indicator.clone()).is_some() {
+                    // multiple elements
+
+                    let value = single_parser(parser)?;
+
+                    let mut values = vec![value];
+
+                    while parser.try_consume_kind(TokenKind::Comma).is_some() {
+                        let value = single_parser(parser)?;
+                        values.push(value);
+                    }
+
+                    parser.expect_kind(TokenKind::And)?;
+
+                    let last_value = single_parser(parser)?;
+                    let last_arg_span = get_span(&last_value);
+                    values.push(last_value);
+
+                    Ok((values, the_token.span.extend(last_arg_span)))
+                } else {
+                    let next = parser.peek();
+                    Err(inner_error(next))
+                }
+            } else {
+                let next = parser.peek();
+                Err(outer_error(next))
+            }
+        })
     }
 
     /// Returns the next token
