@@ -1,0 +1,38 @@
+---
+source: vfpl_parser/src/test.rs
+expression: parsed
+
+---
+Ok(
+    Literal {
+        span: Span {
+            start: 0,
+            end: 0,
+        },
+        kind: Struct(
+            StructLiteral {
+                name: "NonZeroInt",
+                fields: [
+                    ValueIdent {
+                        span: Span {
+                            start: 0,
+                            end: 0,
+                        },
+                        expr: Literal(
+                            Literal {
+                                span: Span {
+                                    start: 0,
+                                    end: 0,
+                                },
+                                kind: Int(
+                                    3,
+                                ),
+                            },
+                        ),
+                        name: "inner",
+                    },
+                ],
+            },
+        ),
+    },
+)

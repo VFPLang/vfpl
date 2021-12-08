@@ -1,9 +1,9 @@
 use super::{ParseError, ParseResult, Parser};
 use vfpl_ast::{
-    ArithmeticOp, ArithmeticOpKind, Body, Break, Call, CallArg, CallArgs, Comparison,
-    ComparisonKind, Else, ElseKind, Expr, FnDecl, FnParams, FnReturn, If, IfPart, Literal,
-    LiteralKind, Program, Return, Stmt, Struct, StructField, StructLiteral, Terminate, Ty, TyKind,
-    TypedIdent, VarInit, VarSet, While,
+    ArithmeticOp, ArithmeticOpKind, Body, Break, Call, CallArgs, Comparison, ComparisonKind, Else,
+    ElseKind, Expr, FnDecl, FnParams, FnReturn, If, IfPart, Literal, LiteralKind, Program, Return,
+    Stmt, Struct, StructField, StructLiteral, Terminate, Ty, TyKind, TypedIdent, ValueIdent,
+    VarInit, VarSet, While,
 };
 use vfpl_error::Span;
 use vfpl_lexer::tokens::{CondKeyword as Ck, TokenKind};
@@ -473,7 +473,7 @@ impl Parser {
                 })
             } else if let Some(the_token) = parser.try_consume_kind(TokenKind::CondKw(Ck::The)) {
                 if parser.try_consume_kind(TokenKind::CondKw(Ck::Argument)).is_some() {
-                    let arg = parser.call_arg()?;
+                    let arg = parser.value_ident()?;
 
                     Ok(CallArgs {
                         span: the_token.span.extend(arg.span),
@@ -510,18 +510,18 @@ impl Parser {
 
     pub fn multi_args(&mut self, the_span: Span) -> ParseResult<CallArgs> {
         self.parse_rule(|parser| {
-            let arg = parser.call_arg()?;
+            let arg = parser.value_ident()?;
 
             let mut call_args = vec![arg];
 
             while parser.try_consume_kind(TokenKind::Comma).is_some() {
-                let arg = parser.call_arg()?;
+                let arg = parser.value_ident()?;
                 call_args.push(arg);
             }
 
             parser.expect_kind(TokenKind::And)?;
 
-            let last_arg = parser.call_arg()?;
+            let last_arg = parser.value_ident()?;
             let last_arg_span = last_arg.span;
             call_args.push(last_arg);
 
@@ -532,15 +532,15 @@ impl Parser {
         })
     }
 
-    pub fn call_arg(&mut self) -> ParseResult<CallArg> {
+    pub fn value_ident(&mut self) -> ParseResult<ValueIdent> {
         self.parse_rule(|parser| {
             let first_arg_val = parser.expr()?;
             parser.expect_kind(TokenKind::As)?;
             let (first_name, first_name_span) = parser.ident()?;
 
-            Ok(CallArg {
+            Ok(ValueIdent {
                 span: first_arg_val.span().extend(first_name_span),
-                expr: first_arg_val,
+                expr: Box::new(first_arg_val),
                 name: first_name,
             })
         })
@@ -797,7 +797,48 @@ impl Parser {
     }
 
     pub fn struct_literal(&mut self) -> ParseResult<Literal> {
-        self.parse_rule(|parser| todo!())
+        self.parse_rule(|parser| {
+            let (name, name_span) = parser.ident()?;
+
+            parser.expect_kind(TokenKind::CondKw(Ck::With))?;
+
+            let fields = if parser.peek_kind() == &TokenKind::CondKw(Ck::No)
+                && parser.maybe_peek_nth_kind(1) == Some(&TokenKind::CondKw(Ck::Fields))
+            {
+                Vec::new()
+            } else {
+                parser.struct_literal_fields()?
+            };
+
+            Ok(Literal {
+                span: name_span,
+                kind: LiteralKind::Struct(StructLiteral { name, fields }),
+            })
+        })
+    }
+
+    pub fn struct_literal_fields(&mut self) -> ParseResult<Vec<ValueIdent>> {
+        self.parse_rule(|parser| {
+            let first = parser.value_ident()?;
+
+            let mut fields = vec![first];
+
+            if let TokenKind::Comma | TokenKind::And = parser.peek_kind() {
+                // parse the rest of the fields
+
+                while parser.try_consume_kind(TokenKind::Comma).is_some() {
+                    let field = parser.value_ident()?;
+                    fields.push(field);
+                }
+
+                parser.expect_kind(TokenKind::And)?;
+
+                let last_field = parser.value_ident()?;
+                fields.push(last_field);
+            }
+
+            Ok(fields)
+        })
     }
 
     pub fn ident(&mut self) -> ParseResult<(String, Span)> {

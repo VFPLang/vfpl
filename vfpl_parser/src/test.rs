@@ -119,6 +119,14 @@ fn ident_literal() {
 }
 
 #[test]
+fn ident_cond_keyword_literal() {
+    let tokens = [CondKw(From)].map(token);
+    let parsed = parse(tokens, Parser::expr);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
 fn not_equal_expr() {
     let tokens = [
         Absent,

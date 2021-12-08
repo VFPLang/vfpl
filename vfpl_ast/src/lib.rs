@@ -260,27 +260,20 @@ pub struct Call {
 #[derive(Debug, Clone, PartialEq)]
 pub struct CallArgs {
     pub span: Span,
-    pub args: Vec<CallArg>,
+    pub args: Vec<ValueIdent>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct CallArg {
+pub struct ValueIdent {
     pub span: Span,
-    pub expr: Expr,
+    pub expr: Box<Expr>,
     pub name: Ident,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct StructLiteral {
     pub name: Ident,
-    pub fields: Vec<StructLiteralField>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct StructLiteralField {
-    pub span: Span,
-    pub name: Ident,
-    pub value: Box<Expr>,
+    pub fields: Vec<ValueIdent>,
 }
 
 impl Display for ComparisonKind {

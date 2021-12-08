@@ -16,7 +16,7 @@ Ok(
                 end: 0,
             },
             args: [
-                CallArg {
+                ValueIdent {
                     span: Span {
                         start: 0,
                         end: 0,
@@ -34,7 +34,7 @@ Ok(
                     ),
                     name: "a",
                 },
-                CallArg {
+                ValueIdent {
                     span: Span {
                         start: 0,
                         end: 0,

@@ -2,8 +2,8 @@ use crate::Vm;
 use std::cell::RefCell;
 use std::rc::Rc;
 use vfpl_ast::{
-    Body, Call, CallArg, CallArgs, Expr, Literal, LiteralKind, Program, Stmt, Ty, TyKind,
-    TypedIdent, VarInit,
+    Body, Call, CallArgs, Expr, Literal, LiteralKind, Program, Stmt, Ty, TyKind, TypedIdent,
+    ValueIdent, VarInit,
 };
 use vfpl_error::Span;
 use vfpl_global::Session;
@@ -46,7 +46,7 @@ fn println(name: &str) -> Stmt {
         fn_name: "println".to_string(),
         args: CallArgs {
             span: Default::default(),
-            args: vec![CallArg {
+            args: vec![ValueIdent {
                 span: Default::default(),
                 expr: Expr::Literal(Literal {
                     span: Default::default(),

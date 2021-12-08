@@ -1,0 +1,56 @@
+---
+source: vfpl_parser/src/test.rs
+expression: parsed
+
+---
+Ok(
+    Literal {
+        span: Span {
+            start: 0,
+            end: 0,
+        },
+        kind: Struct(
+            StructLiteral {
+                name: "Person",
+                fields: [
+                    ValueIdent {
+                        span: Span {
+                            start: 0,
+                            end: 0,
+                        },
+                        expr: Literal(
+                            Literal {
+                                span: Span {
+                                    start: 0,
+                                    end: 0,
+                                },
+                                kind: Ident(
+                                    "Hugo",
+                                ),
+                            },
+                        ),
+                        name: "name",
+                    },
+                    ValueIdent {
+                        span: Span {
+                            start: 0,
+                            end: 0,
+                        },
+                        expr: Literal(
+                            Literal {
+                                span: Span {
+                                    start: 0,
+                                    end: 0,
+                                },
+                                kind: Int(
+                                    5,
+                                ),
+                            },
+                        ),
+                        name: "age",
+                    },
+                ],
+            },
+        ),
+    },
+)
