@@ -1,5 +1,4 @@
 use std::fmt::{Display, Formatter, Write};
-use std::thread::spawn;
 use vfpl_error::Span;
 
 type Ident = String;
@@ -124,7 +123,13 @@ pub struct FnDecl {
 pub struct Struct {
     pub span: Span,
     pub name: Ident,
-    pub fields: Vec<TypedIdent>,
+    pub fields: Vec<StructField>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct StructField {
+    pub span: Span,
+    pub ty_ident: TypedIdent,
 }
 
 #[derive(Debug, Clone, PartialEq)]

@@ -2,8 +2,8 @@ use super::{ParseError, ParseResult, Parser};
 use vfpl_ast::{
     ArithmeticOp, ArithmeticOpKind, Body, Break, Call, CallArg, CallArgs, Comparison,
     ComparisonKind, Else, ElseKind, Expr, FnDecl, FnParams, FnReturn, If, IfPart, Literal,
-    LiteralKind, Program, Return, Stmt, Struct, Terminate, Ty, TyKind, TypedIdent, VarInit, VarSet,
-    While,
+    LiteralKind, Program, Return, Stmt, Struct, StructField, Terminate, Ty, TyKind, TypedIdent,
+    VarInit, VarSet, While,
 };
 use vfpl_error::Span;
 use vfpl_lexer::tokens::{CondKeyword as Ck, TokenKind};
@@ -350,7 +350,8 @@ impl Parser {
 
     pub fn struct_decl(&mut self) -> ParseResult<Struct> {
         self.parse_rule(|parser| {
-            let structure_span = parser.expect_kind(TokenKind::Structure)?;
+            let define_span = parser.expect_kind(TokenKind::Define)?;
+            parser.expect_kind(TokenKind::Structure)?;
             let (name, _) = parser.ident()?;
 
             parser.expect_kind(TokenKind::CondKw(Ck::With))?;
@@ -361,20 +362,51 @@ impl Parser {
             let define_end_span = parser.expect_kind(TokenKind::Define)?;
 
             Ok(Struct {
-                span: structure_span.extend(define_end_span),
+                span: define_span.extend(define_end_span),
                 name,
                 fields,
             })
         })
     }
 
-    pub fn struct_fields(&mut self) -> ParseResult<Vec<TypedIdent>> {
+    pub fn struct_fields(&mut self) -> ParseResult<Vec<StructField>> {
         self.parse_rule(|parser| {
-            let mut idents = Vec::new();
+            let mut fields = Vec::new();
 
-            todo!();
+            if let TokenKind::CondKw(Ck::The) = parser.peek_kind() {
+                let first_field = parser.struct_field()?;
+                fields.push(first_field);
+            }
 
-            Ok(idents)
+            if let TokenKind::Comma | TokenKind::And = parser.peek_kind() {
+                // parse the rest of the fields
+
+                while parser.try_consume_kind(TokenKind::Comma).is_some() {
+                    let field = parser.struct_field()?;
+                    fields.push(field);
+                }
+
+                parser.expect_kind(TokenKind::And)?;
+
+                let last_field = parser.struct_field()?;
+                fields.push(last_field);
+            }
+
+            Ok(fields)
+        })
+    }
+
+    pub fn struct_field(&mut self) -> ParseResult<StructField> {
+        self.parse_rule(|parser| {
+            let the_span = parser.expect_kind(TokenKind::CondKw(Ck::The))?;
+            parser.expect_kind(TokenKind::CondKw(Ck::Field))?;
+
+            let ty_ident = parser.typed_ident()?;
+
+            Ok(StructField {
+                span: the_span.extend(ty_ident.span),
+                ty_ident,
+            })
         })
     }
 

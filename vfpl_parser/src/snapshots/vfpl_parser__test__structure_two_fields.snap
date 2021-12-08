@@ -1,0 +1,60 @@
+---
+source: vfpl_parser/src/test.rs
+expression: parsed
+
+---
+Ok(
+    Struct {
+        span: Span {
+            start: 0,
+            end: 0,
+        },
+        name: "Person",
+        fields: [
+            StructField {
+                span: Span {
+                    start: 0,
+                    end: 0,
+                },
+                ty_ident: TypedIdent {
+                    span: Span {
+                        start: 0,
+                        end: 0,
+                    },
+                    name: "name",
+                    ty: Ty {
+                        span: Span {
+                            start: 0,
+                            end: 0,
+                        },
+                        kind: Name(
+                            "String",
+                        ),
+                    },
+                },
+            },
+            StructField {
+                span: Span {
+                    start: 0,
+                    end: 0,
+                },
+                ty_ident: TypedIdent {
+                    span: Span {
+                        start: 0,
+                        end: 0,
+                    },
+                    name: "age",
+                    ty: Ty {
+                        span: Span {
+                            start: 0,
+                            end: 0,
+                        },
+                        kind: Name(
+                            "Integer",
+                        ),
+                    },
+                },
+            },
+        ],
+    },
+)
