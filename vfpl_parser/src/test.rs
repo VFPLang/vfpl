@@ -901,6 +901,8 @@ fn structure_literal_one_field() {
     let tokens = [
         Ident("NonZeroInt".to_string()),
         CondKw(With),
+        CondKw(The),
+        CondKw(Field),
         Int(3),
         As,
         Ident("inner".to_string()),
@@ -916,6 +918,8 @@ fn structure_literal_two_fields() {
     let tokens = [
         Ident("Person".to_string()),
         CondKw(With),
+        CondKw(The),
+        CondKw(Fields),
         Ident("Hugo".to_string()),
         As,
         Ident("name".to_string()),
@@ -935,6 +939,8 @@ fn structure_literal_three_fields() {
     let tokens = [
         Ident("Person".to_string()),
         CondKw(With),
+        CondKw(The),
+        CondKw(Fields),
         Ident("Hugo".to_string()),
         As,
         Ident("first_name".to_string()),

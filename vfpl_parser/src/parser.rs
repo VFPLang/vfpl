@@ -747,7 +747,7 @@ impl Parser {
     pub fn literal(&mut self) -> ParseResult<Literal> {
         self.parse_rule(|parser| {
             // ident literals are special because they might be several tokens long
-            if let TokenKind::Ident(_) = parser.peek_kind(){
+            if let TokenKind::Ident(_) | TokenKind::CondKw(_) = parser.peek_kind(){
                 return parser.ident_literal();
             }
 
@@ -783,15 +783,34 @@ impl Parser {
 
     pub fn ident_literal(&mut self) -> ParseResult<Literal> {
         self.parse_rule(|parser| {
-            if let Some(TokenKind::CondKw(Ck::With)) = parser.maybe_peek_nth_kind(1) {
-                parser.struct_literal()
-            } else {
-                let (ident, ident_span) = parser.ident()?;
+            // before your read this, note:
+            // the struct literal grammar is horribly ambiguous and a mistake
+            // if you read this, there was probably a new edge case
+            // good luck :)
 
-                Ok(Literal {
-                    span: ident_span,
-                    kind: LiteralKind::Ident(ident),
-                })
+            match (
+                parser.maybe_peek_nth_kind(1).cloned(),
+                parser.maybe_peek_nth_kind(2).cloned(),
+                parser.maybe_peek_nth_kind(3).cloned(),
+            ) {
+                (
+                    Some(TokenKind::CondKw(Ck::With)),
+                    Some(TokenKind::CondKw(Ck::The)),
+                    Some(TokenKind::CondKw(Ck::Field)) | Some(TokenKind::CondKw(Ck::Fields)),
+                ) => parser.struct_literal(),
+                (
+                    Some(TokenKind::CondKw(Ck::With)),
+                    Some(TokenKind::CondKw(Ck::No)),
+                    Some(TokenKind::CondKw(Ck::Fields)),
+                ) => parser.struct_literal(),
+                _ => {
+                    let (ident, ident_span) = parser.ident()?;
+
+                    Ok(Literal {
+                        span: ident_span,
+                        kind: LiteralKind::Ident(ident),
+                    })
+                }
             }
         })
     }
@@ -807,6 +826,8 @@ impl Parser {
             {
                 Vec::new()
             } else {
+                parser.expect_kind(TokenKind::CondKw(Ck::The))?;
+
                 parser.struct_literal_fields()?
             };
 
@@ -819,12 +840,19 @@ impl Parser {
 
     pub fn struct_literal_fields(&mut self) -> ParseResult<Vec<ValueIdent>> {
         self.parse_rule(|parser| {
-            let first = parser.value_ident()?;
-
-            let mut fields = vec![first];
-
-            if let TokenKind::Comma | TokenKind::And = parser.peek_kind() {
-                // parse the rest of the fields
+            let fields = if parser
+                .try_consume_kind(TokenKind::CondKw(Ck::Field))
+                .is_some()
+            {
+                let first = parser.value_ident()?;
+                let fields = vec![first];
+                fields
+            } else if parser
+                .try_consume_kind(TokenKind::CondKw(Ck::Fields))
+                .is_some()
+            {
+                let first = parser.value_ident()?;
+                let mut fields = vec![first];
 
                 while parser.try_consume_kind(TokenKind::Comma).is_some() {
                     let field = parser.value_ident()?;
@@ -832,10 +860,12 @@ impl Parser {
                 }
 
                 parser.expect_kind(TokenKind::And)?;
-
                 let last_field = parser.value_ident()?;
                 fields.push(last_field);
-            }
+                fields
+            } else {
+                return Err(todo!());
+            };
 
             Ok(fields)
         })

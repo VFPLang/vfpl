@@ -112,6 +112,7 @@ int ::= "-"? "regexp:\d"+
 
 // struct literal
 struct-literal ::= ident "with" struct-lit-fields
-struct-lit-fields ::= struct-lit-no-fields | struct-lit-fields-some
-struct-lit-no-fields ::= "no fields"
-struct-lit-fields-some::= value-ident (("," value-ident)* "and" value-ident)?
+struct-lit-fields ::= struct-lit-fields-none | struct-lit-fields-single | struct-lit-fields-multi
+struct-lit-fields-none ::= "no fields"
+struct-lit-fields-single ::= "the field" value-ident
+struct-lit-fields-multi::= "the fields" value-ident ("," value-ident)* "and" value-ident
