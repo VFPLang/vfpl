@@ -2,8 +2,8 @@ use super::{ParseError, ParseResult, Parser};
 use vfpl_ast::{
     ArithmeticOp, ArithmeticOpKind, Body, Break, Call, CallArg, CallArgs, Comparison,
     ComparisonKind, Else, ElseKind, Expr, FnDecl, FnParams, FnReturn, If, IfPart, Literal,
-    LiteralKind, Program, Return, Stmt, Struct, StructField, Terminate, Ty, TyKind, TypedIdent,
-    VarInit, VarSet, While,
+    LiteralKind, Program, Return, Stmt, Struct, StructField, StructLiteral, Terminate, Ty, TyKind,
+    TypedIdent, VarInit, VarSet, While,
 };
 use vfpl_error::Span;
 use vfpl_lexer::tokens::{CondKeyword as Ck, TokenKind};
@@ -774,6 +774,10 @@ impl Parser {
                 kind: literal_kind,
             })
         })
+    }
+
+    pub fn struct_literal(&mut self) -> ParseResult<StructLiteral> {
+        self.parse_rule(|parser| todo!())
     }
 
     pub fn ident(&mut self) -> ParseResult<(String, Span)> {
