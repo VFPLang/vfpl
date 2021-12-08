@@ -746,6 +746,12 @@ impl Parser {
 
     pub fn literal(&mut self) -> ParseResult<Literal> {
         self.parse_rule(|parser| {
+            // ident literals are special because they might be several tokens long
+            if let TokenKind::Ident(_) = parser.peek_kind(){
+                return parser.ident_literal();
+            }
+
+            // a single token literal
             let token = parser.next();
 
             let literal_kind = match token.kind {
@@ -758,7 +764,6 @@ impl Parser {
                 TokenKind::String(value) => LiteralKind::String(value),
                 TokenKind::Int(value) => LiteralKind::Int(value),
                 TokenKind::Float(value) => LiteralKind::Float(value),
-                TokenKind::Ident(name) => LiteralKind::Ident(name),
                 _ => {
                     return Err(ParseError::full(
                         token.span,
@@ -776,7 +781,22 @@ impl Parser {
         })
     }
 
-    pub fn struct_literal(&mut self) -> ParseResult<StructLiteral> {
+    pub fn ident_literal(&mut self) -> ParseResult<Literal> {
+        self.parse_rule(|parser| {
+            if let Some(TokenKind::CondKw(Ck::With)) = parser.maybe_peek_nth_kind(1) {
+                parser.struct_literal()
+            } else {
+                let (ident, ident_span) = parser.ident()?;
+
+                Ok(Literal {
+                    span: ident_span,
+                    kind: LiteralKind::Ident(ident),
+                })
+            }
+        })
+    }
+
+    pub fn struct_literal(&mut self) -> ParseResult<Literal> {
         self.parse_rule(|parser| todo!())
     }
 

@@ -272,7 +272,6 @@ pub struct CallArg {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct StructLiteral {
-    pub span: Span,
     pub name: Ident,
     pub fields: Vec<StructLiteralField>,
 }
