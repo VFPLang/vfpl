@@ -6,7 +6,8 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use vfpl_ast::{
     ArithmeticOp, ArithmeticOpKind, Call, Comparison, ComparisonKind, Else, ElseKind, Expr, FnDecl,
-    IfPart, Literal, LiteralKind, Program, Return, Stmt, TyKind, VarInit, VarSet, While,
+    IfPart, Literal, LiteralKind, Program, Return, Stmt, Struct, StructLiteral, TyKind, VarInit,
+    VarSet, While,
 };
 use vfpl_error::{random_number, Span};
 
@@ -71,6 +72,7 @@ impl Vm {
                 .env()
                 .get_value(name)
                 .ok_or_else(|| var_not_found(lit.span, name)),
+            LiteralKind::Struct(literal) => self.struct_literal(literal),
         }
     }
 
@@ -366,6 +368,18 @@ impl Vm {
         })
     }
 
+    fn struct_literal(&mut self, lit: &StructLiteral) -> ValueResult {
+        let name: Rc<_> = lit.name.clone().into();
+
+        let mut fields = HashMap::new();
+
+        for field in &lit.fields {
+            fields.insert(field.name.clone().into(), self.eval(&field.expr)?);
+        }
+
+        Ok(Value::Struct(name, Rc::new(RefCell::new(fields))))
+    }
+
     fn dispatch_stmts_in_env(&mut self, stmts: &[Stmt]) -> IResult {
         self.enter_env();
         for stmt in stmts {
@@ -387,6 +401,7 @@ impl Vm {
             Stmt::Return(inner) => self.dispatch_return(inner),
             Stmt::Terminate(_) => self.dispatch_terminate(),
             Stmt::Expr(inner) => self.dispatch_expr(inner),
+            Stmt::Struct(inner) => self.dispatch_struct_decl(inner),
         }
     }
 
@@ -495,6 +510,15 @@ impl Vm {
 
     fn dispatch_terminate(&self) -> IResult {
         Err(Interrupt::Terminate)
+    }
+
+    fn dispatch_struct_decl(&mut self, _: &Struct) -> IResult {
+        // todo: abolish this dynamic typing lol
+        // type checking structs at runtime is probably not worth it though
+        // also the whole type system and syntax is currently useless lmao
+        // we really need to fix it or the language will be entirely useless
+
+        Ok(())
     }
 
     fn dispatch_expr(&mut self, expr: &Expr) -> IResult {

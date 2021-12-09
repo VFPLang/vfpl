@@ -119,6 +119,14 @@ fn ident_literal() {
 }
 
 #[test]
+fn ident_cond_keyword_literal() {
+    let tokens = [CondKw(From)].map(token);
+    let parsed = parse(tokens, Parser::expr);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
 fn not_equal_expr() {
     let tokens = [
         Absent,
@@ -769,6 +777,184 @@ fn cond_keyword_var_name() {
     ]
     .map(token);
     let parsed = parse(tokens, Parser::var_init);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn structure_no_field() {
+    let tokens = [
+        Define,
+        Structure,
+        Ident("Unit".to_string()),
+        CondKw(With),
+        Please,
+        End,
+        Define,
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::struct_decl);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn structure_single_field() {
+    let tokens = [
+        Define,
+        Structure,
+        Ident("NonNullInt".to_string()),
+        CondKw(With),
+        CondKw(The),
+        CondKw(Field),
+        Ident("inner".to_string()),
+        As,
+        Ident("Integer".to_string()),
+        Please,
+        End,
+        Define,
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::struct_decl);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn structure_two_fields() {
+    let tokens = [
+        Define,
+        Structure,
+        Ident("Person".to_string()),
+        CondKw(With),
+        CondKw(The),
+        CondKw(Field),
+        Ident("name".to_string()),
+        As,
+        Ident("String".to_string()),
+        And,
+        CondKw(The),
+        CondKw(Field),
+        Ident("age".to_string()),
+        As,
+        Ident("Integer".to_string()),
+        Please,
+        End,
+        Define,
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::struct_decl);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn structure_three_fields() {
+    let tokens = [
+        Define,
+        Structure,
+        Ident("Person".to_string()),
+        CondKw(With),
+        CondKw(The),
+        CondKw(Field),
+        Ident("first_name".to_string()),
+        As,
+        Ident("String".to_string()),
+        Comma,
+        CondKw(The),
+        CondKw(Field),
+        Ident("last_name".to_string()),
+        As,
+        Ident("String".to_string()),
+        And,
+        CondKw(The),
+        CondKw(Field),
+        Ident("age".to_string()),
+        As,
+        Ident("Integer".to_string()),
+        Please,
+        End,
+        Define,
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::struct_decl);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn structure_literal_no_fields() {
+    let tokens = [
+        Ident("Unit".to_string()),
+        CondKw(With),
+        CondKw(No),
+        CondKw(Fields),
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::struct_literal);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn structure_literal_one_field() {
+    let tokens = [
+        Ident("NonZeroInt".to_string()),
+        CondKw(With),
+        CondKw(The),
+        CondKw(Field),
+        Int(3),
+        As,
+        Ident("inner".to_string()),
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::struct_literal);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn structure_literal_two_fields() {
+    let tokens = [
+        Ident("Person".to_string()),
+        CondKw(With),
+        CondKw(The),
+        CondKw(Fields),
+        Ident("Hugo".to_string()),
+        As,
+        Ident("name".to_string()),
+        And,
+        Int(5),
+        As,
+        Ident("age".to_string()),
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::struct_literal);
+
+    insta::assert_debug_snapshot!(parsed);
+}
+
+#[test]
+fn structure_literal_three_fields() {
+    let tokens = [
+        Ident("Person".to_string()),
+        CondKw(With),
+        CondKw(The),
+        CondKw(Fields),
+        Ident("Hugo".to_string()),
+        As,
+        Ident("first_name".to_string()),
+        Comma,
+        Ident("Boss".to_string()),
+        As,
+        Ident("first_name".to_string()),
+        And,
+        Int(5),
+        As,
+        Ident("age".to_string()),
+    ]
+    .map(token);
+    let parsed = parse(tokens, Parser::struct_literal);
 
     insta::assert_debug_snapshot!(parsed);
 }

@@ -48,6 +48,7 @@ enum Value {
     Int(i64),
     Float(f64),
     Fn(Rc<RefCell<RuntimeFn>>),
+    Struct(Ident, Rc<RefCell<HashMap<Ident, Value>>>),
 }
 
 #[derive(Debug, Clone)]
@@ -144,17 +145,18 @@ impl Debug for Vm {
 }
 
 impl Value {
-    fn display_type(&self) -> &'static str {
+    fn display_type(&self) -> String {
         match self {
-            Value::Absent => "absent",
-            Value::Null => "null",
-            Value::NoValue => "novalue",
-            Value::Undefined => "undefined",
-            Value::Bool(_) => "Boolean",
-            Value::String(_) => "String",
-            Value::Int(_) => "Integer",
-            Value::Float(_) => "Float",
-            Value::Fn { .. } => "Function",
+            Value::Absent => "absent".to_string(),
+            Value::Null => "null".to_string(),
+            Value::NoValue => "novalue".to_string(),
+            Value::Undefined => "undefined".to_string(),
+            Value::Bool(_) => "Boolean".to_string(),
+            Value::String(_) => "String".to_string(),
+            Value::Int(_) => "Integer".to_string(),
+            Value::Float(_) => "Float".to_string(),
+            Value::Fn { .. } => "Function".to_string(),
+            Value::Struct(name, _) => name.to_string(),
         }
     }
 }
@@ -174,6 +176,7 @@ impl Display for Value {
                 FnImpl::Native(_) => f.write_str("[native function]"),
                 FnImpl::Custom(_) => f.write_str("[function]"),
             },
+            Value::Struct(name, _) => write!(f, "[struct {}]", name),
         }
     }
 }

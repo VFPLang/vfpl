@@ -20,29 +20,31 @@ pub struct TypedIdent {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Stmt {
-    VarInit(VarInit),
-    VarSet(VarSet),
-    If(If),
-    While(While),
     FnDecl(FnDecl),
+    Struct(Struct),
     Break(Break),
+    Expr(Expr),
+    If(If),
     Return(Return),
     Terminate(Terminate),
-    Expr(Expr),
+    VarInit(VarInit),
+    VarSet(VarSet),
+    While(While),
 }
 
 impl Stmt {
     pub fn span(&self) -> Span {
         match self {
-            Stmt::VarInit(inner) => inner.span,
-            Stmt::VarSet(inner) => inner.span,
-            Stmt::If(inner) => inner.span,
-            Stmt::While(inner) => inner.span,
             Stmt::FnDecl(inner) => inner.span,
+            Stmt::Struct(inner) => inner.span,
             Stmt::Break(inner) => inner.span,
+            Stmt::Expr(expr) => expr.span(),
+            Stmt::If(inner) => inner.span,
             Stmt::Return(inner) => inner.span,
             Stmt::Terminate(inner) => inner.span,
-            Stmt::Expr(expr) => expr.span(),
+            Stmt::VarInit(inner) => inner.span,
+            Stmt::VarSet(inner) => inner.span,
+            Stmt::While(inner) => inner.span,
         }
     }
 }
@@ -115,6 +117,19 @@ pub struct FnDecl {
     pub params: FnParams,
     pub fn_return: FnReturn,
     pub body: Body,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Struct {
+    pub span: Span,
+    pub name: Ident,
+    pub fields: Vec<StructField>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct StructField {
+    pub span: Span,
+    pub ty_ident: TypedIdent,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -197,6 +212,7 @@ pub enum LiteralKind {
     True,
     False,
     Ident(Ident),
+    Struct(StructLiteral),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -244,14 +260,20 @@ pub struct Call {
 #[derive(Debug, Clone, PartialEq)]
 pub struct CallArgs {
     pub span: Span,
-    pub args: Vec<CallArg>,
+    pub args: Vec<ValueIdent>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct CallArg {
+pub struct ValueIdent {
     pub span: Span,
-    pub expr: Expr,
+    pub expr: Box<Expr>,
     pub name: Ident,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct StructLiteral {
+    pub name: Ident,
+    pub fields: Vec<ValueIdent>,
 }
 
 impl Display for ComparisonKind {

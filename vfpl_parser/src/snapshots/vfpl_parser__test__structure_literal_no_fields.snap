@@ -1,0 +1,19 @@
+---
+source: vfpl_parser/src/test.rs
+expression: parsed
+
+---
+Ok(
+    Literal {
+        span: Span {
+            start: 0,
+            end: 0,
+        },
+        kind: Struct(
+            StructLiteral {
+                name: "Unit",
+                fields: [],
+            },
+        ),
+    },
+)
