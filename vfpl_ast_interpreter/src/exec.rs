@@ -512,7 +512,7 @@ impl Vm {
         Err(Interrupt::Terminate)
     }
 
-    fn dispatch_struct_decl(&mut self, strt: &Struct) -> IResult {
+    fn dispatch_struct_decl(&mut self, _: &Struct) -> IResult {
         // todo: abolish this dynamic typing lol
         // type checking structs at runtime is probably not worth it though
         // also the whole type system and syntax is currently useless lmao
