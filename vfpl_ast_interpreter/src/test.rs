@@ -48,10 +48,10 @@ fn println(name: &str) -> Stmt {
             span: Default::default(),
             args: vec![ValueIdent {
                 span: Default::default(),
-                expr: Expr::Literal(Literal {
+                expr: Box::new(Expr::Literal(Literal {
                     span: Default::default(),
                     kind: LiteralKind::Ident(name.to_string()),
-                }),
+                })),
                 name: "x".to_string(),
             }],
         },
