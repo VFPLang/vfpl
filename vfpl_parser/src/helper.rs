@@ -17,21 +17,15 @@ impl Parser {
 
     /// Parses a list of things
     /// The signature got out of hand
-    pub(super) fn list<F, R, S, E1, E2>(
+    pub(super) fn list<R>(
         &mut self,
         single_indicator: TokenKind,
         multi_indicator: TokenKind,
-        mut single_parser: F,
-        mut get_span: S,
-        inner_error: E2,
-        outer_error: E1,
-    ) -> ParseResult<(Vec<R>, Span)>
-    where
-        F: FnMut(&mut Parser) -> ParseResult<R>,
-        S: FnMut(&R) -> Span,
-        E1: FnOnce(&Token) -> ParseError,
-        E2: FnOnce(&Token) -> ParseError,
-    {
+        mut single_parser: impl FnMut(&mut Parser) -> ParseResult<R>,
+        mut get_span: impl FnMut(&R) -> Span,
+        inner_error: impl FnOnce(&Token) -> ParseError,
+        outer_error: impl FnOnce(&Token) -> ParseError,
+    ) -> ParseResult<(Vec<R>, Span)> {
         self.parse_rule(|parser| {
             if let Some(token) = parser.try_consume_kind(TokenKind::CondKw(CondKeyword::No)) {
                 let multi_span = parser.expect_kind(multi_indicator.clone())?;
