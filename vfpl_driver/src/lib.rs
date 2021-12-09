@@ -1,12 +1,13 @@
 use std::rc::Rc;
-use vfpl_global::Session;
+use vfpl_global::{GlobalCtx, Session};
 
 pub fn start() {
     let program_name = std::env::args().nth(1);
 
     match program_name {
         Some(program_name) => {
-            let session = Rc::new(Session::new());
+            let session = Session::new();
+            let global_ctx = Rc::new(GlobalCtx::new(session));
 
             let stderr = std::io::stderr();
             let mut stderr = stderr.lock();
@@ -16,21 +17,21 @@ pub fn start() {
                 std::process::exit(1);
             });
 
-            let tokens = vfpl_lexer::lex(&content, session.clone()).unwrap_or_else(|err| {
-                vfpl_error::display_error(&content, err, &mut stderr, true, session.clone())
+            let tokens = vfpl_lexer::lex(&content, global_ctx.clone()).unwrap_or_else(|err| {
+                vfpl_error::display_error(&content, err, &mut stderr, true, global_ctx.clone())
                     .expect("Printing to stderr failed");
                 std::process::exit(1);
             });
 
             let ast =
-                vfpl_parser::parse(tokens.into_iter(), session.clone()).unwrap_or_else(|err| {
-                    vfpl_error::display_error(&content, err, &mut stderr, true, session.clone())
+                vfpl_parser::parse(tokens.into_iter(), global_ctx.clone()).unwrap_or_else(|err| {
+                    vfpl_error::display_error(&content, err, &mut stderr, true, global_ctx.clone())
                         .expect("Printing to stderr failed");
                     std::process::exit(1);
                 });
 
-            vfpl_ast_interpreter::run(&ast, session.clone()).unwrap_or_else(|err| {
-                vfpl_error::display_error(&content, err, &mut stderr, true, session.clone())
+            vfpl_ast_interpreter::run(&ast, global_ctx.clone()).unwrap_or_else(|err| {
+                vfpl_error::display_error(&content, err, &mut stderr, true, global_ctx.clone())
                     .expect("Printing to stderr failed");
                 std::process::exit(1);
             });

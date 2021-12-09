@@ -10,7 +10,7 @@ use crate::helper::compute_keyword;
 use crate::tokens::TokenKind;
 use tokens::Token;
 use vfpl_error::{CompilerError, Span, VfplError};
-use vfpl_global::Session;
+use vfpl_global::GlobalCtx;
 
 mod helper;
 #[cfg(test)]
@@ -20,8 +20,8 @@ pub mod tokens;
 type LexerResult<T> = Result<T, LexerError>;
 
 /// Lexes an input stream into Tokens
-pub fn lex(code: &str, session: Rc<Session>) -> Result<Vec<Token>, VfplError> {
-    let mut lexer = Lexer::new(code, session);
+pub fn lex(code: &str, global_ctx: Rc<GlobalCtx>) -> Result<Vec<Token>, VfplError> {
+    let mut lexer = Lexer::new(code, global_ctx);
 
     lexer.compute_tokens().map_err(|err| err.into())
 }
@@ -29,7 +29,7 @@ pub fn lex(code: &str, session: Rc<Session>) -> Result<Vec<Token>, VfplError> {
 #[derive(Debug)]
 pub struct Lexer<'a> {
     char_indices: PeekMoreIterator<CharIndices<'a>>,
-    session: Rc<Session>,
+    global_ctx: Rc<GlobalCtx>,
 }
 
 impl Lexer<'_> {
@@ -52,10 +52,10 @@ impl Lexer<'_> {
         self.char_indices.peek_nth(n).copied()
     }
 
-    pub fn new(str: &str, session: Rc<Session>) -> Lexer {
+    pub fn new(str: &str, global_ctx: Rc<GlobalCtx>) -> Lexer {
         Lexer {
             char_indices: str.char_indices().peekmore(),
-            session,
+            global_ctx,
         }
     }
 
@@ -178,12 +178,18 @@ impl Lexer<'_> {
 
         if number.contains('.') {
             let number = number.parse::<f64>().map_err(|_| {
-                LexerError::FloatParseError(Span::start_end(idx, end), self.session.rng().clone())
+                LexerError::FloatParseError(
+                    Span::start_end(idx, end),
+                    self.global_ctx.sess().rng().clone(),
+                )
             })?;
             Ok(Token::new(TokenKind::Float(number), idx, end))
         } else {
             let number = number.parse::<i64>().map_err(|_| {
-                LexerError::IntParseError(Span::start_end(idx, end), self.session.rng().clone())
+                LexerError::IntParseError(
+                    Span::start_end(idx, end),
+                    self.global_ctx.sess().rng().clone(),
+                )
             })?;
             Ok(Token::new(TokenKind::Int(number), idx, end))
         }

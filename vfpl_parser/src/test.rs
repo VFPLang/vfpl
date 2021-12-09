@@ -2,7 +2,7 @@
 
 use super::Parser;
 use vfpl_error::Span;
-use vfpl_global::Session;
+use vfpl_global::GlobalCtx;
 use vfpl_lexer::tokens::CondKeyword::*;
 use vfpl_lexer::tokens::TokenKind::*;
 use vfpl_lexer::tokens::{Token, TokenKind};
@@ -22,7 +22,7 @@ where
 {
     let mut vec = tokens.into();
     vec.push(Token::eof());
-    let mut parser = Parser::new(vec.into_iter(), Session::test_session());
+    let mut parser = Parser::new(vec.into_iter(), GlobalCtx::test_ctx());
     parse_rule_fn(&mut parser)
 }
 

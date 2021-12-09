@@ -8,7 +8,7 @@ use crate::error::ParseError;
 use peekmore::{PeekMore, PeekMoreIterator};
 use vfpl_ast::Program;
 use vfpl_error::VfplError;
-use vfpl_global::Session;
+use vfpl_global::GlobalCtx;
 use vfpl_lexer::tokens::Token;
 
 mod helper;
@@ -28,24 +28,27 @@ struct Parser {
     in_while_depth: usize,
     /// For restricting uses of the "return" statement
     in_fn_depth: usize,
-    session: Rc<Session>,
+    global_ctx: Rc<GlobalCtx>,
 }
 
 impl Parser {
-    fn new(tokens: vec::IntoIter<Token>, session: Rc<Session>) -> Self {
+    fn new(tokens: vec::IntoIter<Token>, global_ctx: Rc<GlobalCtx>) -> Self {
         Parser {
             tokens: tokens.peekmore(),
             depth: 0,
             in_while_depth: 0,
             in_fn_depth: 0,
-            session,
+            global_ctx: global_ctx,
         }
     }
 }
 
 ///
 /// Parses the tokens into an AST
-pub fn parse(tokens: vec::IntoIter<Token>, session: Rc<Session>) -> Result<Program, VfplError> {
-    let mut parser = Parser::new(tokens, session);
+pub fn parse(
+    tokens: vec::IntoIter<Token>,
+    global_ctx: Rc<GlobalCtx>,
+) -> Result<Program, VfplError> {
+    let mut parser = Parser::new(tokens, global_ctx);
     parser.program().map_err(|err| err.into())
 }

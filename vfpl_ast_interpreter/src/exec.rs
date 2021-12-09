@@ -121,10 +121,12 @@ impl Vm {
                     format!(
                         "add {} more arguments, for example: `{}`",
                         diff,
-                        std::iter::from_fn(|| Some(random_number(self.session.rng()).to_string()))
-                            .take(diff)
-                            .collect::<Vec<_>>()
-                            .join(", ")
+                        std::iter::from_fn(|| Some(
+                            random_number(self.global_ctx.sess().rng()).to_string()
+                        ))
+                        .take(diff)
+                        .collect::<Vec<_>>()
+                        .join(", ")
                     )
                 },
             )
@@ -217,7 +219,7 @@ impl Vm {
                     .to_string(),
                 format!(
                     "return {} from the function.",
-                    vfpl_error::random_number(self.session.rng())
+                    vfpl_error::random_number(self.global_ctx.sess().rng())
                 ),
             )
             .into()),

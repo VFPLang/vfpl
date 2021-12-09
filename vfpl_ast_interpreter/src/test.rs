@@ -6,7 +6,7 @@ use vfpl_ast::{
     ValueIdent, VarInit,
 };
 use vfpl_error::Span;
-use vfpl_global::Session;
+use vfpl_global::GlobalCtx;
 
 /// Runs the code and returns stdout
 fn run_code(ast: &Program) -> String {
@@ -14,7 +14,7 @@ fn run_code(ast: &Program) -> String {
 
     let stdout = Rc::clone(&vec);
 
-    let mut vm = Vm::with_stdout(stdout, Session::test_session());
+    let mut vm = Vm::with_stdout(stdout, GlobalCtx::test_ctx());
     vm.start(ast).unwrap();
 
     let cloned_vec = RefCell::borrow(&vec);
