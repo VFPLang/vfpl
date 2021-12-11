@@ -3,45 +3,47 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use vfpl_ast::TyKind;
 use vfpl_error::Span;
-
-fn ident(str: &str) -> Rc<str> {
-    str.to_string().into()
-}
+use vfpl_global::Spur;
 
 impl Vm {
+    fn ident(&mut self, str: &str) -> Spur {
+        self.global_ctx.borrow_mut().intern_string(str)
+    }
+
     pub fn add_global_functions(&mut self) {
         let mut env = (*self.current_env).borrow_mut();
         let vars = &mut env.vars;
 
-        vars.insert(ident("println"), println());
-        vars.insert(ident("time"), time());
+        let println = self.println();
+
+        vars.insert(self.ident("println"), println);
+        vars.insert(self.ident("time"), Self::time());
     }
-}
 
-//////// Native functions
+    //////// Native functions
 
-///
-/// print a value to stdout
-/// Takes a single arg of any type, called "value"
-fn println() -> Value {
-    Value::Fn(Rc::new(RefCell::new(RuntimeFn {
-        params: vec![(ident("x"), TyKind::Any)],
-        ret_ty: TyKind::Absent,
-        body: FnImpl::Native(println_impl),
-        captured_env: Rc::new(RefCell::new(Env::default())),
-    })))
-}
+    ///
+    /// print a value to stdout
+    /// Takes a single arg of any type, called "value"
+    fn println(&mut self) -> Value {
+        Value::Fn(Rc::new(RefCell::new(RuntimeFn {
+            params: vec![(self.ident("x"), TyKind::Any)],
+            ret_ty: TyKind::Absent,
+            body: FnImpl::Native(Self::println_impl),
+            captured_env: Rc::new(RefCell::new(Env::default())),
+        })))
+    }
 
-fn println_impl(vm: &mut Vm) -> IResult {
-    let env = (*vm.current_env).borrow_mut();
+    fn println_impl(&mut self) -> IResult {
+        let env = (*self.current_env).borrow_mut();
 
-    let value = env
-        .get_value("x")
-        .unwrap_or_else(|| unreachable!("did not find function parameter"));
+        let value = env
+            .get_value(&self.ident("x"))
+            .unwrap_or_else(|| unreachable!("did not find function parameter"));
 
-    let mut stdout_lock = vm.stdout.borrow_mut();
+        let mut stdout_lock = self.stdout.borrow_mut();
 
-    writeln!(stdout_lock, "{}", value).map_err(|err| {
+        writeln!(stdout_lock, "{}", self.display_value(&value)).map_err(|err| {
         Interrupt::Error(InterpreterError::full(
             Span::dummy(),
             format!("Failed to write to stdout: {}", err),
@@ -50,25 +52,25 @@ fn println_impl(vm: &mut Vm) -> IResult {
         ))
     })?;
 
-    Err(Interrupt::Return(Value::Absent))
-}
+        Err(Interrupt::Return(Value::Absent))
+    }
 
-///
-/// returns the current time as unix millis
-fn time() -> Value {
-    Value::Fn(Rc::new(RefCell::new(RuntimeFn {
-        params: vec![],
-        ret_ty: TyKind::Integer,
-        body: FnImpl::Native(time_impl),
-        captured_env: Rc::new(RefCell::new(Env::default())),
-    })))
-}
+    ///
+    /// returns the current time as unix millis
+    fn time() -> Value {
+        Value::Fn(Rc::new(RefCell::new(RuntimeFn {
+            params: vec![],
+            ret_ty: TyKind::Integer,
+            body: FnImpl::Native(Self::time_impl),
+            captured_env: Rc::new(RefCell::new(Env::default())),
+        })))
+    }
 
-fn time_impl(_: &mut Vm) -> IResult {
-    use std::time;
+    fn time_impl(_: &mut Vm) -> IResult {
+        use std::time;
 
-    let now = time::SystemTime::now();
-    let duration = now.duration_since(time::UNIX_EPOCH).map_err(|_| {
+        let now = time::SystemTime::now();
+        let duration = now.duration_since(time::UNIX_EPOCH).map_err(|_| {
         // note: i don't think this can even happen? but would be funny if it did
         Interrupt::Error(InterpreterError::full(
             Span::dummy(),
@@ -76,7 +78,8 @@ fn time_impl(_: &mut Vm) -> IResult {
             "You played with your computer time too much and should feel bad. I'm normally very polite, but this is too much. I try to be nice and all but you bring this to me.".to_string(),
             "fix your time.".to_string()
         ))
-    })?;
+     })?;
 
-    Err(Interrupt::Return(Value::Int(duration.as_millis() as i64)))
+        Err(Interrupt::Return(Value::Int(duration.as_millis() as i64)))
+    }
 }

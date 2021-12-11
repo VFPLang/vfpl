@@ -5,7 +5,7 @@ use std::io::Write;
 use std::rc::Rc;
 use vfpl_ast::{Body, Program, TyKind};
 use vfpl_error::{CompilerError, Span, VfplError};
-use vfpl_global::GlobalCtx;
+use vfpl_global::{GlobalCtx, Spur};
 
 mod exec;
 mod native;
@@ -19,7 +19,7 @@ pub fn run(program: &Program, global_ctx: Rc<RefCell<GlobalCtx>>) -> Result<(), 
     vm.run(program)
 }
 
-type Ident = Rc<str>;
+type Ident = Spur;
 
 type IResult = Result<(), Interrupt>;
 
@@ -80,7 +80,7 @@ struct Env {
 }
 
 impl Env {
-    fn get_value(&self, ident: &str) -> Option<Value> {
+    fn get_value(&self, ident: &Ident) -> Option<Value> {
         self.vars.get(ident).cloned().or_else(|| {
             self.outer
                 .as_ref()
@@ -144,9 +144,9 @@ impl Debug for Vm {
     }
 }
 
-impl Value {
-    fn display_type(&self) -> String {
-        match self {
+impl Vm {
+    fn display_value_type(&self, value: &Value) -> String {
+        match value {
             Value::Absent => "absent".to_string(),
             Value::Null => "null".to_string(),
             Value::NoValue => "novalue".to_string(),
@@ -156,27 +156,27 @@ impl Value {
             Value::Int(_) => "Integer".to_string(),
             Value::Float(_) => "Float".to_string(),
             Value::Fn { .. } => "Function".to_string(),
-            Value::Struct(name, _) => name.to_string(),
+            Value::Struct(name, _) => self.global_ctx.borrow().resolve_string(name).to_string(),
         }
     }
-}
 
-impl Display for Value {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Value::Absent => f.write_str("absent"),
-            Value::Null => f.write_str("null"),
-            Value::NoValue => f.write_str("novalue"),
-            Value::Undefined => f.write_str("undefined"),
-            Value::Bool(value) => Display::fmt(value, f),
-            Value::String(value) => Display::fmt(value, f),
-            Value::Int(value) => Display::fmt(value, f),
-            Value::Float(value) => Display::fmt(value, f),
+    fn display_value(&self, value: &Value) -> String {
+        match value {
+            Value::Absent => "absent".to_string(),
+            Value::Null => "null".to_string(),
+            Value::NoValue => "novalue".to_string(),
+            Value::Undefined => "undefined".to_string(),
+            Value::Bool(value) => value.to_string(),
+            Value::String(value) => value.to_string(),
+            Value::Int(value) => value.to_string(),
+            Value::Float(value) => value.to_string(),
             Value::Fn(value) => match &value.borrow().body {
-                FnImpl::Native(_) => f.write_str("[native function]"),
-                FnImpl::Custom(_) => f.write_str("[function]"),
+                FnImpl::Native(_) => "[native function]".to_string(),
+                FnImpl::Custom(_) => "[function]".to_string(),
             },
-            Value::Struct(name, _) => write!(f, "[struct {}]", name),
+            Value::Struct(name, _) => {
+                format!("[struct {}]", self.global_ctx.borrow().resolve_string(name))
+            }
         }
     }
 }

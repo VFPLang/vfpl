@@ -10,6 +10,7 @@ use vfpl_ast::{
     VarSet, While,
 };
 use vfpl_error::{random_number, Span};
+use vfpl_global::Spur;
 
 impl Vm {
     pub(crate) fn start(&mut self, ast: &Program) -> IResult {
@@ -71,7 +72,7 @@ impl Vm {
             LiteralKind::Ident(name) => self
                 .env()
                 .get_value(name)
-                .ok_or_else(|| var_not_found(lit.span, name)),
+                .ok_or_else(|| self.var_not_found(lit.span, name)),
             LiteralKind::Struct(literal) => self.struct_literal(literal),
         }
     }
@@ -83,14 +84,17 @@ impl Vm {
         let function = self
             .env()
             .get_value(fn_name)
-            .ok_or_else(|| var_not_found(call.span, fn_name))?;
+            .ok_or_else(|| self.var_not_found(call.span, fn_name))?;
 
         let function = if let Value::Fn(function) = function {
             function
         } else {
             return Err(InterpreterError::full(
                 call.span,
-                format!("Variable is not a function: {}", call.fn_name),
+                format!(
+                    "Variable is not a function: {}",
+                    self.global_ctx.borrow().resolve_string(&call.fn_name)
+                ),
                 "I'd love to call this variable like it was a function, but it's not.".to_string(),
                 "make the variable have the type function or not call it at all.".to_string(),
             )
@@ -122,7 +126,8 @@ impl Vm {
                         "add {} more arguments, for example: `{}`",
                         diff,
                         std::iter::from_fn(|| Some(
-                            random_number(self.global_ctx.sess().rng()).to_string()
+                            random_number(&self.global_ctx.borrow().sess().rng().clone())
+                                .to_string()
                         ))
                         .take(diff)
                         .collect::<Vec<_>>()
@@ -165,7 +170,7 @@ impl Vm {
                         arg.span,
                         format!(
                             "Mismatched names: expected {}, got {}",
-                            param_name, arg.name
+                            self.global_ctx.borrow().resolve_string(param_name), self.global_ctx.borrow().resolve_string(&arg.name)
                         ),
                         "You need to say the correct names for each argument, to make sure you didn't accidentally mix them up.".to_string(),
                         "specify the correct name instead, or check whether you mixed some arguments up. No problem if you did, it happens to all of us.".to_string()
@@ -219,7 +224,7 @@ impl Vm {
                     .to_string(),
                 format!(
                     "return {} from the function.",
-                    vfpl_error::random_number(self.global_ctx.sess().rng())
+                    vfpl_error::random_number(&self.global_ctx.borrow().sess().rng().clone())
                 ),
             )
             .into()),
@@ -246,8 +251,8 @@ impl Vm {
                     comp.span,
                     format!(
                         "Cannot compare {} and {} using `{}`",
-                        lhs.display_type(),
-                        rhs.display_type(),
+                        self.display_value_type(&lhs),
+                        self.display_value_type(&rhs),
                         comp_kind
                     ),
                     "I tried really hard trying to compare these two values, but I found no idea how to do it. They seem to be so different.".to_string(),
@@ -282,8 +287,8 @@ impl Vm {
                         op.span,
                         format!(
                             "Invalid arguments to addition. Cannot add {} to {}",
-                            var.display_type(),
-                            new.display_type()
+                            self.display_value_type(&var),
+                            self.display_value_type(&new)
                         ),
                         "Addition is more complex than it seems. In VFPL, you can add numbers and strings, but only with each other.".to_string(),
                         "use something else, I don't think addition is what you want here.".to_string(),
@@ -301,8 +306,8 @@ impl Vm {
                         op.span,
                         format!(
                             "Invalid arguments to subtraction. Cannot add {} to {}",
-                            var.display_type(),
-                            new.display_type()
+                            self.display_value_type(&var),
+                            self.display_value_type(&new)
                         ),
                         "Subtraction is more complex than it seems. In VFPL, you can only subtract numbers from each other.".to_string(),
                         "use something else, I don't think subtraction is what you want here.".to_string(),
@@ -320,8 +325,8 @@ impl Vm {
                          op.span,
                         format!(
                             "Invalid arguments to multiplication. Cannot add {} to {}",
-                            var.display_type(),
-                            new.display_type()
+                            self.display_value_type(&var),
+                            self.display_value_type(&new)
                         ),
                          "Multiplication is more complex than it seems. In VFPL, you can only multiply numbers with each other.".to_string(),
                          "use something else, I don't think multiplication is what you want here.".to_string(),
@@ -339,8 +344,8 @@ impl Vm {
                         op.span,
                         format!(
                             "Invalid arguments to division. Cannot add {} to {}",
-                            var.display_type(),
-                            new.display_type()
+                            self.display_value_type(&var),
+                            self.display_value_type(&new)
                         ),
                         "Division is more complex than it seems. In VFPL, you can only divide numbers by each other.".to_string(),
                         "use something else, I don't think division is what you want here.".to_string(),
@@ -358,8 +363,8 @@ impl Vm {
                         op.span,
                         format!(
                             "Invalid arguments to modulo. Cannot take {} mod {}",
-                            var.display_type(),
-                            new.display_type()
+                            self.display_value_type(&var),
+                            self.display_value_type(&new)
                         ),
                         "As you may have learned in school, modulo is an operation done on a number by an integer. If you haven't, no problem, I'll explain it quickly. Modulo divides the left hand side by the right hand side to make an integer and returns the reminder of that division.".to_string(),
                         "make the values have other types. Another option would be to use another operation instead of modulo, maybe addition works for your case".to_string()
@@ -371,7 +376,7 @@ impl Vm {
     }
 
     fn struct_literal(&mut self, lit: &StructLiteral) -> ValueResult {
-        let name: Rc<_> = lit.name.clone().into();
+        let name = lit.name;
 
         let mut fields = HashMap::new();
 
@@ -420,17 +425,17 @@ impl Vm {
     }
 
     fn dispatch_var_set(&mut self, set: &VarSet) -> IResult {
-        let name: Rc<_> = set.name.clone().into();
+        let name = set.name;
         let value = self.eval(&set.expr)?;
 
         self.env().modify_var(
-            Rc::clone(&name),
+            name,
             |var| {
                 *var = value;
 
                 Ok(())
             },
-            || var_not_found(set.span, &name),
+            || self.var_not_found(set.span, &name),
         )
     }
 
@@ -481,7 +486,7 @@ impl Vm {
     }
 
     fn dispatch_fn_decl(&mut self, decl: &FnDecl) -> IResult {
-        let name: Rc<_> = decl.name.clone().into();
+        let name = decl.name;
         let params = decl
             .params
             .params
@@ -543,7 +548,7 @@ impl Vm {
                 span,
                 format!(
                     "Type mismatch! {} is not assignable to {:?}",
-                    value.display_type(),
+                    self.display_value_type(value),
                     ty_kind
                 ),
                 "This is a tricky one. Your value has the left type, but what I want you to provide here is the right one. I would love to accept your value, but that would violate the rules, and I am not allowed to do that. I'm very sorry for the inconveniences!".to_string(),
@@ -552,14 +557,17 @@ impl Vm {
             .into()),
         }
     }
-}
 
-fn var_not_found(span: Span, name: &str) -> Interrupt {
-    InterpreterError::full(
-        span,
-        format!("Variable not found: {}", name),
-        "I searched really hard, but was not able to find it anywhere.".to_string(),
-        "could check whether you made a typo. I'm sure you can do it!".to_string(),
-    )
-    .into()
+    fn var_not_found(&self, span: Span, name: &Spur) -> Interrupt {
+        InterpreterError::full(
+            span,
+            format!(
+                "Variable not found: {}",
+                self.global_ctx.borrow().resolve_string(name)
+            ),
+            "I searched really hard, but was not able to find it anywhere.".to_string(),
+            "could check whether you made a typo. I'm sure you can do it!".to_string(),
+        )
+        .into()
+    }
 }

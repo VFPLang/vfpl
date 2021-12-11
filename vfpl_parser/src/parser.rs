@@ -454,7 +454,7 @@ impl Parser {
                     next.span,
                     format!(
                         "Expected `no` or `the` after `with` in function call, got {}",
-                       parser.display_kind(& next.kind)
+                       parser.display_kind(&next.kind)
                     ),
                     "You need to tell me the arguments you want to give to that function.".to_string(),
                     "either use `no arguments` if you don't want to give the poor function any, or `the argument`, `the arguments` if you are nice and want to the function to have some happy little arguments.".to_string()
