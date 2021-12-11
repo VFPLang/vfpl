@@ -154,6 +154,7 @@ name = "vfpl_ast"
 version = "0.1.0"
 dependencies = [
  "vfpl_error",
+ "vfpl_global",
 ]
 
 [[package]]

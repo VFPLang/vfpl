@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 vfpl_error = { path = "../vfpl_error" }
+vfpl_global = { path = "../vfpl_global" }

@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter, Write};
 use vfpl_error::Span;
 
-type Ident = String;
+type Ident = vfpl_global::Spur;
 
 pub type Program = Body;
 
