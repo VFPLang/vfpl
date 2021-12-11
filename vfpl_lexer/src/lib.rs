@@ -1,4 +1,5 @@
 use fastrand::Rng;
+use std::cell::RefCell;
 use std::option::Option::Some;
 use std::rc::Rc;
 use std::str::CharIndices;
@@ -20,39 +21,39 @@ pub mod tokens;
 type LexerResult<T> = Result<T, LexerError>;
 
 /// Lexes an input stream into Tokens
-pub fn lex(code: &str, global_ctx: Rc<GlobalCtx>) -> Result<Vec<Token>, VfplError> {
+pub fn lex(code: &str, global_ctx: Rc<RefCell<GlobalCtx>>) -> Result<Vec<Token>, VfplError> {
     let mut lexer = Lexer::new(code, global_ctx);
 
     lexer.compute_tokens().map_err(|err| err.into())
 }
 
 #[derive(Debug)]
-pub struct Lexer<'a> {
+struct Lexer<'a> {
     char_indices: PeekMoreIterator<CharIndices<'a>>,
-    global_ctx: Rc<GlobalCtx>,
+    global_ctx: Rc<RefCell<GlobalCtx>>,
 }
 
 impl Lexer<'_> {
-    pub fn next_char(&mut self) -> Option<(usize, char)> {
+    fn next_char(&mut self) -> Option<(usize, char)> {
         self.char_indices.next()
     }
 
     /// Consume elements n times
-    pub fn consume_elements(&mut self, n: usize) {
+    fn consume_elements(&mut self, n: usize) {
         for _ in 0..n {
             self.next_char();
         }
     }
 
-    pub fn peek(&mut self) -> Option<(usize, char)> {
+    fn peek(&mut self) -> Option<(usize, char)> {
         self.char_indices.peek().copied()
     }
 
-    pub fn peek_nth(&mut self, n: usize) -> Option<(usize, char)> {
+    fn peek_nth(&mut self, n: usize) -> Option<(usize, char)> {
         self.char_indices.peek_nth(n).copied()
     }
 
-    pub fn new(str: &str, global_ctx: Rc<GlobalCtx>) -> Lexer {
+    fn new(str: &str, global_ctx: Rc<RefCell<GlobalCtx>>) -> Lexer {
         Lexer {
             char_indices: str.char_indices().peekmore(),
             global_ctx,
@@ -110,9 +111,14 @@ impl Lexer<'_> {
                 break;
             }
         }
-        identifier = identifier.to_lowercase();
+        let identifier = identifier.to_lowercase();
         let end = identifier.len();
-        let kind = compute_keyword(&identifier).unwrap_or(TokenKind::Ident(identifier));
+
+        let kind = compute_keyword(&identifier).unwrap_or_else(|| {
+            let spur = self.global_ctx.borrow_mut().intern_string(identifier);
+            TokenKind::Ident(spur)
+        });
+
         Token::new_from_len(kind, idx, end)
     }
 
@@ -180,7 +186,7 @@ impl Lexer<'_> {
             let number = number.parse::<f64>().map_err(|_| {
                 LexerError::FloatParseError(
                     Span::start_end(idx, end),
-                    self.global_ctx.sess().rng().clone(),
+                    self.global_ctx.borrow().sess().rng().clone(),
                 )
             })?;
             Ok(Token::new(TokenKind::Float(number), idx, end))
@@ -188,7 +194,7 @@ impl Lexer<'_> {
             let number = number.parse::<i64>().map_err(|_| {
                 LexerError::IntParseError(
                     Span::start_end(idx, end),
-                    self.global_ctx.sess().rng().clone(),
+                    self.global_ctx.borrow().sess().rng().clone(),
                 )
             })?;
             Ok(Token::new(TokenKind::Int(number), idx, end))

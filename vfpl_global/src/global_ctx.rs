@@ -1,5 +1,6 @@
 use crate::Session;
 use lasso::{Rodeo, Spur};
+use std::cell::RefCell;
 use std::fmt::{Debug, Formatter};
 
 pub struct GlobalCtx {
@@ -30,11 +31,11 @@ impl GlobalCtx {
         self.intern.resolve(spur)
     }
 
-    pub fn test_ctx() -> std::rc::Rc<Self> {
-        Self {
+    pub fn test_ctx() -> std::rc::Rc<std::cell::RefCell<Self>> {
+        RefCell::new(Self {
             intern: Rodeo::new(),
             session: Session::test_session(),
-        }
+        })
         .into()
     }
 }

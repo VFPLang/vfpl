@@ -1,6 +1,7 @@
 //!
 //! Parses the source tokens using recursive descent
 
+use std::cell::RefCell;
 use std::rc::Rc;
 use std::vec;
 
@@ -28,17 +29,17 @@ struct Parser {
     in_while_depth: usize,
     /// For restricting uses of the "return" statement
     in_fn_depth: usize,
-    global_ctx: Rc<GlobalCtx>,
+    global_ctx: Rc<RefCell<GlobalCtx>>,
 }
 
 impl Parser {
-    fn new(tokens: vec::IntoIter<Token>, global_ctx: Rc<GlobalCtx>) -> Self {
+    fn new(tokens: vec::IntoIter<Token>, global_ctx: Rc<RefCell<GlobalCtx>>) -> Self {
         Parser {
             tokens: tokens.peekmore(),
             depth: 0,
             in_while_depth: 0,
             in_fn_depth: 0,
-            global_ctx: global_ctx,
+            global_ctx,
         }
     }
 }
@@ -47,7 +48,7 @@ impl Parser {
 /// Parses the tokens into an AST
 pub fn parse(
     tokens: vec::IntoIter<Token>,
-    global_ctx: Rc<GlobalCtx>,
+    global_ctx: Rc<RefCell<GlobalCtx>>,
 ) -> Result<Program, VfplError> {
     let mut parser = Parser::new(tokens, global_ctx);
     parser.program().map_err(|err| err.into())

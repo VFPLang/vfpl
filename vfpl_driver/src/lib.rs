@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::rc::Rc;
 use vfpl_global::{GlobalCtx, Session};
 
@@ -7,7 +8,7 @@ pub fn start() {
     match program_name {
         Some(program_name) => {
             let session = Session::new();
-            let global_ctx = Rc::new(GlobalCtx::new(session));
+            let global_ctx = Rc::new(RefCell::new(GlobalCtx::new(session)));
 
             let stderr = std::io::stderr();
             let mut stderr = stderr.lock();

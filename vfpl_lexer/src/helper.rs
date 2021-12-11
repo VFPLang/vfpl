@@ -1,5 +1,54 @@
 use crate::tokens::CondKeyword;
-use crate::TokenKind;
+use crate::{Lexer, TokenKind};
+
+impl Lexer<'_> {
+    // todo: this needs to live on GlobalCtx
+    pub fn display_token_kind(&self, token_kind: &TokenKind) -> String {
+        match token_kind {
+            TokenKind::Absent => "keyword `absent`".to_string(),
+            TokenKind::And => "keyword `and`".to_string(),
+            TokenKind::As => "keyword `as`".to_string(),
+            TokenKind::Break => "keyword `break`".to_string(),
+            TokenKind::Call => "keyword `call`".to_string(),
+            TokenKind::Check => "keyword `check`".to_string(),
+            TokenKind::Comma => "`,`".to_string(),
+            TokenKind::CondKw(cond) => format!("keyword `{}`", cond.as_ref()),
+            TokenKind::Create => "keyword `create`".to_string(),
+            TokenKind::Define => "keyword `define`".to_string(),
+            TokenKind::Do => "keyword `do`".to_string(),
+            TokenKind::Dot => "`.`".to_string(),
+            TokenKind::End => "keyword `end`".to_string(),
+            TokenKind::Eof => "end of file".to_string(),
+            TokenKind::False => "keyword `false`".to_string(),
+            TokenKind::Float(value) => format!("`{}`", value),
+            TokenKind::Function => "keyword `function`".to_string(),
+            TokenKind::Ident(name) => {
+                format!("`{}`", self.global_ctx.borrow().resolve_string(name))
+            }
+            TokenKind::Initialize => "keyword `initialize`".to_string(),
+            TokenKind::Int(value) => format!("`{}`", value),
+            TokenKind::NoValue => "keyword `novalue` )".to_string(),
+            TokenKind::Not => "keyword `not`".to_string(),
+            TokenKind::Null => "keyword `null`".to_string(),
+            TokenKind::Or => "keyword `or`".to_string(),
+            TokenKind::Otherwise => "keyword `otherwise`".to_string(),
+            TokenKind::ParenClose => "`)`".to_string(),
+            TokenKind::ParenOpen => "`(`".to_string(),
+            TokenKind::Please => "keyword `please`".to_string(),
+            TokenKind::Repeat => "keyword `repeat`".to_string(),
+            TokenKind::Return => "keyword `return`".to_string(),
+            TokenKind::String(value) => format!("`\"{}\"`", value),
+            TokenKind::Structure => "keyword `structure`".to_string(),
+            TokenKind::Then => "keyword `then`".to_string(),
+            TokenKind::This => "keyword `this`".to_string(),
+            TokenKind::True => "keyword `true`".to_string(),
+            TokenKind::Undefined => "keyword `undefined`".to_string(),
+            TokenKind::Variable => "keyword `variable`".to_string(),
+            TokenKind::Whether => "keyword `whether`".to_string(),
+            TokenKind::While => "keyword `while`".to_string(),
+        }
+    }
+}
 
 pub fn compute_keyword(identifier: &str) -> Option<TokenKind> {
     Some(match identifier {

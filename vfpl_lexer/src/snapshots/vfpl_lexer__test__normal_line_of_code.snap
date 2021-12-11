@@ -32,7 +32,7 @@ Ok(
                 end: 28,
             },
             kind: Ident(
-                "x",
+                Spur(1),
             ),
         },
         Token {
@@ -48,7 +48,7 @@ Ok(
                 end: 39,
             },
             kind: Ident(
-                "integer",
+                Spur(2),
             ),
         },
         Token {

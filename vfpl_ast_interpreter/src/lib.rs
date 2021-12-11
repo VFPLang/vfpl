@@ -13,7 +13,7 @@ mod native;
 mod test;
 
 /// Runs the parsed program
-pub fn run(program: &Program, global_ctx: Rc<GlobalCtx>) -> Result<(), VfplError> {
+pub fn run(program: &Program, global_ctx: Rc<RefCell<GlobalCtx>>) -> Result<(), VfplError> {
     let mut vm = Vm::with_stdout(Rc::new(RefCell::new(std::io::stdout())), global_ctx);
 
     vm.run(program)
@@ -33,7 +33,7 @@ pub struct Vm {
     call_stack: Vec<RcEnv>,
     recur_depth: usize,
     stdout: Rc<RefCell<dyn Write>>,
-    global_ctx: Rc<GlobalCtx>,
+    global_ctx: Rc<RefCell<GlobalCtx>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -108,7 +108,7 @@ impl Env {
 }
 
 impl Vm {
-    pub fn with_stdout(stdout: Rc<RefCell<dyn Write>>, global_ctx: Rc<GlobalCtx>) -> Self {
+    pub fn with_stdout(stdout: Rc<RefCell<dyn Write>>, global_ctx: Rc<RefCell<GlobalCtx>>) -> Self {
         Self {
             current_env: Rc::new(RefCell::new(Default::default())),
             call_stack: vec![],

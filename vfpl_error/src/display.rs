@@ -1,5 +1,6 @@
 use crate::{CompilerError, Span};
 use fastrand::Rng;
+use std::cell::RefCell;
 use std::fmt::Debug;
 use std::io;
 use std::io::Write;
@@ -24,12 +25,13 @@ pub fn display_error<E, W>(
     error: E,
     mut w: W,
     with_color: bool,
-    global_ctx: Rc<GlobalCtx>,
+    global_ctx: Rc<RefCell<GlobalCtx>>,
 ) -> io::Result<()>
 where
     E: CompilerError + Debug,
     W: Write,
 {
+    let global_ctx = global_ctx.borrow();
     let rng = global_ctx.sess().rng();
 
     let span = if error.span() == Span::eof() {
