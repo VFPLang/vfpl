@@ -192,7 +192,6 @@ version = "0.1.0"
 dependencies = [
  "fastrand",
  "lasso",
- "once_cell",
 ]
 
 [[package]]

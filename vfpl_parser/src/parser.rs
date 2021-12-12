@@ -1,11 +1,12 @@
 use super::{ParseError, ParseResult, Parser};
 use vfpl_ast::{
     ArithmeticOp, ArithmeticOpKind, Body, Break, Call, CallArgs, Comparison, ComparisonKind, Else,
-    ElseKind, Expr, FnDecl, FnParams, FnReturn, Ident, If, IfPart, Literal, LiteralKind, Program,
-    Return, Stmt, Struct, StructField, StructLiteral, Terminate, Ty, TyKind, TypedIdent,
-    ValueIdent, VarInit, VarSet, While,
+    ElseKind, Expr, FnDecl, FnParams, FnReturn, If, IfPart, Literal, LiteralKind, Program, Return,
+    Stmt, Struct, StructField, StructLiteral, Terminate, Ty, TyKind, TypedIdent, ValueIdent,
+    VarInit, VarSet, While,
 };
 use vfpl_error::Span;
+use vfpl_global::Spur;
 use vfpl_lexer::tokens::{CondKeyword as Ck, TokenKind};
 
 impl Parser {
@@ -254,7 +255,7 @@ impl Parser {
                     end_span,
                     format!(
                         "End name '{}' does not match function name '{}'",
-                        global_ctx.resolve_string(&close_name.0), global_ctx.resolve_string(&fn_name.0)
+                        global_ctx.resolve_string(&close_name), global_ctx.resolve_string(&fn_name)
                     ),
                     "To ensure that you didn't mistype your function name, the name needs to be reapeated twice.".to_string(),
                     format!("look whether you mistyped the name here or on the creation above, and use the correction version in both places.\
@@ -495,7 +496,7 @@ impl Parser {
                         "float" => TyKind::Float,
                         "boolean" => TyKind::Boolean,
                         "string" => TyKind::String,
-                        _ => TyKind::Name(Ident(value)),
+                        _ => TyKind::Name(value),
                     }
                 },
                 _ => {
@@ -773,17 +774,15 @@ impl Parser {
         })
     }
 
-    pub fn ident(&mut self) -> ParseResult<(Ident, Span)> {
+    pub fn ident(&mut self) -> ParseResult<(Spur, Span)> {
         self.parse_rule(|parser| {
             let next = parser.next();
 
             match next.kind {
-                TokenKind::Ident(name) => Ok((Ident(name), next.span)),
+                TokenKind::Ident(name) => Ok((name, next.span)),
                 TokenKind::CondKw(kw) => {
                     let mut global_ctx = parser.global_ctx.borrow_mut();
-                    let ident = Ident(kw.intern(&mut global_ctx));
-
-                    Ok((ident, next.span))
+                    Ok((kw.intern(&mut global_ctx), next.span))
                 },
                 _ => Err(ParseError::full(
                     next.span,
