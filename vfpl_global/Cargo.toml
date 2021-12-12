@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 fastrand = "1.5.0"
 lasso = "0.6.0"
+once_cell = "1.8.0"

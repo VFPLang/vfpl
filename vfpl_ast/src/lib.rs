@@ -1,7 +1,8 @@
-use std::fmt::{Display, Formatter, Write};
+use std::fmt::{Debug, Display, Formatter, Write};
 use vfpl_error::Span;
 
-type Ident = vfpl_global::Spur;
+#[derive(Clone, PartialEq)]
+pub struct Ident(pub vfpl_global::Spur);
 
 pub type Program = Body;
 
@@ -285,6 +286,26 @@ impl Display for ComparisonKind {
             ComparisonKind::Less => f.write_char('<'),
             ComparisonKind::GreaterEq => f.write_str(">="),
             ComparisonKind::LessEq => f.write_str("<="),
+        }
+    }
+}
+
+#[cfg(not(debug_assertions))]
+impl Debug for Ident {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        eprintln!("oh no oh no oh no");
+        f.write_str("[identifier]")
+    }
+}
+
+#[cfg(debug_assertions)]
+impl Debug for Ident {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let global_ctx = vfpl_global::GLOBAL_TEST_CTX.lock().unwrap();
+
+        match global_ctx.try_resolve_string(&self.0) {
+            Some(str) => write!(f, r#""{}""#, str),
+            None => f.write_str("[identifier]"),
         }
     }
 }

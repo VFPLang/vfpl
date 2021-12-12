@@ -2,7 +2,7 @@
 
 use super::Parser;
 use vfpl_error::Span;
-use vfpl_global::GlobalCtx;
+use vfpl_global::{GlobalCtx, Spur};
 use vfpl_lexer::tokens::CondKeyword::*;
 use vfpl_lexer::tokens::TokenKind::*;
 use vfpl_lexer::tokens::{Token, TokenKind};
@@ -12,6 +12,12 @@ fn token(kind: TokenKind) -> Token {
         span: Span::dummy(),
         kind,
     }
+}
+
+#[cfg(test)]
+fn ident(str: &str) -> Spur {
+    let mut global_context = vfpl_global::GLOBAL_TEST_CTX.lock().unwrap();
+    global_context.intern_string(str)
 }
 
 /// parses CondKw(The) tokens and appends an EOF token
@@ -62,7 +68,7 @@ fn different_literals() {
 
 #[test]
 fn ident_ty() {
-    let tokens = [Ident("Test".to_string())].map(token);
+    let tokens = [Ident(ident("Test"))].map(token);
     let parsed = parse(tokens, Parser::ty);
 
     insta::assert_debug_snapshot!(parsed);
@@ -84,10 +90,10 @@ fn nullable_ty() {
 #[test]
 fn other_tys() {
     let tys = [
-        [Ident("Boolean".to_string())].map(token),
-        [Ident("Integer".to_string())].map(token),
-        [Ident("String".to_string())].map(token),
-        [Ident("Float".to_string())].map(token),
+        [Ident(ident("Boolean"))].map(token),
+        [Ident(ident("Integer"))].map(token),
+        [Ident(ident("String"))].map(token),
+        [Ident(ident("Float"))].map(token),
     ];
     let parsed = tys.map(|tokens| parse(tokens, Parser::ty));
 
@@ -112,7 +118,7 @@ fn literal_expr() {
 
 #[test]
 fn ident_literal() {
-    let tokens = [Ident("uwu".to_string())].map(token);
+    let tokens = [Ident(ident("uwu"))].map(token);
     let parsed = parse(tokens, Parser::expr);
 
     insta::assert_debug_snapshot!(parsed);
@@ -203,7 +209,7 @@ fn less_equal_than_expr() {
 
 #[test]
 fn typed_ident_absent() {
-    let tokens = [Ident("name".to_string()), As, Absent].map(token);
+    let tokens = [Ident(ident("name")), As, Absent].map(token);
     let parsed = parse(tokens, Parser::typed_ident);
 
     insta::assert_debug_snapshot!(parsed);
@@ -214,9 +220,9 @@ fn init_variable_string() {
     let tokens = [
         Initialize,
         Variable,
-        Ident("name".to_string()),
+        Ident(ident("name")),
         As,
-        Ident("string".to_string()),
+        Ident(ident("string")),
         CondKw(With),
         CondKw(The),
         CondKw(Value),
@@ -235,7 +241,7 @@ fn set_variable_string() {
         CondKw(Set),
         CondKw(The),
         Variable,
-        Ident("name".to_string()),
+        Ident(ident("name")),
         CondKw(To),
         CondKw(The),
         CondKw(Value),
@@ -250,13 +256,7 @@ fn set_variable_string() {
 
 #[test]
 fn add_number() {
-    let tokens = [
-        CondKw(Add),
-        Int(0),
-        CondKw(To),
-        Ident("counter".to_string()),
-    ]
-    .map(token);
+    let tokens = [CondKw(Add), Int(0), CondKw(To), Ident(ident("counter"))].map(token);
     let parsed = parse(tokens, Parser::term);
 
     insta::assert_debug_snapshot!(parsed);
@@ -264,13 +264,7 @@ fn add_number() {
 
 #[test]
 fn subtract_number() {
-    let tokens = [
-        CondKw(Sub),
-        Int(1),
-        CondKw(From),
-        Ident("counter".to_string()),
-    ]
-    .map(token);
+    let tokens = [CondKw(Sub), Int(1), CondKw(From), Ident(ident("counter"))].map(token);
     let parsed = parse(tokens, Parser::term);
 
     insta::assert_debug_snapshot!(parsed);
@@ -278,13 +272,7 @@ fn subtract_number() {
 
 #[test]
 fn divide_number() {
-    let tokens = [
-        CondKw(Div),
-        Ident("counter".to_string()),
-        CondKw(By),
-        Int(2),
-    ]
-    .map(token);
+    let tokens = [CondKw(Div), Ident(ident("counter")), CondKw(By), Int(2)].map(token);
     let parsed = parse(tokens, Parser::factor);
 
     insta::assert_debug_snapshot!(parsed);
@@ -292,13 +280,7 @@ fn divide_number() {
 
 #[test]
 fn multiply_number() {
-    let tokens = [
-        CondKw(Mul),
-        Ident("counter".to_string()),
-        CondKw(With),
-        Int(3),
-    ]
-    .map(token);
+    let tokens = [CondKw(Mul), Ident(ident("counter")), CondKw(With), Int(3)].map(token);
     let parsed = parse(tokens, Parser::factor);
 
     insta::assert_debug_snapshot!(parsed);
@@ -306,13 +288,7 @@ fn multiply_number() {
 
 #[test]
 fn mod_number() {
-    let tokens = [
-        CondKw(Take),
-        Ident("counter".to_string()),
-        CondKw(Mod),
-        Int(4),
-    ]
-    .map(token);
+    let tokens = [CondKw(Take), Ident(ident("counter")), CondKw(Mod), Int(4)].map(token);
     let parsed = parse(tokens, Parser::factor);
 
     insta::assert_debug_snapshot!(parsed);
@@ -349,7 +325,7 @@ fn terminate() {
 fn call_no_args() {
     let tokens = [
         Call,
-        Ident("run".to_string()),
+        Ident(ident("run")),
         CondKw(With),
         CondKw(No),
         CondKw(Arguments),
@@ -364,13 +340,13 @@ fn call_no_args() {
 fn call_single_arg() {
     let tokens = [
         Call,
-        Ident("print".to_string()),
+        Ident(ident("print")),
         CondKw(With),
         CondKw(The),
         CondKw(Argument),
         Int(0),
         As,
-        Ident("printable".to_string()),
+        Ident(ident("printable")),
     ]
     .map(token);
     let parsed = parse(tokens, Parser::call);
@@ -382,17 +358,17 @@ fn call_single_arg() {
 fn call_two_args() {
     let tokens = [
         Call,
-        Ident("add".to_string()),
+        Ident(ident("add")),
         CondKw(With),
         CondKw(The),
         CondKw(Arguments),
         Int(2),
         As,
-        Ident("a".to_string()),
+        Ident(ident("a")),
         And,
         Int(3),
         As,
-        Ident("b".to_string()),
+        Ident(ident("b")),
     ]
     .map(token);
     let parsed = parse(tokens, Parser::call);
@@ -404,21 +380,21 @@ fn call_two_args() {
 fn call_three_args() {
     let tokens = [
         Call,
-        Ident("ternary".to_string()),
+        Ident(ident("ternary")),
         CondKw(With),
         CondKw(The),
         CondKw(Arguments),
         True,
         As,
-        Ident("cond".to_string()),
+        Ident(ident("cond")),
         Comma,
         Int(0),
         As,
-        Ident("then".to_string()),
+        Ident(ident("then")),
         And,
         Int(3),
         As,
-        Ident("else".to_string()),
+        Ident(ident("else")),
     ]
     .map(token);
     let parsed = parse(tokens, Parser::call);
@@ -433,7 +409,7 @@ fn add_stmt() {
         CondKw(Add),
         Int(0),
         CondKw(To),
-        Ident("A".to_string()),
+        Ident(ident("A")),
         Dot,
     ]
     .map(token);
@@ -523,7 +499,7 @@ fn if_multi_stmt_body() {
         CondKw(Add),
         Int(5),
         CondKw(To),
-        Ident("A".to_string()),
+        Ident(ident("A")),
         Dot,
         Please,
         End,
@@ -600,7 +576,7 @@ fn while_stmt_with_body() {
         CondKw(Add),
         Int(9),
         CondKw(To),
-        Ident("A".to_string()),
+        Ident(ident("A")),
         Dot,
         Please,
         End,
@@ -626,7 +602,7 @@ fn fn_decl_no_params_empty_body() {
     let tokens = [
         Create,
         Function,
-        Ident("void".to_string()),
+        Ident(ident("void")),
         CondKw(With),
         CondKw(No),
         CondKw(Parameters),
@@ -636,7 +612,7 @@ fn fn_decl_no_params_empty_body() {
         Please,
         End,
         Function,
-        Ident("void".to_string()),
+        Ident(ident("void")),
     ]
     .map(token);
     let parsed = parse(tokens, Parser::fn_decl);
@@ -649,11 +625,11 @@ fn fn_decl_single_param_emtpy_body() {
     let tokens = [
         Create,
         Function,
-        Ident("print".to_string()),
+        Ident(ident("print")),
         CondKw(With),
         CondKw(The),
         CondKw(Parameter),
-        Ident("_".to_string()),
+        Ident(ident("_")),
         As,
         Absent,
         CondKw(That),
@@ -662,7 +638,7 @@ fn fn_decl_single_param_emtpy_body() {
         Please,
         End,
         Function,
-        Ident("print".to_string()),
+        Ident(ident("print")),
     ]
     .map(token);
     let parsed = parse(tokens, Parser::fn_decl);
@@ -675,15 +651,15 @@ fn fn_decl_two_param_emtpy_body() {
     let tokens = [
         Create,
         Function,
-        Ident("add".to_string()),
+        Ident(ident("add")),
         CondKw(With),
         CondKw(The),
         CondKw(Parameters),
-        Ident("_".to_string()),
+        Ident(ident("_")),
         As,
         Absent,
         And,
-        Ident("_hi".to_string()),
+        Ident(ident("_hi")),
         As,
         Null,
         CondKw(That),
@@ -692,7 +668,7 @@ fn fn_decl_two_param_emtpy_body() {
         Please,
         End,
         Function,
-        Ident("add".to_string()),
+        Ident(ident("add")),
     ]
     .map(token);
     let parsed = parse(tokens, Parser::fn_decl);
@@ -705,19 +681,19 @@ fn fn_decl_three_param_with_body() {
     let tokens = [
         Create,
         Function,
-        Ident("add".to_string()),
+        Ident(ident("add")),
         CondKw(With),
         CondKw(The),
         CondKw(Parameters),
-        Ident("_".to_string()),
+        Ident(ident("_")),
         As,
         Absent,
         Comma,
-        Ident("a".to_string()),
+        Ident(ident("a")),
         As,
         NoValue,
         And,
-        Ident("_hi".to_string()),
+        Ident(ident("_hi")),
         As,
         Null,
         CondKw(That),
@@ -727,12 +703,12 @@ fn fn_decl_three_param_with_body() {
         CondKw(Add),
         Int(5),
         CondKw(To),
-        Ident("a".to_string()),
+        Ident(ident("a")),
         Dot,
         Please,
         End,
         Function,
-        Ident("add".to_string()),
+        Ident(ident("add")),
     ]
     .map(token);
     let parsed = parse(tokens, Parser::fn_decl);
@@ -768,7 +744,7 @@ fn cond_keyword_var_name() {
         Variable,
         CondKw(Add),
         As,
-        Ident("string".to_string()),
+        Ident(ident("string")),
         CondKw(With),
         CondKw(The),
         CondKw(Value),
@@ -786,7 +762,7 @@ fn structure_no_field() {
     let tokens = [
         Define,
         Structure,
-        Ident("Unit".to_string()),
+        Ident(ident("Unit")),
         CondKw(With),
         Please,
         End,
@@ -803,13 +779,13 @@ fn structure_single_field() {
     let tokens = [
         Define,
         Structure,
-        Ident("NonNullInt".to_string()),
+        Ident(ident("NonNullInt")),
         CondKw(With),
         CondKw(The),
         CondKw(Field),
-        Ident("inner".to_string()),
+        Ident(ident("inner")),
         As,
-        Ident("Integer".to_string()),
+        Ident(ident("Integer")),
         Please,
         End,
         Define,
@@ -825,19 +801,19 @@ fn structure_two_fields() {
     let tokens = [
         Define,
         Structure,
-        Ident("Person".to_string()),
+        Ident(ident("Person")),
         CondKw(With),
         CondKw(The),
         CondKw(Field),
-        Ident("name".to_string()),
+        Ident(ident("name")),
         As,
-        Ident("String".to_string()),
+        Ident(ident("String")),
         And,
         CondKw(The),
         CondKw(Field),
-        Ident("age".to_string()),
+        Ident(ident("age")),
         As,
-        Ident("Integer".to_string()),
+        Ident(ident("Integer")),
         Please,
         End,
         Define,
@@ -853,25 +829,25 @@ fn structure_three_fields() {
     let tokens = [
         Define,
         Structure,
-        Ident("Person".to_string()),
+        Ident(ident("Person")),
         CondKw(With),
         CondKw(The),
         CondKw(Field),
-        Ident("first_name".to_string()),
+        Ident(ident("first_name")),
         As,
-        Ident("String".to_string()),
+        Ident(ident("String")),
         Comma,
         CondKw(The),
         CondKw(Field),
-        Ident("last_name".to_string()),
+        Ident(ident("last_name")),
         As,
-        Ident("String".to_string()),
+        Ident(ident("String")),
         And,
         CondKw(The),
         CondKw(Field),
-        Ident("age".to_string()),
+        Ident(ident("age")),
         As,
-        Ident("Integer".to_string()),
+        Ident(ident("Integer")),
         Please,
         End,
         Define,
@@ -885,7 +861,7 @@ fn structure_three_fields() {
 #[test]
 fn structure_literal_no_fields() {
     let tokens = [
-        Ident("Unit".to_string()),
+        Ident(ident("Unit")),
         CondKw(With),
         CondKw(No),
         CondKw(Fields),
@@ -899,13 +875,13 @@ fn structure_literal_no_fields() {
 #[test]
 fn structure_literal_one_field() {
     let tokens = [
-        Ident("NonZeroInt".to_string()),
+        Ident(ident("NonZeroInt")),
         CondKw(With),
         CondKw(The),
         CondKw(Field),
         Int(3),
         As,
-        Ident("inner".to_string()),
+        Ident(ident("inner")),
     ]
     .map(token);
     let parsed = parse(tokens, Parser::struct_literal);
@@ -916,17 +892,17 @@ fn structure_literal_one_field() {
 #[test]
 fn structure_literal_two_fields() {
     let tokens = [
-        Ident("Person".to_string()),
+        Ident(ident("Person")),
         CondKw(With),
         CondKw(The),
         CondKw(Fields),
-        Ident("Hugo".to_string()),
+        Ident(ident("Hugo")),
         As,
-        Ident("name".to_string()),
+        Ident(ident("name")),
         And,
         Int(5),
         As,
-        Ident("age".to_string()),
+        Ident(ident("age")),
     ]
     .map(token);
     let parsed = parse(tokens, Parser::struct_literal);
@@ -937,21 +913,21 @@ fn structure_literal_two_fields() {
 #[test]
 fn structure_literal_three_fields() {
     let tokens = [
-        Ident("Person".to_string()),
+        Ident(ident("Person")),
         CondKw(With),
         CondKw(The),
         CondKw(Fields),
-        Ident("Hugo".to_string()),
+        Ident(ident("Hugo")),
         As,
-        Ident("first_name".to_string()),
+        Ident(ident("first_name")),
         Comma,
-        Ident("Boss".to_string()),
+        Ident(ident("Boss")),
         As,
-        Ident("first_name".to_string()),
+        Ident(ident("first_name")),
         And,
         Int(5),
         As,
-        Ident("age".to_string()),
+        Ident(ident("age")),
     ]
     .map(token);
     let parsed = parse(tokens, Parser::struct_literal);
