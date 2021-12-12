@@ -11,13 +11,16 @@ impl Vm {
     }
 
     pub fn add_global_functions(&mut self) {
+        let println = self.println();
+
+        let println_ident = self.ident("println");
+        let time_ident = self.ident("time");
+
         let mut env = (*self.current_env).borrow_mut();
         let vars = &mut env.vars;
 
-        let println = self.println();
-
-        vars.insert(self.ident("println"), println);
-        vars.insert(self.ident("time"), Self::time());
+        vars.insert(println_ident, println);
+        vars.insert(time_ident, Self::time());
     }
 
     //////// Native functions
@@ -35,10 +38,12 @@ impl Vm {
     }
 
     fn println_impl(&mut self) -> IResult {
+        let x_ident = self.ident("x");
+
         let env = (*self.current_env).borrow_mut();
 
         let value = env
-            .get_value(&self.ident("x"))
+            .get_value(&x_ident)
             .unwrap_or_else(|| unreachable!("did not find function parameter"));
 
         let mut stdout_lock = self.stdout.borrow_mut();
@@ -71,14 +76,14 @@ impl Vm {
 
         let now = time::SystemTime::now();
         let duration = now.duration_since(time::UNIX_EPOCH).map_err(|_| {
-        // note: i don't think this can even happen? but would be funny if it did
-        Interrupt::Error(InterpreterError::full(
-            Span::dummy(),
-            "Time is behind unix epoch".to_string(),
-            "You played with your computer time too much and should feel bad. I'm normally very polite, but this is too much. I try to be nice and all but you bring this to me.".to_string(),
-            "fix your time.".to_string()
-        ))
-     })?;
+            // note: i don't think this can even happen? but would be funny if it did
+            Interrupt::Error(InterpreterError::full(
+                Span::dummy(),
+                "Time is behind unix epoch".to_string(),
+                "You played with your computer time too much and should feel bad. I'm normally very polite, but this is too much. I try to be nice and all but you bring this to me.".to_string(),
+                "fix your time.".to_string()
+            ))
+        })?;
 
         Err(Interrupt::Return(Value::Int(duration.as_millis() as i64)))
     }

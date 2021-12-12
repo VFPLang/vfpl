@@ -27,7 +27,7 @@ impl Vm {
         self.env().insert(ident, value);
     }
 
-    fn env(&mut self) -> std::cell::RefMut<'_, Env> {
+    fn env(&self) -> std::cell::RefMut<'_, Env> {
         RefCell::borrow_mut(&self.current_env)
     }
 
