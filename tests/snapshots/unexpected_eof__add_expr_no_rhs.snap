@@ -10,5 +10,5 @@ error: Expected literal, found end of file
       |
 
 A literal is either absent, null, novalue, undefined, True, False, a number, a string or an identifier. Yours is neither of them.
-You could use a number literal with the value 3.
+You could use a number literal with the value 7.
 

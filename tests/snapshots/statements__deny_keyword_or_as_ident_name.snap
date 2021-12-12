@@ -10,5 +10,5 @@ error: Expected identifier, found keyword `or`
       |
 
 It's not a valid identifier, identifiers consist of letters, _, $ and maybe some numbers in between. For more info, search for `unicode xid` on the internet.
-You could use the identifier `memcpy`.
+You could use the identifier `x`.
 
