@@ -179,6 +179,21 @@ impl Vm {
             }
         }
     }
+
+    fn display_type_kind(&self, kind: &TyKind) -> String {
+        match kind {
+            TyKind::Any => "<Any>".to_string(),
+            TyKind::Name(name) => self.global_ctx.borrow().resolve_string(name).to_string(),
+            TyKind::Integer => "Integer".to_string(),
+            TyKind::Float => "Float".to_string(),
+            TyKind::Boolean => "Boolean".to_string(),
+            TyKind::String => "String".to_string(),
+            TyKind::Absent => "absent".to_string(),
+            TyKind::Null => "null".to_string(),
+            TyKind::NoValue => "novalue".to_string(),
+            TyKind::Undefined => "Undefined".to_string(),
+        }
+    }
 }
 
 impl FnImpl {

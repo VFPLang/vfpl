@@ -154,7 +154,7 @@ impl Vm {
                 Ok(EvalCallArg {
                     value: self.eval(&arg.expr)?,
                     span: arg.span,
-                    name: arg.name.clone().into(),
+                    name: arg.name,
                 })
             })
             .collect::<Result<Vec<_>, Interrupt>>()?;
@@ -381,7 +381,7 @@ impl Vm {
         let mut fields = HashMap::new();
 
         for field in &lit.fields {
-            fields.insert(field.name.clone().into(), self.eval(&field.expr)?);
+            fields.insert(field.name, self.eval(&field.expr)?);
         }
 
         Ok(Value::Struct(name, Rc::new(RefCell::new(fields))))
@@ -413,7 +413,7 @@ impl Vm {
     }
 
     fn dispatch_var_init(&mut self, init: &VarInit) -> IResult {
-        let name = init.name.name.clone().into();
+        let name = init.name.name;
         let value = self.eval(&init.init)?;
         let ty = &init.name.ty;
 
@@ -491,12 +491,12 @@ impl Vm {
             .params
             .params
             .iter()
-            .map(|typed_ident| (typed_ident.clone().name.into(), typed_ident.ty.kind.clone()))
+            .map(|typed_ident| (typed_ident.name, typed_ident.ty.kind.clone()))
             .collect::<Vec<_>>();
 
         let fn_value = Value::Fn(Rc::new(RefCell::new(RuntimeFn {
             params,
-            ret_ty: TyKind::Integer,
+            ret_ty: decl.fn_return.ty.kind.clone(),
             body: FnImpl::Custom(decl.body.clone()),
             captured_env: Rc::clone(&self.current_env),
         })));
@@ -547,9 +547,9 @@ impl Vm {
             _ => Err(InterpreterError::full(
                 span,
                 format!(
-                    "Type mismatch! {} is not assignable to {:?}",
+                    "Type mismatch! {} is not assignable to {}",
                     self.display_value_type(value),
-                    ty_kind
+                    self.display_type_kind(ty_kind)
                 ),
                 "This is a tricky one. Your value has the left type, but what I want you to provide here is the right one. I would love to accept your value, but that would violate the rules, and I am not allowed to do that. I'm very sorry for the inconveniences!".to_string(),
                     "require a different type, or provide me with another value of the correct type.".to_string()
