@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - "v*"
-  workflow_dispatch:
 
 
 jobs:
@@ -39,7 +38,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest, macos_arm]
+        os: [windows-latest, ubuntu-latest, macos-latest]
         include:
           - os: windows-latest
             extension: .exe
@@ -64,3 +63,4 @@ jobs:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: target/release/vfpl${{ matrix.extension }}
           asset_name: vfpl_${{ matrix.name }}${{ matrix.extension }}
+          asset_content_type: application/octet-stream
