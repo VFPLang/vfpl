@@ -91,7 +91,7 @@ impl Display for TokenKind {
             TokenKind::NoValue => f.write_str("keyword `novalue` )"),
             TokenKind::Not => f.write_str("keyword `not`"),
             TokenKind::Null => f.write_str("keyword `null`"),
-            TokenKind::Or => f.write_str("Keyword `or`"),
+            TokenKind::Or => f.write_str("keyword `or`"),
             TokenKind::Otherwise => f.write_str("keyword `otherwise`"),
             TokenKind::ParenClose => f.write_str("`)`"),
             TokenKind::ParenOpen => f.write_str("`(`"),

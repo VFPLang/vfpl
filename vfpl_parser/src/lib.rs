@@ -21,7 +21,7 @@ mod test;
 
 type ParseResult<T> = Result<T, ParseError>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Parser {
     tokens: PeekMoreIterator<vec::IntoIter<Token>>,
     depth: usize,
