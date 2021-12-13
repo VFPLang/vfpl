@@ -59,7 +59,7 @@ impl SpurCtx {
         Self { spur, global_ctx }
     }
 
-    fn spur(&self) -> Spur {
+    pub fn spur(&self) -> Spur {
         self.spur
     }
 }

@@ -6,7 +6,7 @@ use vfpl_ast::{
     VarInit, VarSet, While,
 };
 use vfpl_error::Span;
-use vfpl_global::Spur;
+use vfpl_global::SpurCtx;
 use vfpl_lexer::tokens::{CondKeyword as Ck, TokenKind};
 
 impl Parser {
@@ -249,13 +249,11 @@ impl Parser {
             let (close_name, end_span) = parser.ident()?;
 
             if fn_name != close_name {
-                let global_ctx = parser.global_ctx.borrow();
-
                 return Err(ParseError::full(
                     end_span,
                     format!(
                         "End name '{}' does not match function name '{}'",
-                        global_ctx.resolve_string(&close_name), global_ctx.resolve_string(&fn_name)
+                        close_name, fn_name
                     ),
                     "To ensure that you didn't mistype your function name, the name needs to be reapeated twice.".to_string(),
                     format!("look whether you mistyped the name here or on the creation above, and use the correction version in both places.\
@@ -284,13 +282,13 @@ impl Parser {
                 |typed_ident| typed_ident.span,
                 |next, parser| ParseError::full(
                     next.span,
-                    format!("Expected `parameter(s)`, found {}", parser.display_kind(&next.kind)),
+                    format!("Expected `parameter(s)`, found {}", next.kind),
                     "When creating a function, you need to specify the parameters a function takes. This is done using the `parameter` or `parameters` keyword.".to_string(),
                     "add the `parameter` keyword before this here. If you want to take multiple parameters (which is cool too!), you need to use `parameters` instead.".to_string()
                 ),
                 |next, parser| ParseError::full(
                     next.span,
-                    format!("Expected `the` or `no`, found {}", parser.display_kind(&next.kind)),
+                    format!("Expected `the` or `no`, found {}", &next.kind),
                     "If you don't want to take any parameters, then you need to say that you don't, and if you do you need to say that you do.".to_string(),
                     "add `no parameters` here, since I think that you don't want to take any paramters here.".to_string()
                 )
@@ -445,7 +443,7 @@ impl Parser {
                     next.span,
                     format!(
                         "Expected `argument(s)` after `the` in function call, got {}",
-                        parser.display_kind(&next.kind)
+                        next.kind
                     ),
                     "You want to call a function here. But to call a function, you need to specify the arguments you want to pass. I know a keyword just for that, called `argument`, or if you want multiple, `arguments`. It's pretty cool, check it out!".to_string(),
                     "add the cool keyword in there!".to_string()
@@ -454,7 +452,7 @@ impl Parser {
                     next.span,
                     format!(
                         "Expected `no` or `the` after `with` in function call, got {}",
-                       parser.display_kind(&next.kind)
+                       next.kind
                     ),
                     "You need to tell me the arguments you want to give to that function.".to_string(),
                     "either use `no arguments` if you don't want to give the poor function any, or `the argument`, `the arguments` if you are nice and want to the function to have some happy little arguments.".to_string()
@@ -490,7 +488,7 @@ impl Parser {
                 TokenKind::Undefined => TyKind::Undefined,
                 TokenKind::Ident(value) => {
                     let global_ctx = parser.global_ctx.borrow();
-                    let str = global_ctx.resolve_string(&value);
+                    let str = global_ctx.resolve_string(&value.spur());
                     match str {
                         "integer" => TyKind::Integer,
                         "float" => TyKind::Float,
@@ -502,7 +500,7 @@ impl Parser {
                 _ => {
                     return Err(ParseError::full(
                         token.span,
-                        format!("Expected type, found {}", parser.display_kind(&token.kind)),
+                        format!("Expected type, found {}", token.kind),
                         "If you come from a dynamic language like python or Javascript, this might be new to you, but in VFPL you have to annotate your functions and variables with types, that tell me what types the values have. Using this, I can give you better errors earlier.".to_string(),
                         "add the type `String` here to try it out!".to_string()
                     ))
@@ -704,7 +702,7 @@ impl Parser {
                 _ => {
                     return Err(ParseError::full(
                         token.span,
-                        format!("Expected literal, found {}", parser.display_kind(&token.kind)),
+                        format!("Expected literal, found {}", token.kind),
                         "A literal is either absent, null, novalue, undefined, True, False, a number, a string or an identifier. Yours is neither of them.".to_string(),
                         format!("use a number literal with the value {}.", vfpl_error::random_number(&parser.rng())),
                     ))
@@ -774,7 +772,7 @@ impl Parser {
         })
     }
 
-    pub fn ident(&mut self) -> ParseResult<(Spur, Span)> {
+    pub fn ident(&mut self) -> ParseResult<(SpurCtx, Span)> {
         self.parse_rule(|parser| {
             let next = parser.next();
 
@@ -782,11 +780,11 @@ impl Parser {
                 TokenKind::Ident(name) => Ok((name, next.span)),
                 TokenKind::CondKw(kw) => {
                     let mut global_ctx = parser.global_ctx.borrow_mut();
-                    Ok((kw.intern(&mut global_ctx), next.span))
+                    Ok((SpurCtx::new(kw.intern(&mut global_ctx), parser.global_ctx.clone()), next.span))
                 },
                 _ => Err(ParseError::full(
                     next.span,
-                    format!("Expected identifier, found {}", parser.display_kind(&next.kind)),
+                    format!("Expected identifier, found {}", next.kind),
                     "It's not a valid identifier, identifiers consist of letters, _, $ and maybe some numbers in between. For more info, search for `unicode xid` on the internet.".to_string(),
                     format!("use the identifier `{}`.", vfpl_error::random_ident(&parser.rng())),
                 ))

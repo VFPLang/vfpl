@@ -6,12 +6,6 @@ use vfpl_lexer::tokens::{CondKeyword, Token, TokenKind};
 impl Parser {
     const MAX_DEPTH: usize = 200;
 
-    pub fn display_kind(&self, kind: &TokenKind) -> String {
-        let global_ctx = self.global_ctx.borrow();
-
-        kind.display()
-    }
-
     pub fn rng(&self) -> Rng {
         self.global_ctx.borrow().sess().rng().clone()
     }

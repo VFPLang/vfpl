@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter};
 use vfpl_error::Span;
 use vfpl_global::{GlobalCtx, Spur, SpurCtx};
 
@@ -62,50 +63,50 @@ pub enum TokenKind {
     Eof,
 }
 
-impl TokenKind {
-    pub fn display(&self) -> String {
+impl Display for TokenKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            TokenKind::Absent => "keyword `absent`".to_string(),
-            TokenKind::And => "keyword `and`".to_string(),
-            TokenKind::As => "keyword `as`".to_string(),
-            TokenKind::Break => "keyword `break`".to_string(),
-            TokenKind::Call => "keyword `call`".to_string(),
-            TokenKind::Check => "keyword `check`".to_string(),
-            TokenKind::Comma => "`,`".to_string(),
-            TokenKind::CondKw(cond) => format!("keyword `{}`", cond.as_ref()),
-            TokenKind::Create => "keyword `create`".to_string(),
-            TokenKind::Define => "keyword `define`".to_string(),
-            TokenKind::Do => "keyword `do`".to_string(),
-            TokenKind::Dot => "`.`".to_string(),
-            TokenKind::End => "keyword `end`".to_string(),
-            TokenKind::Eof => "end of file".to_string(),
-            TokenKind::False => "keyword `false`".to_string(),
-            TokenKind::Float(value) => format!("`{}`", value),
-            TokenKind::Function => "keyword `function`".to_string(),
+            TokenKind::Absent => f.write_str("keyword `absent`"),
+            TokenKind::And => f.write_str("keyword `and`"),
+            TokenKind::As => f.write_str("keyword `as`"),
+            TokenKind::Break => f.write_str("keyword `break`"),
+            TokenKind::Call => f.write_str("keyword `call`"),
+            TokenKind::Check => f.write_str("keyword `check`"),
+            TokenKind::Comma => f.write_str("`,`"),
+            TokenKind::CondKw(cond) => write!(f, "keyword `{}`", cond.as_ref()),
+            TokenKind::Create => f.write_str("keyword `create`"),
+            TokenKind::Define => f.write_str("keyword `define`"),
+            TokenKind::Do => f.write_str("keyword `do`"),
+            TokenKind::Dot => f.write_str("`.`"),
+            TokenKind::End => f.write_str("keyword `end`"),
+            TokenKind::Eof => f.write_str("end of file"),
+            TokenKind::False => f.write_str("keyword `false`"),
+            TokenKind::Float(value) => write!(f, "`{}`", value),
+            TokenKind::Function => f.write_str("keyword `function`"),
             TokenKind::Ident(name) => {
-                format!("`{}`", name)
+                write!(f, "`{}`", name)
             }
-            TokenKind::Initialize => "keyword `initialize`".to_string(),
-            TokenKind::Int(value) => format!("`{}`", value),
-            TokenKind::NoValue => "keyword `novalue` )".to_string(),
-            TokenKind::Not => "keyword `not`".to_string(),
-            TokenKind::Null => "keyword `null`".to_string(),
-            TokenKind::Or => "keyword `or`".to_string(),
-            TokenKind::Otherwise => "keyword `otherwise`".to_string(),
-            TokenKind::ParenClose => "`)`".to_string(),
-            TokenKind::ParenOpen => "`(`".to_string(),
-            TokenKind::Please => "keyword `please`".to_string(),
-            TokenKind::Repeat => "keyword `repeat`".to_string(),
-            TokenKind::Return => "keyword `return`".to_string(),
-            TokenKind::String(value) => format!("`\"{}\"`", value),
-            TokenKind::Structure => "keyword `structure`".to_string(),
-            TokenKind::Then => "keyword `then`".to_string(),
-            TokenKind::This => "keyword `this`".to_string(),
-            TokenKind::True => "keyword `true`".to_string(),
-            TokenKind::Undefined => "keyword `undefined`".to_string(),
-            TokenKind::Variable => "keyword `variable`".to_string(),
-            TokenKind::Whether => "keyword `whether`".to_string(),
-            TokenKind::While => "keyword `while`".to_string(),
+            TokenKind::Initialize => f.write_str("keyword `initialize`"),
+            TokenKind::Int(value) => write!(f, "`{}`", value),
+            TokenKind::NoValue => f.write_str("keyword `novalue` )"),
+            TokenKind::Not => f.write_str("keyword `not`"),
+            TokenKind::Null => f.write_str("keyword `null`"),
+            TokenKind::Or => f.write_str("Keyword `or`"),
+            TokenKind::Otherwise => f.write_str("keyword `otherwise`"),
+            TokenKind::ParenClose => f.write_str("`)`"),
+            TokenKind::ParenOpen => f.write_str("`(`"),
+            TokenKind::Please => f.write_str("keyword `please`"),
+            TokenKind::Repeat => f.write_str("keyword `repeat`"),
+            TokenKind::Return => f.write_str("keyword `return`"),
+            TokenKind::String(value) => write!(f, "`\"{}\"`", value),
+            TokenKind::Structure => f.write_str("keyword `structure`"),
+            TokenKind::Then => f.write_str("keyword `then`"),
+            TokenKind::This => f.write_str("keyword `this`"),
+            TokenKind::True => f.write_str("keyword `true`"),
+            TokenKind::Undefined => f.write_str("keyword `undefined`"),
+            TokenKind::Variable => f.write_str("keyword `variable`"),
+            TokenKind::Whether => f.write_str("keyword `whether`"),
+            TokenKind::While => f.write_str("keyword `while`"),
         }
     }
 }
