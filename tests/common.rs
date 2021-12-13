@@ -1,24 +1,25 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-use vfpl::{Session, Vm};
+use vfpl::Vm;
+use vfpl_global::GlobalCtx;
 
 ///
 /// Runs a test case, asserts that it doesn't work and returns the output of the error formatting
 pub fn _err_test(code: &str) -> String {
-    let session = Session::test_session();
+    let global_ctx = GlobalCtx::test_ctx();
     let mut stderr = Vec::new();
 
-    match vfpl::lex(code, session.clone()) {
+    match vfpl::lex(code, global_ctx.clone()) {
         Err(err) => {
-            vfpl::display_error(code, err, &mut stderr, false, session).unwrap();
+            vfpl::display_error(code, err, &mut stderr, false, global_ctx).unwrap();
         }
-        Ok(tokens) => match vfpl::parse(tokens.into_iter(), session.clone()) {
+        Ok(tokens) => match vfpl::parse(tokens.into_iter(), global_ctx.clone()) {
             Err(err) => {
-                vfpl::display_error(code, err, &mut stderr, false, session).unwrap();
+                vfpl::display_error(code, err, &mut stderr, false, global_ctx).unwrap();
             }
-            Ok(ast) => match vfpl::run(&ast, session.clone()) {
+            Ok(ast) => match vfpl::run(&ast, global_ctx.clone()) {
                 Err(err) => {
-                    vfpl::display_error(code, err, &mut stderr, false, session).unwrap();
+                    vfpl::display_error(code, err, &mut stderr, false, global_ctx).unwrap();
                 }
                 Ok(_) => panic!("Program did not fail!"),
             },
@@ -33,16 +34,16 @@ pub fn _err_test(code: &str) -> String {
 ///
 /// Fails if there is an error
 pub fn _run_test(code: &str) -> String {
-    let session = Session::test_session();
+    let global_ctx = GlobalCtx::test_ctx();
 
-    let tokens = vfpl::lex(code, session.clone()).unwrap();
+    let tokens = vfpl::lex(code, global_ctx.clone()).unwrap();
 
-    let ast = vfpl::parse(tokens.into_iter(), session.clone()).unwrap();
+    let ast = vfpl::parse(tokens.into_iter(), global_ctx.clone()).unwrap();
 
     let stdout_vec = Rc::new(RefCell::new(Vec::new()));
 
     let stdout = Rc::clone(&stdout_vec);
-    let mut vm = Vm::with_stdout(stdout, session);
+    let mut vm = Vm::with_stdout(stdout, global_ctx);
     vm.run(&ast).unwrap();
 
     let cloned_vec = RefCell::borrow(&stdout_vec).clone();

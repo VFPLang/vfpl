@@ -1,5 +1,4 @@
 use fastrand::Rng;
-use std::rc::Rc;
 
 /// The global session object that stores everything about the VFPL invocation
 /// Every part of the interpreter has a reference to it
@@ -18,10 +17,10 @@ impl Session {
     }
 
     /// Only use this for testing
-    pub fn test_session() -> Rc<Self> {
-        Rc::new(Self {
+    pub fn test_session() -> Self {
+        Self {
             // "VFPL" in ASCII/UTF8
             rng: Rng::with_seed(0x56_46_50_4C),
-        })
+        }
     }
 }

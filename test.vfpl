@@ -1,13 +1,21 @@
-    please initialize variable Number as Integer with the value of 1.
+please create function my_print with the parameter to_print as Integer that returns novalue
+    please return novalue from the function.
+please end function my_print.
 
-    please repeat while Number is less or equal than 1000000 do
-        please check whether (take number modulo 15) has the value 0, then do
-        otherwise, check whether (take number modulo 5) has the value 0, then do
-        otherwise, check whether (take number modulo 3) has the value 0, then do
-        otherwise,
-        please end check.
+please initialize variable Number as Integer with the value of 1.
 
-        please set the variable Number to the value of (add 1 to Number).
-    please end while.
+please repeat while Number is less or equal than 100000 do
+    please check whether (take number modulo 15) has the value 0, then do
+        please call my_print with the argument 15 as to_print.
+    otherwise, check whether (take number modulo 5) has the value 0, then do
+        please call my_print with the argument 5 as to_print.
+    otherwise, check whether (take number modulo 3) has the value 0, then do
+        please call my_print with the argument 3 as to_print.
+    otherwise,
+        please call my_print with the argument Number as to_print.
+    please end check.
 
-    please go to sleep.
+    please set the variable Number to the value of (add 1 to Number).
+please end while.
+
+please go to sleep.

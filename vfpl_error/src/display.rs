@@ -1,10 +1,11 @@
 use crate::{CompilerError, Span};
 use fastrand::Rng;
+use std::cell::RefCell;
 use std::fmt::Debug;
 use std::io;
 use std::io::Write;
 use std::rc::Rc;
-use vfpl_global::Session;
+use vfpl_global::GlobalCtx;
 
 /// A wrapper around a color that is not Display
 struct ColorWrapper(&'static str);
@@ -24,13 +25,14 @@ pub fn display_error<E, W>(
     error: E,
     mut w: W,
     with_color: bool,
-    session: Rc<Session>,
+    global_ctx: Rc<RefCell<GlobalCtx>>,
 ) -> io::Result<()>
 where
     E: CompilerError + Debug,
     W: Write,
 {
-    let rng = session.rng();
+    let global_ctx = global_ctx.borrow();
+    let rng = global_ctx.sess().rng();
 
     let span = if error.span() == Span::eof() {
         // todo this should be handled better

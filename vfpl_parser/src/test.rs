@@ -1,11 +1,19 @@
 //// helpers
 
 use super::Parser;
+use peekmore::PeekMore;
 use vfpl_error::Span;
-use vfpl_global::Session;
+use vfpl_global::{GlobalCtx, SpurCtx};
 use vfpl_lexer::tokens::CondKeyword::*;
 use vfpl_lexer::tokens::TokenKind::*;
 use vfpl_lexer::tokens::{Token, TokenKind};
+
+impl Parser {
+    fn intern(&mut self, str: &str) -> SpurCtx {
+        let spur = self.global_ctx.borrow_mut().intern_string(str);
+        SpurCtx::new(spur, self.global_ctx.clone())
+    }
+}
 
 fn token(kind: TokenKind) -> Token {
     Token {
@@ -14,15 +22,20 @@ fn token(kind: TokenKind) -> Token {
     }
 }
 
+fn parser() -> Parser {
+    let parser = Parser::new(vec![].into_iter(), GlobalCtx::test_ctx());
+    parser
+}
+
 /// parses CondKw(The) tokens and appends an EOF token
-fn parse<T, F, R>(tokens: T, parse_rule_fn: F) -> R
+fn parse<T, F, R>(mut parser: Parser, tokens: T, parse_rule_fn: F) -> R
 where
     T: Into<Vec<Token>>,
     F: FnOnce(&mut Parser) -> R,
 {
     let mut vec = tokens.into();
     vec.push(Token::eof());
-    let mut parser = Parser::new(vec.into_iter(), Session::test_session());
+    parser.tokens = vec.into_iter().peekmore();
     parse_rule_fn(&mut parser)
 }
 
@@ -36,13 +49,15 @@ fn it_works() {
 
 #[test]
 fn single_string_literal() {
+    let parser = parser();
     let tokens = [String("string".to_string())].map(token);
-    let parsed = parse(tokens, Parser::literal);
+    let parsed = parse(parser, tokens, Parser::literal);
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn different_literals() {
+    let parser = parser();
     let literals = [
         [String("test".to_string())].map(token),
         [Int(425)].map(token),
@@ -55,79 +70,87 @@ fn different_literals() {
         [False].map(token),
     ];
 
-    let parsed = literals.map(|tokens| parse(tokens, Parser::literal));
+    let parsed = literals.map(|tokens| parse(parser.clone(), tokens, Parser::literal));
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn ident_ty() {
-    let tokens = [Ident("Test".to_string())].map(token);
-    let parsed = parse(tokens, Parser::ty);
+    let mut parser = parser();
+    let tokens = [Ident(parser.intern("Test"))].map(token);
+    let parsed = parse(parser, tokens, Parser::ty);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn nullable_ty() {
+    let parser = parser();
     let tys = [
         [Absent].map(token),
         [NoValue].map(token),
         [Null].map(token),
         [Undefined].map(token),
     ];
-    let parsed = tys.map(|tokens| parse(tokens, Parser::ty));
+    let parsed = tys.map(|tokens| parse(parser.clone(), tokens, Parser::ty));
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn other_tys() {
+    let mut parser = parser();
     let tys = [
-        [Ident("Boolean".to_string())].map(token),
-        [Ident("Integer".to_string())].map(token),
-        [Ident("String".to_string())].map(token),
-        [Ident("Float".to_string())].map(token),
+        [Ident(parser.intern("Boolean"))].map(token),
+        [Ident(parser.intern("Integer"))].map(token),
+        [Ident(parser.intern("String"))].map(token),
+        [Ident(parser.intern("Float"))].map(token),
     ];
-    let parsed = tys.map(|tokens| parse(tokens, Parser::ty));
+    let parsed = tys.map(|tokens| parse(parser.clone(), tokens, Parser::ty));
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn literal_call_expr() {
+    let parser = parser();
     let tokens = [String("string".to_string())].map(token);
-    let parsed = parse(tokens, Parser::call_expr);
+    let parsed = parse(parser, tokens, Parser::call_expr);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn literal_expr() {
+    let parser = parser();
     let tokens = [String("string".to_string())].map(token);
-    let parsed = parse(tokens, Parser::expr);
+    let parsed = parse(parser, tokens, Parser::expr);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn ident_literal() {
-    let tokens = [Ident("uwu".to_string())].map(token);
-    let parsed = parse(tokens, Parser::expr);
+    let mut parser = parser();
+    let tokens = [Ident(parser.intern("uwu"))].map(token);
+    let parsed = parse(parser, tokens, Parser::expr);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn ident_cond_keyword_literal() {
+    let parser = parser();
     let tokens = [CondKw(From)].map(token);
-    let parsed = parse(tokens, Parser::expr);
+    let parsed = parse(parser, tokens, Parser::expr);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn not_equal_expr() {
+    let parser = parser();
     let tokens = [
         Absent,
         CondKw(Does),
@@ -138,37 +161,41 @@ fn not_equal_expr() {
         Null,
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::expr);
+    let parsed = parse(parser, tokens, Parser::expr);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn equal_expr() {
+    let parser = parser();
     let tokens = [Absent, CondKw(Has), CondKw(The), CondKw(Value), Absent].map(token);
-    let parsed = parse(tokens, Parser::expr);
+    let parsed = parse(parser, tokens, Parser::expr);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn greater_than_expr() {
+    let parser = parser();
     let tokens = [Absent, CondKw(Is), CondKw(Greater), CondKw(Than), Undefined].map(token);
-    let parsed = parse(tokens, Parser::expr);
+    let parsed = parse(parser, tokens, Parser::expr);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn less_than_expr() {
+    let parser = parser();
     let tokens = [Absent, CondKw(Is), CondKw(Less), CondKw(Than), Undefined].map(token);
-    let parsed = parse(tokens, Parser::expr);
+    let parsed = parse(parser, tokens, Parser::expr);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn greater_equal_than_expr() {
+    let parser = parser();
     let tokens = [
         Absent,
         CondKw(Is),
@@ -179,13 +206,14 @@ fn greater_equal_than_expr() {
         Undefined,
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::expr);
+    let parsed = parse(parser, tokens, Parser::expr);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn less_equal_than_expr() {
+    let parser = parser();
     let tokens = [
         Absent,
         CondKw(Is),
@@ -196,27 +224,29 @@ fn less_equal_than_expr() {
         Undefined,
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::expr);
+    let parsed = parse(parser, tokens, Parser::expr);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn typed_ident_absent() {
-    let tokens = [Ident("name".to_string()), As, Absent].map(token);
-    let parsed = parse(tokens, Parser::typed_ident);
+    let mut parser = parser();
+    let tokens = [Ident(parser.intern("name")), As, Absent].map(token);
+    let parsed = parse(parser, tokens, Parser::typed_ident);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn init_variable_string() {
+    let mut parser = parser();
     let tokens = [
         Initialize,
         Variable,
-        Ident("name".to_string()),
+        Ident(parser.intern("name")),
         As,
-        Ident("string".to_string()),
+        Ident(parser.intern("string")),
         CondKw(With),
         CondKw(The),
         CondKw(Value),
@@ -224,18 +254,19 @@ fn init_variable_string() {
         String("Ferris".to_string()),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::var_init);
+    let parsed = parse(parser, tokens, Parser::var_init);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn set_variable_string() {
+    let mut parser = parser();
     let tokens = [
         CondKw(Set),
         CondKw(The),
         Variable,
-        Ident("name".to_string()),
+        Ident(parser.intern("name")),
         CondKw(To),
         CondKw(The),
         CondKw(Value),
@@ -243,83 +274,89 @@ fn set_variable_string() {
         String("Ferris".to_string()),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::var_set);
+    let parsed = parse(parser, tokens, Parser::var_set);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn add_number() {
+    let mut parser = parser();
     let tokens = [
         CondKw(Add),
         Int(0),
         CondKw(To),
-        Ident("counter".to_string()),
+        Ident(parser.intern("counter")),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::term);
+    let parsed = parse(parser, tokens, Parser::term);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn subtract_number() {
+    let mut parser = parser();
     let tokens = [
         CondKw(Sub),
         Int(1),
         CondKw(From),
-        Ident("counter".to_string()),
+        Ident(parser.intern("counter")),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::term);
+    let parsed = parse(parser, tokens, Parser::term);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn divide_number() {
+    let mut parser = parser();
     let tokens = [
         CondKw(Div),
-        Ident("counter".to_string()),
+        Ident(parser.intern("counter")),
         CondKw(By),
         Int(2),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::factor);
+    let parsed = parse(parser, tokens, Parser::factor);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn multiply_number() {
+    let mut parser = parser();
     let tokens = [
         CondKw(Mul),
-        Ident("counter".to_string()),
+        Ident(parser.intern("counter")),
         CondKw(With),
         Int(3),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::factor);
+    let parsed = parse(parser, tokens, Parser::factor);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn mod_number() {
+    let mut parser = parser();
     let tokens = [
         CondKw(Take),
-        Ident("counter".to_string()),
+        Ident(parser.intern("counter")),
         CondKw(Mod),
         Int(4),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::factor);
+    let parsed = parse(parser, tokens, Parser::factor);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn nested_add_number() {
+    let parser = parser();
     let tokens = [
         CondKw(Add),
         Int(5),
@@ -332,126 +369,134 @@ fn nested_add_number() {
         ParenClose,
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::term);
+    let parsed = parse(parser, tokens, Parser::term);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn terminate() {
+    let parser = parser();
     let tokens = [CondKw(Go), CondKw(To), CondKw(Sleep)].map(token);
-    let parsed = parse(tokens, Parser::terminate);
+    let parsed = parse(parser, tokens, Parser::terminate);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn call_no_args() {
+    let mut parser = parser();
     let tokens = [
         Call,
-        Ident("run".to_string()),
+        Ident(parser.intern("run")),
         CondKw(With),
         CondKw(No),
         CondKw(Arguments),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::call);
+    let parsed = parse(parser, tokens, Parser::call);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn call_single_arg() {
+    let mut parser = parser();
     let tokens = [
         Call,
-        Ident("print".to_string()),
+        Ident(parser.intern("print")),
         CondKw(With),
         CondKw(The),
         CondKw(Argument),
         Int(0),
         As,
-        Ident("printable".to_string()),
+        Ident(parser.intern("printable")),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::call);
+    let parsed = parse(parser, tokens, Parser::call);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn call_two_args() {
+    let mut parser = parser();
     let tokens = [
         Call,
-        Ident("add".to_string()),
+        Ident(parser.intern("add")),
         CondKw(With),
         CondKw(The),
         CondKw(Arguments),
         Int(2),
         As,
-        Ident("a".to_string()),
+        Ident(parser.intern("a")),
         And,
         Int(3),
         As,
-        Ident("b".to_string()),
+        Ident(parser.intern("b")),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::call);
+    let parsed = parse(parser, tokens, Parser::call);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn call_three_args() {
+    let mut parser = parser();
     let tokens = [
         Call,
-        Ident("ternary".to_string()),
+        Ident(parser.intern("ternary")),
         CondKw(With),
         CondKw(The),
         CondKw(Arguments),
         True,
         As,
-        Ident("cond".to_string()),
+        Ident(parser.intern("cond")),
         Comma,
         Int(0),
         As,
-        Ident("then".to_string()),
+        Ident(parser.intern("then")),
         And,
         Int(3),
         As,
-        Ident("else".to_string()),
+        Ident(parser.intern("else")),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::call);
+    let parsed = parse(parser, tokens, Parser::call);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn add_stmt() {
+    let mut parser = parser();
     let tokens = [
         Please,
         CondKw(Add),
         Int(0),
         CondKw(To),
-        Ident("A".to_string()),
+        Ident(parser.intern("A")),
         Dot,
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::stmt);
+    let parsed = parse(parser, tokens, Parser::stmt);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn if_empty_body_true_cond() {
+    let parser = parser();
     let tokens = [Check, Whether, True, Comma, Then, Do, Please, End, Check].map(token);
-    let parsed = parse(tokens, Parser::if_stmt);
+    let parsed = parse(parser, tokens, Parser::if_stmt);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn if_empty_body_complex_cond() {
+    let parser = parser();
     let tokens = [
         Check,
         Whether,
@@ -468,13 +513,14 @@ fn if_empty_body_complex_cond() {
         Check,
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::if_stmt);
+    let parsed = parse(parser, tokens, Parser::if_stmt);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn if_single_stmt_body() {
+    let parser = parser();
     let tokens = [
         Check,
         Whether,
@@ -496,13 +542,14 @@ fn if_single_stmt_body() {
         Check,
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::if_stmt);
+    let parsed = parse(parser, tokens, Parser::if_stmt);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn if_multi_stmt_body() {
+    let mut parser = parser();
     let tokens = [
         Check,
         Whether,
@@ -523,28 +570,30 @@ fn if_multi_stmt_body() {
         CondKw(Add),
         Int(5),
         CondKw(To),
-        Ident("A".to_string()),
+        Ident(parser.intern("A")),
         Dot,
         Please,
         End,
         Check,
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::if_stmt);
+    let parsed = parse(parser, tokens, Parser::if_stmt);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn return_number() {
+    let parser = parser();
     let tokens = [Return, Int(9), CondKw(From), CondKw(The), Function].map(token);
-    let parsed = parse(tokens, Parser::return_stmt);
+    let parsed = parse(parser, tokens, Parser::return_stmt);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn return_stmt() {
+    let parser = parser();
     let tokens = [
         Please,
         Return,
@@ -555,37 +604,41 @@ fn return_stmt() {
         Dot,
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::stmt);
+    let parsed = parse(parser, tokens, Parser::stmt);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn r#break() {
+    let parser = parser();
     let tokens = [Break, CondKw(Out), CondKw(Of), This, While].map(token);
-    let parsed = parse(tokens, Parser::break_stmt);
+    let parsed = parse(parser, tokens, Parser::break_stmt);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn break_stmt() {
+    let parser = parser();
     let tokens = [Please, Break, CondKw(Out), CondKw(Of), This, While, Dot].map(token);
-    let parsed = parse(tokens, Parser::stmt);
+    let parsed = parse(parser, tokens, Parser::stmt);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn while_loop_no_body() {
+    let parser = parser();
     let tokens = [Repeat, While, True, Do, Please, End, While].map(token);
-    let parsed = parse(tokens, Parser::while_stmt);
+    let parsed = parse(parser, tokens, Parser::while_stmt);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn while_stmt_with_body() {
+    let mut parser = parser();
     let tokens = [
         Please,
         Repeat,
@@ -600,7 +653,7 @@ fn while_stmt_with_body() {
         CondKw(Add),
         Int(9),
         CondKw(To),
-        Ident("A".to_string()),
+        Ident(parser.intern("A")),
         Dot,
         Please,
         End,
@@ -608,25 +661,27 @@ fn while_stmt_with_body() {
         Dot,
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::stmt);
+    let parsed = parse(parser, tokens, Parser::stmt);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn return_ty_absent() {
+    let parser = parser();
     let tokens = [CondKw(That), CondKw(Returns), Absent].map(token);
-    let parsed = parse(tokens, Parser::fn_return);
+    let parsed = parse(parser, tokens, Parser::fn_return);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn fn_decl_no_params_empty_body() {
+    let mut parser = parser();
     let tokens = [
         Create,
         Function,
-        Ident("void".to_string()),
+        Ident(parser.intern("void")),
         CondKw(With),
         CondKw(No),
         CondKw(Parameters),
@@ -636,24 +691,25 @@ fn fn_decl_no_params_empty_body() {
         Please,
         End,
         Function,
-        Ident("void".to_string()),
+        Ident(parser.intern("void")),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::fn_decl);
+    let parsed = parse(parser, tokens, Parser::fn_decl);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn fn_decl_single_param_emtpy_body() {
+    let mut parser = parser();
     let tokens = [
         Create,
         Function,
-        Ident("print".to_string()),
+        Ident(parser.intern("print")),
         CondKw(With),
         CondKw(The),
         CondKw(Parameter),
-        Ident("_".to_string()),
+        Ident(parser.intern("_")),
         As,
         Absent,
         CondKw(That),
@@ -662,28 +718,29 @@ fn fn_decl_single_param_emtpy_body() {
         Please,
         End,
         Function,
-        Ident("print".to_string()),
+        Ident(parser.intern("print")),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::fn_decl);
+    let parsed = parse(parser, tokens, Parser::fn_decl);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn fn_decl_two_param_emtpy_body() {
+    let mut parser = parser();
     let tokens = [
         Create,
         Function,
-        Ident("add".to_string()),
+        Ident(parser.intern("add")),
         CondKw(With),
         CondKw(The),
         CondKw(Parameters),
-        Ident("_".to_string()),
+        Ident(parser.intern("_")),
         As,
         Absent,
         And,
-        Ident("_hi".to_string()),
+        Ident(parser.intern("_hi")),
         As,
         Null,
         CondKw(That),
@@ -692,32 +749,33 @@ fn fn_decl_two_param_emtpy_body() {
         Please,
         End,
         Function,
-        Ident("add".to_string()),
+        Ident(parser.intern("add")),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::fn_decl);
+    let parsed = parse(parser, tokens, Parser::fn_decl);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn fn_decl_three_param_with_body() {
+    let mut parser = parser();
     let tokens = [
         Create,
         Function,
-        Ident("add".to_string()),
+        Ident(parser.intern("add")),
         CondKw(With),
         CondKw(The),
         CondKw(Parameters),
-        Ident("_".to_string()),
+        Ident(parser.intern("_")),
         As,
         Absent,
         Comma,
-        Ident("a".to_string()),
+        Ident(parser.intern("a")),
         As,
         NoValue,
         And,
-        Ident("_hi".to_string()),
+        Ident(parser.intern("_hi")),
         As,
         Null,
         CondKw(That),
@@ -727,21 +785,22 @@ fn fn_decl_three_param_with_body() {
         CondKw(Add),
         Int(5),
         CondKw(To),
-        Ident("a".to_string()),
+        Ident(parser.intern("a")),
         Dot,
         Please,
         End,
         Function,
-        Ident("add".to_string()),
+        Ident(parser.intern("add")),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::fn_decl);
+    let parsed = parse(parser, tokens, Parser::fn_decl);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn multiple_body_statements() {
+    let parser = parser();
     let tokens = [
         Please,
         CondKw(Add),
@@ -756,19 +815,20 @@ fn multiple_body_statements() {
         Dot,
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::body);
+    let parsed = parse(parser, tokens, Parser::body);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn cond_keyword_var_name() {
+    let mut parser = parser();
     let tokens = [
         Initialize,
         Variable,
         CondKw(Add),
         As,
-        Ident("string".to_string()),
+        Ident(parser.intern("string")),
         CondKw(With),
         CondKw(The),
         CondKw(Value),
@@ -776,185 +836,193 @@ fn cond_keyword_var_name() {
         String("Ferris".to_string()),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::var_init);
+    let parsed = parse(parser, tokens, Parser::var_init);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn structure_no_field() {
+    let mut parser = parser();
     let tokens = [
         Define,
         Structure,
-        Ident("Unit".to_string()),
+        Ident(parser.intern("Unit")),
         CondKw(With),
         Please,
         End,
         Define,
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::struct_decl);
+    let parsed = parse(parser, tokens, Parser::struct_decl);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn structure_single_field() {
+    let mut parser = parser();
     let tokens = [
         Define,
         Structure,
-        Ident("NonNullInt".to_string()),
+        Ident(parser.intern("NonNullInt")),
         CondKw(With),
         CondKw(The),
         CondKw(Field),
-        Ident("inner".to_string()),
+        Ident(parser.intern("inner")),
         As,
-        Ident("Integer".to_string()),
+        Ident(parser.intern("Integer")),
         Please,
         End,
         Define,
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::struct_decl);
+    let parsed = parse(parser, tokens, Parser::struct_decl);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn structure_two_fields() {
+    let mut parser = parser();
     let tokens = [
         Define,
         Structure,
-        Ident("Person".to_string()),
+        Ident(parser.intern("Person")),
         CondKw(With),
         CondKw(The),
         CondKw(Field),
-        Ident("name".to_string()),
+        Ident(parser.intern("name")),
         As,
-        Ident("String".to_string()),
+        Ident(parser.intern("String")),
         And,
         CondKw(The),
         CondKw(Field),
-        Ident("age".to_string()),
+        Ident(parser.intern("age")),
         As,
-        Ident("Integer".to_string()),
+        Ident(parser.intern("Integer")),
         Please,
         End,
         Define,
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::struct_decl);
+    let parsed = parse(parser, tokens, Parser::struct_decl);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn structure_three_fields() {
+    let mut parser = parser();
     let tokens = [
         Define,
         Structure,
-        Ident("Person".to_string()),
+        Ident(parser.intern("Person")),
         CondKw(With),
         CondKw(The),
         CondKw(Field),
-        Ident("first_name".to_string()),
+        Ident(parser.intern("first_name")),
         As,
-        Ident("String".to_string()),
+        Ident(parser.intern("String")),
         Comma,
         CondKw(The),
         CondKw(Field),
-        Ident("last_name".to_string()),
+        Ident(parser.intern("last_name")),
         As,
-        Ident("String".to_string()),
+        Ident(parser.intern("String")),
         And,
         CondKw(The),
         CondKw(Field),
-        Ident("age".to_string()),
+        Ident(parser.intern("age")),
         As,
-        Ident("Integer".to_string()),
+        Ident(parser.intern("Integer")),
         Please,
         End,
         Define,
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::struct_decl);
+    let parsed = parse(parser, tokens, Parser::struct_decl);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn structure_literal_no_fields() {
+    let mut parser = parser();
     let tokens = [
-        Ident("Unit".to_string()),
+        Ident(parser.intern("Unit")),
         CondKw(With),
         CondKw(No),
         CondKw(Fields),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::struct_literal);
+    let parsed = parse(parser, tokens, Parser::struct_literal);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn structure_literal_one_field() {
+    let mut parser = parser();
     let tokens = [
-        Ident("NonZeroInt".to_string()),
+        Ident(parser.intern("NonZeroInt")),
         CondKw(With),
         CondKw(The),
         CondKw(Field),
         Int(3),
         As,
-        Ident("inner".to_string()),
+        Ident(parser.intern("inner")),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::struct_literal);
+    let parsed = parse(parser, tokens, Parser::struct_literal);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn structure_literal_two_fields() {
+    let mut parser = parser();
     let tokens = [
-        Ident("Person".to_string()),
+        Ident(parser.intern("Person")),
         CondKw(With),
         CondKw(The),
         CondKw(Fields),
-        Ident("Hugo".to_string()),
+        Ident(parser.intern("Hugo")),
         As,
-        Ident("name".to_string()),
+        Ident(parser.intern("name")),
         And,
         Int(5),
         As,
-        Ident("age".to_string()),
+        Ident(parser.intern("age")),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::struct_literal);
+    let parsed = parse(parser, tokens, Parser::struct_literal);
 
     insta::assert_debug_snapshot!(parsed);
 }
 
 #[test]
 fn structure_literal_three_fields() {
+    let mut parser = parser();
     let tokens = [
-        Ident("Person".to_string()),
+        Ident(parser.intern("Person")),
         CondKw(With),
         CondKw(The),
         CondKw(Fields),
-        Ident("Hugo".to_string()),
+        Ident(parser.intern("Hugo")),
         As,
-        Ident("first_name".to_string()),
+        Ident(parser.intern("first_name")),
         Comma,
-        Ident("Boss".to_string()),
+        Ident(parser.intern("Boss")),
         As,
-        Ident("first_name".to_string()),
+        Ident(parser.intern("first_name")),
         And,
         Int(5),
         As,
-        Ident("age".to_string()),
+        Ident(parser.intern("age")),
     ]
     .map(token);
-    let parsed = parse(tokens, Parser::struct_literal);
+    let parsed = parse(parser, tokens, Parser::struct_literal);
 
     insta::assert_debug_snapshot!(parsed);
 }

@@ -1,11 +1,16 @@
 use crate::{ParseError, ParseResult, Parser};
+use fastrand::Rng;
 use vfpl_error::Span;
 use vfpl_lexer::tokens::{CondKeyword, Token, TokenKind};
 
 impl Parser {
     const MAX_DEPTH: usize = 200;
 
-    pub(super) fn parse_rule<F, R>(&mut self, f: F) -> ParseResult<R>
+    pub fn rng(&self) -> Rng {
+        self.global_ctx.borrow().sess().rng().clone()
+    }
+
+    pub fn parse_rule<F, R>(&mut self, f: F) -> ParseResult<R>
     where
         F: FnOnce(&mut Self) -> ParseResult<R>,
     {
@@ -17,7 +22,7 @@ impl Parser {
 
     /// Parses a list of things
     /// The signature got out of hand
-    pub(super) fn list<R>(
+    pub fn list<R>(
         &mut self,
         single_indicator: TokenKind,
         multi_indicator: TokenKind,
@@ -73,33 +78,33 @@ impl Parser {
     /// Returns the next token
     /// This panics if it doesn't have any more tokens, since the parser shouldn't advance
     /// more after it gets an EOF
-    pub(super) fn next(&mut self) -> Token {
+    pub fn next(&mut self) -> Token {
         self.tokens.next().expect("Stepped beyond EOF")
     }
 
     /// Returns peeked token
     /// This panics if it doesn't have any more tokens, since the parser shouldn't peek
     /// more after it gets an EOF
-    pub(super) fn peek(&mut self) -> &Token {
+    pub fn peek(&mut self) -> &Token {
         self.tokens.peek().expect("Peeked beyond EOF")
     }
 
     /// Won't panic if peeked beyond EOF
-    pub(super) fn maybe_peek_nth_kind(&mut self, n: usize) -> Option<&TokenKind> {
+    pub fn maybe_peek_nth_kind(&mut self, n: usize) -> Option<&TokenKind> {
         self.tokens.peek_nth(n).map(|token| &token.kind)
     }
 
     /// Returns the kind of a peeked token
     /// This panics if it doesn't have any more tokens, since the parser shouldn't peek
     /// more after it gets an EOF
-    pub(super) fn peek_kind(&mut self) -> &TokenKind {
+    pub fn peek_kind(&mut self) -> &TokenKind {
         &self.peek().kind
     }
 
     /// Returns the next token if it matches the expected kind
     /// This panics if it doesn't have any more tokens, since the parser shouldn't advance
     /// more after it gets an EOF
-    pub(super) fn try_consume_kind(&mut self, expected_kind: TokenKind) -> Option<Token> {
+    pub fn try_consume_kind(&mut self, expected_kind: TokenKind) -> Option<Token> {
         if self.peek_kind() == &expected_kind {
             Some(self.next())
         } else {
@@ -110,7 +115,7 @@ impl Parser {
     /// Returns the span of the next token, and an error if it doesn't match
     /// This panics if it doesn't have any more tokens, since the parser shouldn't advance
     /// more after it gets an EOF
-    pub(super) fn expect_kind(&mut self, expected_kind: TokenKind) -> ParseResult<Span> {
+    pub fn expect_kind(&mut self, expected_kind: TokenKind) -> ParseResult<Span> {
         let next = self.next();
         if next.kind == expected_kind {
             Ok(next.span)
@@ -124,7 +129,7 @@ impl Parser {
         }
     }
 
-    pub(super) fn expect_kinds<const N: usize>(
+    pub fn expect_kinds<const N: usize>(
         &mut self,
         expected_kinds: [TokenKind; N],
     ) -> ParseResult<()> {

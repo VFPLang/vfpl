@@ -5,21 +5,19 @@ use std::io::Write;
 use std::rc::Rc;
 use vfpl_ast::{Body, Program, TyKind};
 use vfpl_error::{CompilerError, Span, VfplError};
-use vfpl_global::Session;
+use vfpl_global::{GlobalCtx, SpurCtx};
 
 mod exec;
 mod native;
-#[cfg(test)]
-mod test;
 
 /// Runs the parsed program
-pub fn run(program: &Program, session: Rc<Session>) -> Result<(), VfplError> {
-    let mut vm = Vm::with_stdout(Rc::new(RefCell::new(std::io::stdout())), session);
+pub fn run(program: &Program, global_ctx: Rc<RefCell<GlobalCtx>>) -> Result<(), VfplError> {
+    let mut vm = Vm::with_stdout(Rc::new(RefCell::new(std::io::stdout())), global_ctx);
 
     vm.run(program)
 }
 
-type Ident = Rc<str>;
+type Ident = SpurCtx;
 
 type IResult = Result<(), Interrupt>;
 
@@ -33,7 +31,7 @@ pub struct Vm {
     call_stack: Vec<RcEnv>,
     recur_depth: usize,
     stdout: Rc<RefCell<dyn Write>>,
-    session: Rc<Session>,
+    global_ctx: Rc<RefCell<GlobalCtx>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -80,7 +78,7 @@ struct Env {
 }
 
 impl Env {
-    fn get_value(&self, ident: &str) -> Option<Value> {
+    fn get_value(&self, ident: &Ident) -> Option<Value> {
         self.vars.get(ident).cloned().or_else(|| {
             self.outer
                 .as_ref()
@@ -108,13 +106,13 @@ impl Env {
 }
 
 impl Vm {
-    pub fn with_stdout(stdout: Rc<RefCell<dyn Write>>, session: Rc<Session>) -> Self {
+    pub fn with_stdout(stdout: Rc<RefCell<dyn Write>>, global_ctx: Rc<RefCell<GlobalCtx>>) -> Self {
         Self {
             current_env: Rc::new(RefCell::new(Default::default())),
             call_stack: vec![],
             recur_depth: 0,
             stdout,
-            session,
+            global_ctx,
         }
     }
 
@@ -145,18 +143,26 @@ impl Debug for Vm {
 }
 
 impl Value {
-    fn display_type(&self) -> String {
-        match self {
-            Value::Absent => "absent".to_string(),
-            Value::Null => "null".to_string(),
-            Value::NoValue => "novalue".to_string(),
-            Value::Undefined => "undefined".to_string(),
-            Value::Bool(_) => "Boolean".to_string(),
-            Value::String(_) => "String".to_string(),
-            Value::Int(_) => "Integer".to_string(),
-            Value::Float(_) => "Float".to_string(),
-            Value::Fn { .. } => "Function".to_string(),
-            Value::Struct(name, _) => name.to_string(),
+    fn ty(&self) -> ValueType {
+        ValueType(self)
+    }
+}
+
+struct ValueType<'a>(&'a Value);
+
+impl Display for ValueType<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self.0 {
+            Value::Absent => f.write_str("absent"),
+            Value::Null => f.write_str("null"),
+            Value::NoValue => f.write_str("novalue"),
+            Value::Undefined => f.write_str("undefined"),
+            Value::Bool(_) => f.write_str("Boolean"),
+            Value::String(_) => f.write_str("String"),
+            Value::Int(_) => f.write_str("Integer"),
+            Value::Float(_) => f.write_str("Float"),
+            Value::Fn { .. } => f.write_str("Function"),
+            Value::Struct(name, _) => Display::fmt(name, f),
         }
     }
 }
@@ -176,7 +182,9 @@ impl Display for Value {
                 FnImpl::Native(_) => f.write_str("[native function]"),
                 FnImpl::Custom(_) => f.write_str("[function]"),
             },
-            Value::Struct(name, _) => write!(f, "[struct {}]", name),
+            Value::Struct(name, _) => {
+                write!(f, "[struct {}]", name)
+            }
         }
     }
 }
