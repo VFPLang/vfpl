@@ -1,7 +1,9 @@
+use std::cell::RefCell;
 use std::fmt::{Display, Formatter, Write};
 use vfpl_error::Span;
+use vfpl_global::SpurCtx;
 
-type Ident = vfpl_global::Spur;
+pub type Ident = SpurCtx;
 
 pub type Program = Body;
 

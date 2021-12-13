@@ -11,7 +11,7 @@ use crate::helper::compute_keyword;
 use crate::tokens::TokenKind;
 use tokens::Token;
 use vfpl_error::{CompilerError, Span, VfplError};
-use vfpl_global::GlobalCtx;
+use vfpl_global::{GlobalCtx, SpurCtx};
 
 mod helper;
 #[cfg(test)]
@@ -116,7 +116,7 @@ impl Lexer<'_> {
 
         let kind = compute_keyword(&identifier).unwrap_or_else(|| {
             let spur = self.global_ctx.borrow_mut().intern_string(identifier);
-            TokenKind::Ident(spur)
+            TokenKind::Ident(SpurCtx::new(spur, self.global_ctx.clone()))
         });
 
         Token::new_from_len(kind, idx, end)

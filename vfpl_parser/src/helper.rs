@@ -9,7 +9,7 @@ impl Parser {
     pub fn display_kind(&self, kind: &TokenKind) -> String {
         let global_ctx = self.global_ctx.borrow();
 
-        kind.display(&global_ctx)
+        kind.display()
     }
 
     pub fn rng(&self) -> Rng {

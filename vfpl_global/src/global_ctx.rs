@@ -1,7 +1,8 @@
 use crate::Session;
 use lasso::{Rodeo, Spur};
 use std::cell::RefCell;
-use std::fmt::{Debug, Formatter};
+use std::fmt::{Debug, Display, Formatter};
+use std::rc::Rc;
 
 pub struct GlobalCtx {
     intern: Rodeo,
@@ -46,3 +47,43 @@ impl Debug for GlobalCtx {
         f.write_str("[global context]")
     }
 }
+
+#[derive(Clone)]
+pub struct SpurCtx {
+    spur: Spur,
+    global_ctx: Rc<RefCell<GlobalCtx>>,
+}
+
+impl SpurCtx {
+    pub fn new(spur: Spur, global_ctx: Rc<RefCell<GlobalCtx>>) -> Self {
+        Self { spur, global_ctx }
+    }
+
+    fn spur(&self) -> Spur {
+        self.spur
+    }
+}
+
+impl PartialEq for SpurCtx {
+    fn eq(&self, other: &Self) -> bool {
+        self.spur == other.spur
+    }
+}
+
+impl Debug for SpurCtx {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let global_ctx = self.global_ctx.borrow();
+
+        Debug::fmt(global_ctx.resolve_string(&self.spur), f)
+    }
+}
+
+impl Display for SpurCtx {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let global_ctx = self.global_ctx.borrow();
+
+        Display::fmt(global_ctx.resolve_string(&self.spur), f)
+    }
+}
+
+impl Eq for SpurCtx {}

@@ -18,7 +18,7 @@ Ok(
                 end: 11,
             },
             kind: Ident(
-                Spur(1),
+                "hugo",
             ),
         },
         Token {

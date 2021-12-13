@@ -1,5 +1,5 @@
 use vfpl_error::Span;
-use vfpl_global::{GlobalCtx, Spur};
+use vfpl_global::{GlobalCtx, Spur, SpurCtx};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
@@ -7,11 +7,10 @@ pub struct Token {
     pub kind: TokenKind,
 }
 
-// todo: manual debug impl with a static testing context or something
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenKind {
     CondKw(CondKeyword),
-    Ident(Spur),
+    Ident(SpurCtx),
     // Keywords
     Absent,
     And,
@@ -64,7 +63,7 @@ pub enum TokenKind {
 }
 
 impl TokenKind {
-    pub fn display(&self, global_ctx: &GlobalCtx) -> String {
+    pub fn display(&self) -> String {
         match self {
             TokenKind::Absent => "keyword `absent`".to_string(),
             TokenKind::And => "keyword `and`".to_string(),
@@ -84,7 +83,7 @@ impl TokenKind {
             TokenKind::Float(value) => format!("`{}`", value),
             TokenKind::Function => "keyword `function`".to_string(),
             TokenKind::Ident(name) => {
-                format!("`{}`", global_ctx.resolve_string(name))
+                format!("`{}`", name)
             }
             TokenKind::Initialize => "keyword `initialize`".to_string(),
             TokenKind::Int(value) => format!("`{}`", value),
