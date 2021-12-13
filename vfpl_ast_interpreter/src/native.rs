@@ -3,11 +3,14 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use vfpl_ast::TyKind;
 use vfpl_error::Span;
-use vfpl_global::Spur;
+use vfpl_global::SpurCtx;
 
 impl Vm {
-    fn ident(&mut self, str: &str) -> Spur {
-        self.global_ctx.borrow_mut().intern_string(str)
+    fn ident(&mut self, str: &str) -> SpurCtx {
+        SpurCtx::new(
+            self.global_ctx.borrow_mut().intern_string(str),
+            self.global_ctx.clone(),
+        )
     }
 
     pub fn add_global_functions(&mut self) {
@@ -48,7 +51,7 @@ impl Vm {
 
         let mut stdout_lock = self.stdout.borrow_mut();
 
-        writeln!(stdout_lock, "{}", self.display_value(&value)).map_err(|err| {
+        writeln!(stdout_lock, "{}", value).map_err(|err| {
         Interrupt::Error(InterpreterError::full(
             Span::dummy(),
             format!("Failed to write to stdout: {}", err),

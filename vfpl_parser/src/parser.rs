@@ -280,13 +280,13 @@ impl Parser {
                 TokenKind::CondKw(Ck::Parameters),
                 Self::typed_ident,
                 |typed_ident| typed_ident.span,
-                |next, parser| ParseError::full(
+                |next| ParseError::full(
                     next.span,
                     format!("Expected `parameter(s)`, found {}", next.kind),
                     "When creating a function, you need to specify the parameters a function takes. This is done using the `parameter` or `parameters` keyword.".to_string(),
                     "add the `parameter` keyword before this here. If you want to take multiple parameters (which is cool too!), you need to use `parameters` instead.".to_string()
                 ),
-                |next, parser| ParseError::full(
+                |next| ParseError::full(
                     next.span,
                     format!("Expected `the` or `no`, found {}", &next.kind),
                     "If you don't want to take any parameters, then you need to say that you don't, and if you do you need to say that you do.".to_string(),
@@ -439,7 +439,7 @@ impl Parser {
                 TokenKind::CondKw(Ck::Arguments),
                 Self::value_ident,
                 |value_ident| value_ident.span,
-                |next, parser|ParseError::full(
+                |next|ParseError::full(
                     next.span,
                     format!(
                         "Expected `argument(s)` after `the` in function call, got {}",
@@ -448,7 +448,7 @@ impl Parser {
                     "You want to call a function here. But to call a function, you need to specify the arguments you want to pass. I know a keyword just for that, called `argument`, or if you want multiple, `arguments`. It's pretty cool, check it out!".to_string(),
                     "add the cool keyword in there!".to_string()
                 ),
-                |next ,parser| ParseError::full(
+                |next| ParseError::full(
                     next.span,
                     format!(
                         "Expected `no` or `the` after `with` in function call, got {}",
@@ -761,8 +761,8 @@ impl Parser {
                 TokenKind::CondKw(Ck::Fields),
                 Self::value_ident,
                 |value_ident| value_ident.span,
-                |_next, _| todo!(),
-                |_next, _| todo!(),
+                |_next| todo!(),
+                |_next| todo!(),
             )?;
 
             Ok(Literal {

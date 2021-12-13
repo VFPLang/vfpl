@@ -10,7 +10,7 @@ use vfpl_ast::{
     VarSet, While,
 };
 use vfpl_error::{random_number, Span};
-use vfpl_global::Spur;
+use vfpl_global::SpurCtx;
 
 impl Vm {
     pub(crate) fn start(&mut self, ast: &Program) -> IResult {
@@ -91,10 +91,7 @@ impl Vm {
         } else {
             return Err(InterpreterError::full(
                 call.span,
-                format!(
-                    "Variable is not a function: {}",
-                    self.global_ctx.borrow().resolve_string(&call.fn_name)
-                ),
+                format!("Variable is not a function: {}", call.fn_name),
                 "I'd love to call this variable like it was a function, but it's not.".to_string(),
                 "make the variable have the type function or not call it at all.".to_string(),
             )
@@ -154,7 +151,7 @@ impl Vm {
                 Ok(EvalCallArg {
                     value: self.eval(&arg.expr)?,
                     span: arg.span,
-                    name: arg.name,
+                    name: arg.name.clone(),
                 })
             })
             .collect::<Result<Vec<_>, Interrupt>>()?;
@@ -168,10 +165,7 @@ impl Vm {
                 if *param_name != arg.name {
                     return Err(Interrupt::Error(InterpreterError::full(
                         arg.span,
-                        format!(
-                            "Mismatched names: expected {}, got {}",
-                            self.global_ctx.borrow().resolve_string(param_name), self.global_ctx.borrow().resolve_string(&arg.name)
-                        ),
+                        format!("Mismatched names: expected {}, got {}", param_name, arg.name),
                         "You need to say the correct names for each argument, to make sure you didn't accidentally mix them up.".to_string(),
                         "specify the correct name instead, or check whether you mixed some arguments up. No problem if you did, it happens to all of us.".to_string()
                     )));
@@ -249,12 +243,7 @@ impl Vm {
             (comp_kind, lhs, rhs) => {
                 return Err(InterpreterError::full(
                     comp.span,
-                    format!(
-                        "Cannot compare {} and {} using `{}`",
-                        self.display_value_type(&lhs),
-                        self.display_value_type(&rhs),
-                        comp_kind
-                    ),
+                    format!("Cannot compare {} and {} using `{}`", lhs, rhs, comp_kind),
                     "I tried really hard trying to compare these two values, but I found no idea how to do it. They seem to be so different.".to_string(),
                     "use another comparison operation, or maybe use different values.".to_string()
                 )
@@ -286,10 +275,7 @@ impl Vm {
                     return Err(InterpreterError::full(
                         op.span,
                         format!(
-                            "Invalid arguments to addition. Cannot add {} to {}",
-                            self.display_value_type(&var),
-                            self.display_value_type(&new)
-                        ),
+                            "Invalid arguments to addition. Cannot add {} to {}", var, new),
                         "Addition is more complex than it seems. In VFPL, you can add numbers and strings, but only with each other.".to_string(),
                         "use something else, I don't think addition is what you want here.".to_string(),
                     )
@@ -305,10 +291,7 @@ impl Vm {
                     return Err(InterpreterError::full(
                         op.span,
                         format!(
-                            "Invalid arguments to subtraction. Cannot add {} to {}",
-                            self.display_value_type(&var),
-                            self.display_value_type(&new)
-                        ),
+                            "Invalid arguments to subtraction. Cannot add {} to {}", var, new),
                         "Subtraction is more complex than it seems. In VFPL, you can only subtract numbers from each other.".to_string(),
                         "use something else, I don't think subtraction is what you want here.".to_string(),
                     )
@@ -324,10 +307,7 @@ impl Vm {
                     return Err(InterpreterError::full(
                          op.span,
                         format!(
-                            "Invalid arguments to multiplication. Cannot add {} to {}",
-                            self.display_value_type(&var),
-                            self.display_value_type(&new)
-                        ),
+                            "Invalid arguments to multiplication. Cannot add {} to {}", var, new),
                          "Multiplication is more complex than it seems. In VFPL, you can only multiply numbers with each other.".to_string(),
                          "use something else, I don't think multiplication is what you want here.".to_string(),
                     )
@@ -343,10 +323,7 @@ impl Vm {
                     return Err(InterpreterError::full(
                         op.span,
                         format!(
-                            "Invalid arguments to division. Cannot add {} to {}",
-                            self.display_value_type(&var),
-                            self.display_value_type(&new)
-                        ),
+                            "Invalid arguments to division. Cannot add {} to {}", var, new),
                         "Division is more complex than it seems. In VFPL, you can only divide numbers by each other.".to_string(),
                         "use something else, I don't think division is what you want here.".to_string(),
                     )
@@ -362,10 +339,7 @@ impl Vm {
                     return Err(InterpreterError::full(
                         op.span,
                         format!(
-                            "Invalid arguments to modulo. Cannot take {} mod {}",
-                            self.display_value_type(&var),
-                            self.display_value_type(&new)
-                        ),
+                            "Invalid arguments to modulo. Cannot take {} mod {}", var, new),
                         "As you may have learned in school, modulo is an operation done on a number by an integer. If you haven't, no problem, I'll explain it quickly. Modulo divides the left hand side by the right hand side to make an integer and returns the reminder of that division.".to_string(),
                         "make the values have other types. Another option would be to use another operation instead of modulo, maybe addition works for your case".to_string()
                     )
@@ -376,12 +350,12 @@ impl Vm {
     }
 
     fn struct_literal(&mut self, lit: &StructLiteral) -> ValueResult {
-        let name = lit.name;
+        let name = lit.name.clone();
 
         let mut fields = HashMap::new();
 
         for field in &lit.fields {
-            fields.insert(field.name, self.eval(&field.expr)?);
+            fields.insert(field.name.clone(), self.eval(&field.expr)?);
         }
 
         Ok(Value::Struct(name, Rc::new(RefCell::new(fields))))
@@ -413,7 +387,7 @@ impl Vm {
     }
 
     fn dispatch_var_init(&mut self, init: &VarInit) -> IResult {
-        let name = init.name.name;
+        let name = init.name.name.clone();
         let value = self.eval(&init.init)?;
         let ty = &init.name.ty;
 
@@ -425,11 +399,11 @@ impl Vm {
     }
 
     fn dispatch_var_set(&mut self, set: &VarSet) -> IResult {
-        let name = set.name;
+        let name = set.name.clone();
         let value = self.eval(&set.expr)?;
 
         self.env().modify_var(
-            name,
+            name.clone(),
             |var| {
                 *var = value;
 
@@ -486,12 +460,12 @@ impl Vm {
     }
 
     fn dispatch_fn_decl(&mut self, decl: &FnDecl) -> IResult {
-        let name = decl.name;
+        let name = decl.name.clone();
         let params = decl
             .params
             .params
             .iter()
-            .map(|typed_ident| (typed_ident.name, typed_ident.ty.kind.clone()))
+            .map(|typed_ident| (typed_ident.name.clone(), typed_ident.ty.kind.clone()))
             .collect::<Vec<_>>();
 
         let fn_value = Value::Fn(Rc::new(RefCell::new(RuntimeFn {
@@ -548,8 +522,8 @@ impl Vm {
                 span,
                 format!(
                     "Type mismatch! {} is not assignable to {}",
-                    self.display_value_type(value),
-                    self.display_type_kind(ty_kind)
+                    value.ty(),
+                    ty_kind
                 ),
                 "This is a tricky one. Your value has the left type, but what I want you to provide here is the right one. I would love to accept your value, but that would violate the rules, and I am not allowed to do that. I'm very sorry for the inconveniences!".to_string(),
                     "require a different type, or provide me with another value of the correct type.".to_string()
@@ -558,13 +532,10 @@ impl Vm {
         }
     }
 
-    fn var_not_found(&self, span: Span, name: &Spur) -> Interrupt {
+    fn var_not_found(&self, span: Span, name: &SpurCtx) -> Interrupt {
         InterpreterError::full(
             span,
-            format!(
-                "Variable not found: {}",
-                self.global_ctx.borrow().resolve_string(name)
-            ),
+            format!("Variable not found: {}", name),
             "I searched really hard, but was not able to find it anywhere.".to_string(),
             "could check whether you made a typo. I'm sure you can do it!".to_string(),
         )

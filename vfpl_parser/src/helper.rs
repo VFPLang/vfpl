@@ -28,8 +28,8 @@ impl Parser {
         multi_indicator: TokenKind,
         mut single_parser: impl FnMut(&mut Parser) -> ParseResult<R>,
         mut get_span: impl FnMut(&R) -> Span,
-        inner_error: impl FnOnce(&Token, &Parser) -> ParseError,
-        outer_error: impl FnOnce(&Token, &Parser) -> ParseError,
+        inner_error: impl FnOnce(&Token) -> ParseError,
+        outer_error: impl FnOnce(&Token) -> ParseError,
     ) -> ParseResult<(Vec<R>, Span)> {
         self.parse_rule(|parser| {
             if let Some(token) = parser.try_consume_kind(TokenKind::CondKw(CondKeyword::No)) {
@@ -65,14 +65,12 @@ impl Parser {
 
                     Ok((values, the_token.span.extend(last_arg_span)))
                 } else {
-                    // thank you borrow checker
-                    let next = parser.peek().clone();
-                    Err(inner_error(&next, parser))
+                    let next = parser.peek();
+                    Err(inner_error(next))
                 }
             } else {
-                // thank you borrow checker
-                let next = parser.peek().clone();
-                Err(outer_error(&next, parser))
+                let next = parser.peek();
+                Err(outer_error(next))
             }
         })
     }
@@ -124,7 +122,7 @@ impl Parser {
         } else {
             Err(ParseError::full(
                 next.span,
-                format!("expected {}, found {}", self.display_kind(&expected_kind), self.display_kind(&next.kind)),
+                format!("expected {}, found {}", expected_kind, next.kind),
                 "Although I do know what the next token must be, I cannot just make the assumption and treat the next token like it was the token I want.".to_string(),
                 "replace the token with the one I expected.".to_string(),
             ))

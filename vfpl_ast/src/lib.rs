@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::fmt::{Display, Formatter, Write};
 use vfpl_error::Span;
 use vfpl_global::SpurCtx;
@@ -287,6 +286,23 @@ impl Display for ComparisonKind {
             ComparisonKind::Less => f.write_char('<'),
             ComparisonKind::GreaterEq => f.write_str(">="),
             ComparisonKind::LessEq => f.write_str("<="),
+        }
+    }
+}
+
+impl Display for TyKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TyKind::Any => f.write_str("<Any>"),
+            TyKind::Name(name) => Display::fmt(name, f),
+            TyKind::Integer => f.write_str("Integer"),
+            TyKind::Float => f.write_str("Float"),
+            TyKind::Boolean => f.write_str("Boolean"),
+            TyKind::String => f.write_str("String"),
+            TyKind::Absent => f.write_str("absent"),
+            TyKind::Null => f.write_str("null"),
+            TyKind::NoValue => f.write_str("novalue"),
+            TyKind::Undefined => f.write_str("Undefined"),
         }
     }
 }

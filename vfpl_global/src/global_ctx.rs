@@ -2,6 +2,7 @@ use crate::Session;
 use lasso::{Rodeo, Spur};
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
+use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 
 pub struct GlobalCtx {
@@ -70,6 +71,8 @@ impl PartialEq for SpurCtx {
     }
 }
 
+impl Eq for SpurCtx {}
+
 impl Debug for SpurCtx {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let global_ctx = self.global_ctx.borrow();
@@ -86,4 +89,8 @@ impl Display for SpurCtx {
     }
 }
 
-impl Eq for SpurCtx {}
+impl Hash for SpurCtx {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.spur.hash(state)
+    }
+}

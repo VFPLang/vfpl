@@ -5,7 +5,7 @@ use std::io::Write;
 use std::rc::Rc;
 use vfpl_ast::{Body, Program, TyKind};
 use vfpl_error::{CompilerError, Span, VfplError};
-use vfpl_global::{GlobalCtx, Spur};
+use vfpl_global::{GlobalCtx, SpurCtx};
 
 mod exec;
 mod native;
@@ -19,7 +19,7 @@ pub fn run(program: &Program, global_ctx: Rc<RefCell<GlobalCtx>>) -> Result<(), 
     vm.run(program)
 }
 
-type Ident = Spur;
+type Ident = SpurCtx;
 
 type IResult = Result<(), Interrupt>;
 
@@ -144,54 +144,49 @@ impl Debug for Vm {
     }
 }
 
-impl Vm {
-    fn display_value_type(&self, value: &Value) -> String {
-        match value {
-            Value::Absent => "absent".to_string(),
-            Value::Null => "null".to_string(),
-            Value::NoValue => "novalue".to_string(),
-            Value::Undefined => "undefined".to_string(),
-            Value::Bool(_) => "Boolean".to_string(),
-            Value::String(_) => "String".to_string(),
-            Value::Int(_) => "Integer".to_string(),
-            Value::Float(_) => "Float".to_string(),
-            Value::Fn { .. } => "Function".to_string(),
-            Value::Struct(name, _) => self.global_ctx.borrow().resolve_string(name).to_string(),
+impl Value {
+    fn ty(&self) -> ValueType {
+        ValueType(self)
+    }
+}
+
+struct ValueType<'a>(&'a Value);
+
+impl Display for ValueType<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self.0 {
+            Value::Absent => f.write_str("absent"),
+            Value::Null => f.write_str("null"),
+            Value::NoValue => f.write_str("novalue"),
+            Value::Undefined => f.write_str("undefined"),
+            Value::Bool(_) => f.write_str("Boolean"),
+            Value::String(_) => f.write_str("String"),
+            Value::Int(_) => f.write_str("Integer"),
+            Value::Float(_) => f.write_str("Float"),
+            Value::Fn { .. } => f.write_str("Function"),
+            Value::Struct(name, _) => Display::fmt(name, f),
         }
     }
+}
 
-    fn display_value(&self, value: &Value) -> String {
-        match value {
-            Value::Absent => "absent".to_string(),
-            Value::Null => "null".to_string(),
-            Value::NoValue => "novalue".to_string(),
-            Value::Undefined => "undefined".to_string(),
-            Value::Bool(value) => value.to_string(),
-            Value::String(value) => value.to_string(),
-            Value::Int(value) => value.to_string(),
-            Value::Float(value) => value.to_string(),
+impl Display for Value {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Value::Absent => f.write_str("absent"),
+            Value::Null => f.write_str("null"),
+            Value::NoValue => f.write_str("novalue"),
+            Value::Undefined => f.write_str("undefined"),
+            Value::Bool(value) => Display::fmt(value, f),
+            Value::String(value) => Display::fmt(value, f),
+            Value::Int(value) => Display::fmt(value, f),
+            Value::Float(value) => Display::fmt(value, f),
             Value::Fn(value) => match &value.borrow().body {
-                FnImpl::Native(_) => "[native function]".to_string(),
-                FnImpl::Custom(_) => "[function]".to_string(),
+                FnImpl::Native(_) => f.write_str("[native function]"),
+                FnImpl::Custom(_) => f.write_str("[function]"),
             },
             Value::Struct(name, _) => {
-                format!("[struct {}]", self.global_ctx.borrow().resolve_string(name))
+                write!(f, "[struct {}]", name)
             }
-        }
-    }
-
-    fn display_type_kind(&self, kind: &TyKind) -> String {
-        match kind {
-            TyKind::Any => "<Any>".to_string(),
-            TyKind::Name(name) => self.global_ctx.borrow().resolve_string(name).to_string(),
-            TyKind::Integer => "Integer".to_string(),
-            TyKind::Float => "Float".to_string(),
-            TyKind::Boolean => "Boolean".to_string(),
-            TyKind::String => "String".to_string(),
-            TyKind::Absent => "absent".to_string(),
-            TyKind::Null => "null".to_string(),
-            TyKind::NoValue => "novalue".to_string(),
-            TyKind::Undefined => "Undefined".to_string(),
         }
     }
 }
