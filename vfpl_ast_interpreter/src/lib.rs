@@ -9,8 +9,6 @@ use vfpl_global::{GlobalCtx, SpurCtx};
 
 mod exec;
 mod native;
-#[cfg(test)]
-mod test;
 
 /// Runs the parsed program
 pub fn run(program: &Program, global_ctx: Rc<RefCell<GlobalCtx>>) -> Result<(), VfplError> {
